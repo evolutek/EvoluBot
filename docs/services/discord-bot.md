@@ -1,11 +1,11 @@
 # Discord Bot
 
-Notre bot Discord est utilise par n8n pour interagir avec le serveur Evolutek.
+Notre bot Discord est utilisé par n8n pour interagir avec le serveur Evolutek.
 
 ## Ce qu'il fait
 
-- Lit la liste des membres et leurs roles
-- Envoie des messages dans des channels specifiques
+- Lit la liste des membres et leurs rôles
+- Envoie des messages dans des channels spécifiques
 - Retire (kick) des membres du serveur
 
 Il n'a **pas** d'interface : il agit uniquement via les workflows n8n.
@@ -14,26 +14,26 @@ Il n'a **pas** d'interface : il agit uniquement via les workflows n8n.
 
 | Permission | Pourquoi |
 |------------|----------|
-| `GUILD_MEMBERS` (intent privilegiee) | Lire la liste des membres |
-| `KICK_MEMBERS` | Retirer les membres expires |
+| `GUILD_MEMBERS` (intent privilégiée) | Lire la liste des membres |
+| `KICK_MEMBERS` | Retirer les membres expirés |
 | `SEND_MESSAGES` | Envoyer les messages de bienvenue et logs |
-| `VIEW_CHANNEL` | Voir les channels ou il doit ecrire |
+| `VIEW_CHANNEL` | Voir les channels où il doit écrire |
 
-> **Intent privilegiee** : `GUILD_MEMBERS` doit etre activee manuellement dans le [portail developpeur Discord](https://discord.com/developers/applications) > Bot > Privileged Gateway Intents.
+> **Intent privilégiée** : `GUILD_MEMBERS` doit être activée manuellement dans le [portail développeur Discord](https://discord.com/developers/applications) > Bot > Privileged Gateway Intents.
 
 ## Configuration dans n8n
 
-Le bot est configure comme credential **Discord Bot API** dans n8n. Il faut le Bot Token (disponible dans le portail developpeur).
+Le bot est configuré comme credential **Discord Bot API** dans n8n. Il faut le Bot Token (disponible dans le portail développeur).
 
-## Concepts cles de l'API Discord
+## Concepts clés de l'API Discord
 
-| Terme | Definition |
+| Terme | Définition |
 |-------|-----------|
-| **Guild** | Un serveur Discord (identifie par un ID numerique) |
-| **Member** | Un utilisateur dans un serveur specifique (avec ses roles dans ce serveur) |
-| **Role** | Un tag attribue a un membre (ex: "Inconnu", "Futur-membre", "Admin") |
-| **Channel** | Un salon textuel ou vocal (identifie par un ID) |
+| **Guild** | Un serveur Discord (identifié par un ID numérique) |
+| **Member** | Un utilisateur dans un serveur spécifique (avec ses rôles dans ce serveur) |
+| **Role** | Un tag attribué à un membre (ex: "Inconnu", "Futur-membre", "Admin") |
+| **Channel** | Un salon textuel ou vocal (identifié par un ID) |
 
 ## Rate limits
 
-L'API Discord limite le nombre de requetes par seconde. Pour les kicks, on espace les appels de 1.5s pour eviter d'etre bloque (erreur `429 Too Many Requests`).
+L'API Discord limite le nombre de requêtes par seconde. Pour les kicks, on espace les appels de 1.5s pour éviter d'être bloqué (erreur `429 Too Many Requests`).

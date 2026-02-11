@@ -2,26 +2,26 @@
 
 > Automatise l'accueil, le suivi et le retrait des nouveaux membres Discord.
 
-**Frequence** : Chaque lundi a 9h | **23 noeuds** | **3 branches paralleles**
+**Fréquence** : Chaque lundi à 9h | **23 noeuds** | **3 branches parallèles**
 
-## Le probleme
+## Le problème
 
-Avant ce workflow, l'accueil etait 100% manuel : reperer les nouveaux, ecrire un message, se souvenir de relancer, retirer les inactifs... Resultat : des oublis, des fantomes, ~30min/semaine de taches repetitives.
+Avant ce workflow, l'accueil était 100% manuel : repérer les nouveaux, écrire un message, se souvenir de relancer, retirer les inactifs... Résultat : des oublis, des fantômes, ~30min/semaine de tâches répétitives.
 
 ## La solution
 
-Chaque lundi a 9h, le workflow :
+Chaque lundi à 9h, le workflow :
 
-1. Recupere la liste des membres Discord + le tracking Google Sheets
+1. Récupère la liste des membres Discord + le tracking Google Sheets
 2. Croise les deux pour identifier 3 cas
 3. Agit automatiquement sur chaque cas
 
 ## Les 3 branches
 
-| Branche | Declencheur | Action | Details |
+| Branche | Déclencheur | Action | Détails |
 |---------|------------|--------|---------|
-| [Accueil](accueil.md) | Nouveau membre avec role "Inconnu" | Message de bienvenue + ajout au tracking | Max 20/semaine |
-| [Kick](kick.md) | Date limite depassee, toujours "Inconnu" | Retrait du serveur + log admin | Delai 4 semaines |
+| [Accueil](accueil.md) | Nouveau membre avec rôle "Inconnu" | Message de bienvenue + ajout au tracking | Max 20/semaine |
+| [Kick](kick.md) | Date limite dépassée, toujours "Inconnu" | Retrait du serveur + log admin | Délai 4 semaines |
 | [Nettoyage](nettoyage.md) | Membre parti ou devenu actif | Suppression du tracking + log admin | 2 sous-cas |
 
 ## Diagramme
@@ -38,9 +38,9 @@ graph LR
     A --> B3[Nettoyage]
 ```
 
-> Diagramme detaille de chaque branche dans leurs pages respectives.
+> Diagramme détaillé de chaque branche dans leurs pages respectives.
 
-## Services utilises
+## Services utilisés
 
 - [n8n](../../infra/n8n.md) - Orchestration
 - [Discord Bot](../../services/discord-bot.md) - Lecture membres, envoi messages, kick

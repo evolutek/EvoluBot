@@ -1,12 +1,12 @@
 # CellaCom - Documentation
 
-Documentation technique des automations d'Evolutek.
+Documentation technique des automatisations d'Evolutek.
 
 ## Infrastructure
 
 - [n8n](infra/n8n.md) - Notre plateforme d'automatisation
-- [Clever Cloud](infra/clever-cloud.md) - Hebergement
-- [Couts](infra/couts.md) - Combien ca coute
+- [Clever Cloud](infra/clever-cloud.md) - Hébergement
+- [Coûts](infra/couts.md) - Combien ça coûte
 
 ## Services externes
 

@@ -1,19 +1,24 @@
-# Couts
+# Coûts
 
-Cout mensuel total de la plateforme CellaCom.
+Coût mensuel de la plateforme CellaCom, hébergée sur [Clever Cloud](clever-cloud.md).
 
-## Detail
+## Coût réel : 0 EUR/mois
 
-| Poste | Cout/mois | Notes |
-|-------|-----------|-------|
-| n8n (logiciel) | 0 EUR | Open-source |
-| Clever Cloud (Node.js Nano) | ~3.60 EUR | Peut etre 0 EUR avec sponsoring etudiant |
-| Clever Cloud (PostgreSQL Dev) | 0 EUR | Addon gratuit (256 MB) |
-| Clever Cloud (FS Bucket) | 0 EUR | Addon gratuit |
-| Discord Bot | 0 EUR | Pas de limites pour une asso |
-| Google Sheets API | 0 EUR | Quotas largement suffisants (300 req/min) |
-| **Total** | **~3.60 EUR** | |
+LeCrabe travaille chez Clever Cloud, ce qui nous donne un accès gratuit. Le projet est encore en phase de développement, les coûts réels seront documentés ici une fois qu'on aura du recul sur l'usage en production.
 
-## Alternative SaaS
+## Services externes (gratuits)
 
-Si on ne voulait pas self-host, n8n Cloud couterait ~20 EUR/mois (plan Starter). Le self-hosting divise le cout par 5+.
+| Service | Pourquoi gratuit |
+|---------|------------------|
+| n8n (logiciel) | Open-source |
+| Discord Bot | API gratuite |
+| Google Sheets API | Quotas largement suffisants |
+
+## Scénarios futurs
+
+Quand le projet sortira de la phase gratuite (départ de LeCrabe de Clever Cloud ou migration sur serveur propre), voici les coûts à prévoir :
+
+| Scénario | Coût estimé | Notes |
+|----------|-------------|-------|
+| Rester sur Clever Cloud (sans accès gratuit) | ~5-15 EUR/mois | App pico/XS + PostgreSQL XXS |
+| Migration sur serveur de l'association | ~0 EUR/mois | Nécessite un serveur existant + maintenance |

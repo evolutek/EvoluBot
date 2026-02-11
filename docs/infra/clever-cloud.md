@@ -1,39 +1,59 @@
 # Clever Cloud
 
-[Clever Cloud](https://clever-cloud.com) est un PaaS francais (Platform as a Service) qui heberge notre instance n8n.
+[Clever Cloud](https://clever-cloud.com) est un PaaS français (Platform as a Service) qui héberge notre instance [n8n](n8n.md).
 
 ## Notre setup
 
-| Composant | Type | Role |
-|-----------|------|------|
-| App Node.js | Nano (512 MB) | Execute n8n |
-| PostgreSQL | Dev (256 MB) | Stocke les workflows et executions |
-| FS Bucket | Gratuit | Stocke les fichiers (credentials chiffrees, etc.) |
+| Composant | Plan | Specs | Rôle |
+|-----------|------|-------|------|
+| App Node.js & Bun | Autoscale pico → 3XL | 256 Mo à 32 Go RAM | Exécute [n8n](n8n.md) |
+| PostgreSQL | XXS Small Space | 512 Mo RAM, 1 Go stockage | Stocke l'état de n8n (workflows, exécutions, credentials) |
+| FS Bucket | Basic (gratuit) | 100 Mo | Stocke les fichiers persistants (clés de chiffrement) |
 
-## Deploiement
+Détails des coûts : voir [couts.md](couts.md).
+
+## Autoscaling
+
+Clever Cloud ajuste automatiquement la taille de l'app en fonction de la charge. C'est un **vertical scaling** : l'instance change de taille (plus de RAM/CPU), pas de nombre.
+
+### Comment ça marche
+
+```mermaid
+graph LR
+    A[pico<br/>256 Mo] -->|charge CPU| B[S ou M<br/>2-4 Go]
+    B -->|retour au calme| A
+```
+
+On configure une **plage** : taille min et max. Clever Cloud scale entre les deux.
+
+### Notre configuration
+
+```
+Taille min : pico (256 Mo, 1 vCPU)
+Taille max : 3XL (32 Go, 16 vCPU)
+Instances  : 1 à 4
+```
+
+> La plage est large pour ne pas bloquer n8n en cas de gros workflow. En pratique, l'app reste en pico/XS la grande majorité du temps.
+
+### Base de données : taille fixe, upgrade only
+
+La PostgreSQL tourne 24h/24 sur un plan fixe (pas d'autoscaling). On peut **augmenter** la taille du plan via la migration Clever Cloud, mais **pas la réduire** : pour descendre, il faut recréer une base plus petite et migrer les données. Mieux vaut donc commencer petit et scaler si besoin.
+
+## Déploiement
 
 ```bash
-# Premiere fois : lier le projet
+# Première fois : lier le projet
 clever link <APP_ID> --alias n8n
 
-# Deployer
+# Déployer
 clever deploy --alias n8n
 ```
 
-Les guides detailles sont dans [`n8n/deployment/`](../../n8n/deployment/).
+Les guides détaillés sont dans [`n8n/deployment/`](../../n8n/deployment/).
 
-## Pourquoi Clever Cloud
+## Pourquoi Clever Cloud (solution temporaire)
 
-- Hebergeur **francais** (donnees en France)
-- Tier gratuit suffisant pour une asso
-- Deploiement Git simple (`clever deploy`)
-- Addons PostgreSQL et stockage inclus
+LeCrabe travaille chez Clever Cloud, ce qui nous donne un accès **gratuit** à la plateforme. C'est pratique pour démarrer sans frais, mais c'est une solution **temporaire**.
 
-## A terme : self-hosting
-
-Clever Cloud est la solution actuelle, mais l'objectif est de migrer vers un hebergement **sur nos propres machines** (serveur de l'association). Cela permettra :
-- 0 EUR de frais d'hebergement
-- Controle total de l'infrastructure
-- Apprentissage sysadmin pour les membres
-
-La migration sera documentee ici quand elle aura lieu.
+L'objectif est de migrer vers un hébergement **sur nos propres machines** (serveur de l'association) pour ne dépendre de personne. La migration sera documentée ici quand elle aura lieu.

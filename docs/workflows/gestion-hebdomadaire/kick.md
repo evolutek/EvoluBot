@@ -1,51 +1,57 @@
-# Branche B : Kick des membres expires
+# Branche B : Kick des membres expirés
 
-Retire du serveur les membres qui n'ont pas complete les etapes dans le delai imparti.
+Retire du serveur les membres qui n'ont pas complété les étapes dans le délai imparti.
 
-## Condition de declenchement
+## Condition de déclenchement
 
 `nombreAKick > 0`
 
-Un membre est "a kicker" si :
-- Il est dans le Google Sheet (donc deja accueilli)
-- Sa `dateLimite` est depassee
-- Il a **toujours** le role "Inconnu" (n'a pas fait les etapes)
+Un membre est "à kicker" si :
+- Il est dans le Google Sheet (donc déjà accueilli)
+- Sa `dateLimite` est dépassée
+- Il a **toujours** le rôle "Inconnu" (n'a pas fait les étapes)
 
 ## Flux
 
-```
-A kicker? --oui--> Separer --> Kick API --> Retirer du Sheet --> Agreger --> Resume --> Log admin
+```mermaid
+graph LR
+    A[À kicker?] -->|oui| B[Séparer]
+    B --> C[Kick API]
+    C --> D[Retirer du Sheet]
+    D --> E[Agréger]
+    E --> F[Résumé]
+    F --> G[Log admin]
 ```
 
 ## Noeuds
 
-### 1. Separer membres (Code)
+### 1. Séparer membres (Code)
 
-Eclate la liste en items individuels (un par membre) pour traitement sequentiel.
+Éclate la liste en items individuels (un par membre) pour traitement séquentiel.
 
 ### 2. Kick (HTTP DELETE)
 
 Appel API Discord : `DELETE /guilds/{guild_id}/members/{user_id}`
 
-- **Batching** : 1 requete toutes les 1.5 secondes
-- Le membre est retire du serveur (il peut re-rejoindre via lien d'invitation)
+- **Batching** : 1 requête toutes les 1.5 secondes
+- Le membre est retiré du serveur (il peut re-rejoindre via lien d'invitation)
 
-> Le batching est crucial : l'API Discord a des [rate limits](../../services/discord-bot.md#rate-limits) stricts. Sans delai, on recoit une erreur `429 Too Many Requests`.
+> Le batching est crucial : l'API Discord a des [rate limits](../../services/discord-bot.md#rate-limits) stricts. Sans délai, on reçoit une erreur `429 Too Many Requests`.
 
 ### 3. Retirer du Sheet (Google Sheets - Delete)
 
 Supprime la ligne du tracking.
 
-### 4. Agreger + Resume + Log
+### 4. Agréger + Résumé + Log
 
-Regroupe les resultats, construit un message recapitulatif et l'envoie dans le **channel admin** (prive) :
+Regroupe les résultats, construit un message récapitulatif et l'envoie dans le channel **#log-cellacom** (privé, réservé aux admins) :
 
 ```
-⚠️ 3 membre(s) retire(s) du serveur (date limite depassee) :
+⚠️ 3 membre(s) retiré(s) du serveur (date limite dépassée) :
 • User1 (date limite : 2025-01-15)
 • User2 (date limite : 2025-01-15)
 ```
 
 ## Note importante
 
-Le membre n'est **pas** prevenu par DM avant le kick. Il a ete informe de la date limite dans le message de bienvenue public.
+Le membre n'est **pas** prévenu par DM avant le kick. Il a été informé de la date limite dans le message de bienvenue public.

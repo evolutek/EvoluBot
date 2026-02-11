@@ -1,51 +1,55 @@
 # Branche A : Accueil des nouveaux
 
-Detecte les membres avec le role "Inconnu" qui n'ont pas encore ete accueillis, leur envoie un message de bienvenue et les ajoute au tracking.
+Détecte les membres avec le rôle "Inconnu" qui n'ont pas encore été accueillis, leur envoie un message de bienvenue et les ajoute au tracking.
 
-## Condition de declenchement
+## Condition de déclenchement
 
 `nombreNouveaux > 0`
 
-Un membre est considere "nouveau" si :
-- Il a le role **Inconnu** sur Discord
+Un membre est considéré "nouveau" si :
+- Il a le rôle **Inconnu** sur Discord
 - Il n'est **pas** dans le Google Sheet de tracking
 - Il n'est **pas** un bot
 
 ## Flux
 
-```
-Nouveaux? --oui--> Construire message --> Envoyer sur Discord --> Preparer donnees --> Ajouter au Sheet
+```mermaid
+graph LR
+    A[Nouveaux?] -->|oui| B[Construire message]
+    B --> C[Envoyer sur Discord]
+    C --> D[Préparer données]
+    D --> E[Ajouter au Sheet]
 ```
 
 ## Noeuds
 
 ### 1. Construire message (Code)
 
-Genere un message de bienvenue **adaptatif** selon le nombre de nouveaux :
+Génère un message de bienvenue **adaptatif** selon le nombre de nouveaux :
 
-- **1 nouveau** : tutoiement ("tu es le nouveau", "ta presentation")
-- **Plusieurs** : vouvoiement ("vous etes les nouveaux", "votre presentation")
+- **1 nouveau** : tutoiement ("tu es le nouveau", "ta présentation")
+- **Plusieurs** : vouvoiement ("vous êtes les nouveaux", "votre présentation")
 
 Le message contient :
 - Mention(s) des nouveaux (`@user`)
-- Explication du role "Inconnu" et des etapes pour devenir "Futur-membre"
-- Les 2 etapes : presentation dans le channel dedie **ET** formulaire Google
+- Explication du rôle "Inconnu" et des étapes pour devenir "Futur-membre"
+- Les 2 étapes : présentation dans le channel dédié **ET** formulaire Google
 - La date limite (4 semaines)
-- Liens reseaux sociaux de l'association
+- Liens réseaux sociaux de l'association
 
 ### 2. Envoyer message (Discord)
 
-Poste le message dans le channel **#presentations**.
+Poste le message dans le channel **#présentations**.
 
-### 3. Preparer donnees sheet (Code)
+### 3. Préparer données sheet (Code)
 
 Formate chaque nouveau en ligne de spreadsheet :
 - `userId`, `username`, `dateAccueil` (aujourd'hui), `dateLimite` (+28 jours)
 
 ### 4. Ajouter au Sheet (Google Sheets - Append)
 
-Insere les lignes dans le [Sheet de tracking](../../services/google-sheets.md).
+Insère les lignes dans le [Sheet de tracking](../../services/google-sheets.md).
 
 ## Garde-fou
 
-- **Max 20 nouveaux par semaine** : si plus de 20 arrivent, les suivants sont reportes a la semaine d'apres (tries par date d'arrivee, les plus anciens d'abord)
+- **Max 20 nouveaux par semaine** : si plus de 20 arrivent, les suivants sont reportés à la semaine d'après (triés par date d'arrivée, les plus anciens d'abord). Cette limite évite de surcharger le channel **#présentations** avec un mur de mentions, et reste cohérente avec le rythme réel de l'association (~5-15 nouveaux/semaine en période de recrutement).
