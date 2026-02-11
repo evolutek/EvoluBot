@@ -21,15 +21,18 @@ Automation platform for the [Evolutek](https://music-music.music) robotics assoc
 
 ## Active Workflows
 
-| Workflow | Description |
-|----------|-------------|
-| CellaCom - Gestion hebdomadaire | Weekly management tasks |
-| Discord Welcome Bot | Welcome new members, assign roles, kick unknown users |
+| Workflow | Description | Docs |
+|----------|-------------|------|
+| CellaCom - Gestion hebdomadaire | Weekly Discord member onboarding, kick & cleanup | [docs](docs/workflows/gestion-hebdomadaire/) |
 
 ## Repository Structure
 
 ```
 cellacom/
+├── docs/                   # Technical documentation (DRY, atomized)
+│   ├── infra/              # n8n, Clever Cloud, costs
+│   ├── services/           # Discord bot, Google Sheets
+│   └── workflows/          # Per-workflow documentation
 ├── n8n/                    # n8n deployment config
 │   ├── deployment/         # Deployment guides (local, Clever Cloud)
 │   ├── package.json
