@@ -15,9 +15,21 @@ Google Drive est notre outil de travail collaboratif. Stocker le tracking dans u
 | Colonne | Type | Description |
 |---------|------|-------------|
 | `userId` | string | ID Discord du membre |
-| `username` | string | Nom d'affichage |
+| `username` | string | Username Discord réel (`user.username`, pas le display name) |
 | `dateAccueil` | date (ISO) | Date où le membre a été accueilli |
 | `dateLimite` | date (ISO) | Date limite pour compléter les étapes (accueil + 28j) |
+| `statut` | string | État du membre : `actif`, `kicked`, `parti`, `devenu_membre` |
+| `dateAction` | date (ISO) | Date du dernier changement de statut |
+
+### Soft delete et rétention
+
+Les lignes ne sont **jamais supprimées** immédiatement. Quand un membre est kické, part, ou devient membre actif, sa ligne est **marquée** avec le statut correspondant et la date de l'action. Cela permet :
+
+- **Traçabilité** : historique des passages de chaque membre
+- **Corrections** : un admin peut réactiver un membre marqué par erreur
+- **Rétention 24 semaines** : les lignes archivées sont purgées automatiquement après 24 semaines
+
+Seule la branche [Purge](../workflows/gestion-hebdomadaire/purge.md) supprime réellement des lignes, après expiration de la période de rétention.
 
 ## Configuration dans n8n
 

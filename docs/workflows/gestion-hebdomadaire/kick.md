@@ -1,13 +1,13 @@
 # Branche B : Kick des membres expirés
 
-Retire du serveur les membres qui n'ont pas complété les étapes dans le délai imparti.
+Retire du serveur les membres qui n'ont pas complété les étapes dans le délai imparti, et marque leur ligne dans le Sheet.
 
 ## Condition de déclenchement
 
 `nombreAKick > 0`
 
 Un membre est "à kicker" si :
-- Il est dans le Google Sheet (donc déjà accueilli)
+- Il est dans le Google Sheet avec `statut = actif`
 - Sa `dateLimite` est dépassée
 - Il a **toujours** le rôle "Inconnu" (n'a pas fait les étapes)
 
@@ -17,7 +17,7 @@ Un membre est "à kicker" si :
 graph LR
     A[À kicker?] -->|oui| B[Séparer]
     B --> C[Kick API]
-    C --> D[Retirer du Sheet]
+    C --> D[Marquer kicked]
     D --> E[Agréger]
     E --> F[Résumé]
     F --> G[Log admin]
@@ -38,9 +38,13 @@ Appel API Discord : `DELETE /guilds/{guild_id}/members/{user_id}`
 
 > Le batching est crucial : l'API Discord a des [rate limits](../../services/discord-bot.md#rate-limits) stricts. Sans délai, on reçoit une erreur `429 Too Many Requests`.
 
-### 3. Retirer du Sheet (Google Sheets - Delete)
+### 3. Marquer kicked dans Sheet (Google Sheets - Update)
 
-Supprime la ligne du tracking.
+Met à jour la ligne du membre (identifié par `userId`) :
+- `statut` → `kicked`
+- `dateAction` → date du jour
+
+La ligne n'est **pas supprimée** : elle reste dans le Sheet pour traçabilité pendant 24 semaines, puis est [purgée](purge.md) automatiquement.
 
 ### 4. Agréger + Résumé + Log
 

@@ -44,11 +44,11 @@ Poste le message dans le channel **#présentations**.
 ### 3. Préparer données sheet (Code)
 
 Formate chaque nouveau en ligne de spreadsheet :
-- `userId`, `username`, `dateAccueil` (aujourd'hui), `dateLimite` (+28 jours)
+- `userId`, `username` (username Discord réel), `dateAccueil` (aujourd'hui), `dateLimite` (+28 jours), `statut` (`actif`), `dateAction` (= dateAccueil)
 
 ### 4. Ajouter au Sheet (Google Sheets - Append)
 
-Insère les lignes dans le [Sheet de tracking](../../services/google-sheets.md).
+Insère les lignes dans le [Sheet de tracking](../../services/google-sheets.md) avec le statut `actif`.
 
 ## Garde-fou
 

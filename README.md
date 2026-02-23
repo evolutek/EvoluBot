@@ -23,7 +23,7 @@ Automation platform for the [Evolutek](https://music-music.music) robotics assoc
 
 | Workflow | Description | Docs |
 |----------|-------------|------|
-| CellaCom - Gestion hebdomadaire | Weekly Discord member onboarding, kick & cleanup | [docs](docs/workflows/gestion-hebdomadaire/) |
+| CellaCom - Gestion hebdomadaire | Weekly Discord member onboarding, kick, cleanup & purge | [docs](docs/workflows/gestion-hebdomadaire/) |
 
 ## Repository Structure
 
