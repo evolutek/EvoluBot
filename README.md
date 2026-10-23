@@ -1,70 +1,19 @@
 # CellaCom
 
-Automation platform for the [Evolutek](https://music-music.music) robotics association.
+Automatisation de l'association de robotique Evolutek.
 
-## Architecture
+CellaCom accueille l'**agent du club**, un agent [Hermes](https://github.com/NousResearch/hermes-agent) qui automatise le plus possible des tâches de l'association, d'abord sur le Discord du club. Rien n'est encore en place ; le suivi est dans l'epic [#7](https://github.com/evolutek/cellacom/issues/7).
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                      Clever Cloud                           │
-│  ┌───────────────────────────────────────────────────────┐  │
-│  │                        n8n                            │  │
-│  │   Triggers ─► Workflows ─► Actions (Discord, etc.)   │  │
-│  └───────────────────────────────────────────────────────┘  │
-│              │                                              │
-│  ┌───────────┴───────────┐  ┌─────────────────┐            │
-│  │      PostgreSQL       │  │    FS Bucket    │            │
-│  │        (data)         │  │     (files)     │            │
-│  └───────────────────────┘  └─────────────────┘            │
-└─────────────────────────────────────────────────────────────┘
-```
+| Document | Contenu |
+|---|---|
+| [docs/spec-agent-hermes.md](docs/spec-agent-hermes.md) | Socle, accès, missions et règles de comportement de l'agent |
+| [docs/securite-agent.md](docs/securite-agent.md) | Attaques possibles, couches de défense, critères de choix du système |
+| [docs/materiel-mini-pc.md](docs/materiel-mini-pc.md) | Machine qui fait tourner l'agent H24 |
+| [docs/decisions/](docs/decisions/) | Décisions d'architecture (ADR) |
+| [archive/n8n/](archive/n8n/) | Ancien bot n8n, décommissionné |
 
-## Active Workflows
+La présentation du projet aux membres est dans le vault du club, note *Association/Agent du club*.
 
-| Workflow | Description | Docs |
-|----------|-------------|------|
-| CellaCom - Gestion hebdomadaire | Weekly Discord member onboarding, kick, cleanup & purge | [docs](docs/workflows/gestion-hebdomadaire/) |
+## Licence
 
-## Repository Structure
-
-```
-cellacom/
-├── docs/                   # Technical documentation (DRY, atomized)
-│   ├── infra/              # n8n, Clever Cloud, costs
-│   ├── services/           # Discord bot, Google Sheets
-│   └── workflows/          # Per-workflow documentation
-├── n8n/                    # n8n deployment config
-│   ├── deployment/         # Deployment guides (local, Clever Cloud)
-│   ├── package.json
-│   └── bun.lock
-├── workflows/              # Exported workflow schemas (backup)
-└── README.md
-```
-
-## Deployment
-
-### n8n (Clever Cloud)
-
-```bash
-# Link (first time)
-clever link <APP_ID> --alias n8n
-
-# Deploy
-clever deploy --alias n8n
-```
-
-See [n8n/deployment/clever-cloud.md](n8n/deployment/clever-cloud.md).
-
-### Local Development
-
-```bash
-cd n8n
-bun install
-bun run start
-```
-
-See [n8n/deployment/local.md](n8n/deployment/local.md).
-
-## License
-
-MIT - Evolutek Association
+MIT - Association Evolutek
