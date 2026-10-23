@@ -43,7 +43,7 @@ Chaque mission est détaillée dans son issue ; ce tableau ne garde que son déc
 | Accueil des nouveaux (ancienne spec : [workflow n8n](../archive/n8n/docs/workflows/gestion-hebdomadaire/)) | Arrivée sur le serveur, cron hebdo | [#10](https://github.com/evolutek/cellacom/issues/10) |
 | Adhésion : de futur membre à membre (fiche, paiement, relances, retrait) | Passage au rôle Futur-membre, cron hebdo | [#21](https://github.com/evolutek/cellacom/issues/21) |
 | Rôles Discord d'après le formulaire | Réponse au formulaire | [#20](https://github.com/evolutek/cellacom/issues/20) |
-| Fichier des membres et fiches d'inscription | Réponse au formulaire, départ, cotisation | [#19](https://github.com/evolutek/cellacom/issues/19) |
+| Fichier des membres | Réponse au formulaire, départ, cotisation | [#19](https://github.com/evolutek/cellacom/issues/19) |
 | Récap hebdomadaire dans #info | Cron hebdo | [#11](https://github.com/evolutek/cellacom/issues/11) |
 | Événements depuis Google Agenda et annonces | Nouvel événement dans un calendrier du club | [#22](https://github.com/evolutek/cellacom/issues/22) |
 | Newsletter automatique | Cron | [#25](https://github.com/evolutek/cellacom/issues/25) |
