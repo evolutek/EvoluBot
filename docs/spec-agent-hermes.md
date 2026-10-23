@@ -41,15 +41,19 @@ Chaque mission est détaillée dans son issue ; ce tableau ne garde que son déc
 | Mission | Déclencheur | Issue |
 |---|---|---|
 | Accueil des nouveaux (ancienne spec : [workflow n8n](../archive/n8n/docs/workflows/gestion-hebdomadaire/)) | Arrivée sur le serveur, cron hebdo | [#10](https://github.com/evolutek/cellacom/issues/10) |
+| Adhésion : de futur membre à membre (fiche, paiement, relances, retrait) | Passage au rôle Futur-membre, cron hebdo | [#21](https://github.com/evolutek/cellacom/issues/21) |
 | Rôles Discord d'après le formulaire | Réponse au formulaire | [#20](https://github.com/evolutek/cellacom/issues/20) |
 | Fichier des membres et fiches d'inscription | Réponse au formulaire, départ, cotisation | [#19](https://github.com/evolutek/cellacom/issues/19) |
 | Récap hebdomadaire dans #info | Cron hebdo | [#11](https://github.com/evolutek/cellacom/issues/11) |
+| Événements depuis Google Agenda et annonces | Nouvel événement dans un calendrier du club | [#22](https://github.com/evolutek/cellacom/issues/22) |
+| Newsletter automatique | Cron | [#25](https://github.com/evolutek/cellacom/issues/25) |
 | Relance des conseils | Cron, rythme selon la deadline | [#12](https://github.com/evolutek/cellacom/issues/12) |
 | Réponses aux questions | Mention de l'agent | [#13](https://github.com/evolutek/cellacom/issues/13) |
 | Suivi des colis | Mail de commande ou de livraison | [#14](https://github.com/evolutek/cellacom/issues/14) |
 | Compta | Suit les colis | [#15](https://github.com/evolutek/cellacom/issues/15) |
 | Comptes rendus vocaux | Fin d'une réunion enregistrée | [#16](https://github.com/evolutek/cellacom/issues/16) |
 | Tenue du vault | Nouveau compte rendu, nouvelle information | [#17](https://github.com/evolutek/cellacom/issues/17) |
+| Pokédex du club | À définir | [#23](https://github.com/evolutek/cellacom/issues/23) |
 
 Une nouvelle mission devient une sous-issue de [#7](https://github.com/evolutek/cellacom/issues/7), puis une ligne de ce tableau.
 
