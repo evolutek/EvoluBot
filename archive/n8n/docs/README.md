@@ -1,5 +1,7 @@
 # CellaCom - Documentation
 
+> **Archivé.** Documentation de l'ancien bot n8n, décommissionné. Voir [l'archive](../README.md).
+
 Documentation technique des automatisations d'Evolutek.
 
 ## Infrastructure
