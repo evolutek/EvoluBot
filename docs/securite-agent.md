@@ -23,7 +23,7 @@ Chaque couche couvre l'échec de la précédente.
 
 Un conteneur n'est pas une machine virtuelle : il partage le noyau de l'hôte. Ce qui empêche Hermes de sortir de son conteneur pour accéder au reste de la machine, c'est le noyau et le runtime de conteneurs (runc, crun, Podman), donc des paquets de l'hôte. Les évasions de conteneur exploitent justement des failles de ces composants, par exemple [runc CVE-2024-21626](https://github.com/opencontainers/runc/security/advisories/GHSA-xr7r-f8xq-vfvv) (sévérité haute).
 
-Mettre l'agent en conteneur ne rend donc pas les mises à jour de l'hôte inutiles : il en fait la dernière barrière.
+Mettre l'agent en conteneur ne rend donc pas les mises à jour de l'hôte inutiles : il en fait la dernière barrière. Une veille des failles qui touchent la machine prévient quand une mise à jour ne peut pas attendre ([#24](https://github.com/evolutek/cellacom/issues/24)).
 
 ### Règles du conteneur
 
