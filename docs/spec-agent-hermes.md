@@ -9,7 +9,7 @@ Ce que l'agent du club fait, à quoi il a accès et ce qu'il n'a pas le droit de
 | Sujet | Choix | Issue |
 |---|---|---|
 | Agent | [Hermes Agent](https://github.com/NousResearch/hermes-agent) (Nous Research), décidé le 2026-10-14. Il remplace l'ancien bot n8n, [archivé](../archive/n8n/). | [#7](https://github.com/evolutek/cellacom/issues/7) |
-| Machine | Mini PC du club, H24 : [matériel](materiel-mini-pc.md), système dans l'[ADR-0001](decisions/0001-nixos-sur-le-mini-pc.md). | [#8](https://github.com/evolutek/cellacom/issues/8) |
+| Machine | `evo-serv1`, serveur du club sous NixOS, H24 : matériel, charge prévue et système dans [evolutek/infra](https://github.com/evolutek/infra). | [#8](https://github.com/evolutek/cellacom/issues/8) |
 | LLM | OmniRoute sur des offres gratuites, dans une instance dédiée au bot ; cluster GPU seulement si ces offres ne suffisent pas. | [#9](https://github.com/evolutek/cellacom/issues/9) |
 
 Briques de Hermes utilisées :
@@ -59,7 +59,7 @@ Une nouvelle mission devient une sous-issue de [#7](https://github.com/evolutek/
 
 ## Règles de comportement
 
-La protection de la machine elle-même (conteneur, rootless, correctifs de l'hôte) est dans [securite-agent.md](securite-agent.md).
+Les attaques possibles et les couches de défense sont dans [securite-agent.md](securite-agent.md) ; la protection de la machine elle-même (conteneur, rootless, correctifs de l'hôte), dans [evolutek/infra](https://github.com/evolutek/infra).
 
 - **Actions irréversibles.** Un kick, un retrait de rôle ou une modification du fichier des membres est tracé dans un salon de logs réservé aux admins. *Proposé :* un dernier avertissement avant tout kick, et une rétention avant toute suppression de ligne.
 - **Validation humaine.** Ce que l'agent publie au nom du club hors de Discord (vault, mails) est validé par un humain. *Proposé :* le récap #info aussi, le temps de valider le format.
