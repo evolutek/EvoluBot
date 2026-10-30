@@ -139,6 +139,8 @@ class Voie(threading.Thread):
         self.limites = Counter()
         self.erreurs = Counter()
         self.refus = Counter()
+        self.repos = {}
+        self.repos_suite = Counter()
         self.pause_suite = 0
         self.reussi_depuis_pause = True
 
@@ -162,7 +164,11 @@ class Voie(threading.Thread):
         rep = restants[0][0]
         fait = Counter(m for (m, _, r) in self.faits if r == rep)
         par_theme = Counter((m, theme) for (m, _, r), theme in self.faits.items() if r == rep)
-        possibles = [t for t in restants if not t[2]["juge"] or self.juges.libre(juge_de(t[1]))]
+        maintenant = time.time()
+        possibles = [
+            t for t in restants
+            if self.repos.get(t[1], 0) <= maintenant and (not t[2]["juge"] or self.juges.libre(juge_de(t[1])))
+        ]
         if not possibles:
             return rep, None, []
         # Least-served model and theme first, so that a shared quota spreads evenly over its models.
@@ -265,8 +271,12 @@ class Voie(threading.Thread):
                         self.limites[cle] += 1
                         if self.limites[cle] >= MAX_LIMITES_PAR_EPREUVE:
                             self.enregistrer(rep, modele, c, "impossible", raison="limite à chaque essai : " + texte[:150])
+                elif code in (401, 402, 403, 404) and re.search(r"retry_after|reset after", texte):
+                    # OmniRoute's upstream cooldown, not a refusal: rest this model only, its lane may share a quota.
+                    n = self.repos_suite[modele]
+                    self.repos[modele] = time.time() + min(PAUSE_MIN_S * 2 ** n, PAUSE_MAX_S)
+                    self.repos_suite[modele] = n + 1
                 elif code in (401, 402, 403, 404):
-                    # Spaced out by the lane's pauses: OmniRoute also answers 403 during a short upstream cooldown.
                     self.refus[modele] += 1
                     arret = f"{code} {texte[:150]}"
                     if self.refus[modele] >= MAX_REFUS_MODELE:
@@ -292,6 +302,7 @@ class Voie(threading.Thread):
                 latence_ms=r.get("latencyMs"), jetons=usage.get("total"), raison=(r.get("gradingResult") or {}).get("reason", "")[:300],
             )
             self.refus[modele] = 0
+            self.repos_suite[modele] = 0
             self.reussi_depuis_pause = True
             if c["juge"]:
                 self.juges.reussite(juge_de(modele))
@@ -304,7 +315,7 @@ class Voie(threading.Thread):
                 print(f"[{self.nom}] terminé", flush=True)
                 return
             if not lot:
-                self.pause(PAUSE_MIN_S, "en attente du juge")
+                self.pause(PAUSE_MIN_S, "en attente du juge ou d'un modèle au repos")
                 continue
             with self.places:
                 resultats, panne = self.lancer_lot(rep, modele, lot)
