@@ -54,6 +54,6 @@ Les guides détaillés sont dans [`n8n/deployment/`](../../n8n/deployment/).
 
 ## Pourquoi Clever Cloud (solution temporaire)
 
-LeCrabe travaille chez Clever Cloud, ce qui nous donne un accès **gratuit** à la plateforme. C'est pratique pour démarrer sans frais, mais c'est une solution **temporaire**.
+Un membre du club travaille chez Clever Cloud, ce qui nous donne un accès **gratuit** à la plateforme. C'est pratique pour démarrer sans frais, mais c'est une solution **temporaire**.
 
 L'objectif est de migrer vers un hébergement **sur nos propres machines** (serveur de l'association) pour ne dépendre de personne. La migration sera documentée ici quand elle aura lieu.
