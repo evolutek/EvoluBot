@@ -71,7 +71,7 @@ class OmniRoute {
       return { error: `BENCH_RESEAU ${role} ${e.message}` };
     }
     if (!reponse.ok) {
-      if ([401, 402, 403, 404, 429].includes(reponse.status)) limiteAtteinte[role] = true;
+      if ([401, 402, 403, 404, 429].includes(reponse.status) || reponse.status >= 500) limiteAtteinte[role] = true;
       return { error: `BENCH_HTTP ${role} ${reponse.status} ${texte.slice(0, 500)}` };
     }
 

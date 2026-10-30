@@ -271,11 +271,13 @@ class Voie(threading.Thread):
                         self.limites[cle] += 1
                         if self.limites[cle] >= MAX_LIMITES_PAR_EPREUVE:
                             self.enregistrer(rep, modele, c, "impossible", raison="limite à chaque essai : " + texte[:150])
-                elif code in (401, 402, 403, 404) and re.search(r"retry_after|reset after", texte):
+                elif (code in (401, 402, 403, 404) or code >= 500) and re.search(r"retry_after|reset after", texte):
                     # OmniRoute's upstream cooldown, not a refusal: rest this model only, its lane may share a quota.
                     n = self.repos_suite[modele]
-                    self.repos[modele] = time.time() + min(PAUSE_MIN_S * 2 ** n, PAUSE_MAX_S)
+                    attente = min(PAUSE_MIN_S * 2 ** n, PAUSE_MAX_S)
+                    self.repos[modele] = time.time() + attente
                     self.repos_suite[modele] = n + 1
+                    print(f"[{self.nom}] {modele} au repos {attente} s : {code} {texte[:120]}", flush=True)
                 elif code in (401, 402, 403, 404):
                     self.refus[modele] += 1
                     arret = f"{code} {texte[:150]}"

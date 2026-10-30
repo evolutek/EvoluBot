@@ -49,7 +49,7 @@ Une épreuve se termine dans l'un de ces états :
 | `impossible` | refusée pour de bon (prompt trop long, format non pris en charge) | 0 : le modèle ne sait pas le faire |
 | `erreur` | panne qui persiste après 3 essais | ignorée |
 
-Un modèle qui répond 401, 402, 403 ou 404 trois fois de suite est noté mort et écarté, sauf si OmniRoute annonce une remise à zéro (`retry_after`) : ce modèle se met alors au repos seul, sans retenir sa voie. Pour le retester, retirer sa ligne `modele_mort` du journal.
+Un modèle qui répond 401, 402, 403 ou 404 trois fois de suite est noté mort et écarté, sauf si OmniRoute annonce une remise à zéro (`retry_after`) : ce modèle se met alors au repos seul, sans retenir sa voie. Il en va de même pour une erreur 5xx avec remise à zéro annoncée. Pour le retester, retirer sa ligne `modele_mort` du journal.
 
 Les résultats vont dans `resultats/`, ou dans le dossier donné par `BENCH_RESULTATS`. Ils ne contiennent que des données fictives. `--repetitions N` rejoue tout N fois, une fois le passage précédent terminé partout ; `--voie NOM` limite le lancement à une voie.
 
