@@ -4,7 +4,7 @@ Coût mensuel de la plateforme CellaCom, hébergée sur [Clever Cloud](clever-cl
 
 ## Coût réel : 0 EUR/mois
 
-LeCrabe travaille chez Clever Cloud, ce qui nous donne un accès gratuit. Le projet est encore en phase de développement, les coûts réels seront documentés ici une fois qu'on aura du recul sur l'usage en production.
+Un membre du club travaille chez Clever Cloud, ce qui nous donne un accès gratuit. Le projet est encore en phase de développement, les coûts réels seront documentés ici une fois qu'on aura du recul sur l'usage en production.
 
 ## Services externes (gratuits)
 
@@ -16,7 +16,7 @@ LeCrabe travaille chez Clever Cloud, ce qui nous donne un accès gratuit. Le pro
 
 ## Scénarios futurs
 
-Quand le projet sortira de la phase gratuite (départ de LeCrabe de Clever Cloud ou migration sur serveur propre), voici les coûts à prévoir :
+Quand le projet sortira de la phase gratuite (départ de ce membre de Clever Cloud ou migration sur serveur propre), voici les coûts à prévoir :
 
 | Scénario | Coût estimé | Notes |
 |----------|-------------|-------|
