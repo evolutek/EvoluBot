@@ -1,0 +1,144 @@
+- description: D1 facile — accents et accord simple dans un rappel
+  metadata: { capacite: D1, niveau: facile }
+  vars:
+    message: "Corrige les fautes de ce message sans changer le sens ni le style. Réponds uniquement par le texte corrigé."
+    doc: "Salut a tous, la reunion du conseil est mardi a 19 h. N'oublier pas vos badge pour rentrer au local."
+  assert:
+    - type: icontains
+      value: "à tous"
+    - type: icontains
+      value: "réunion"
+    - type: icontains
+      value: "mardi à 19"
+    - type: regex
+      value: "N[’']oubliez pas"
+    - type: icontains
+      value: "vos badges"
+    - type: not-icontains
+      value: "N'oublier"
+
+- description: D1 facile — homophones grammaticaux
+  metadata: { capacite: D1, niveau: facile }
+  vars:
+    message: "Corrige les fautes de ce message sans changer le sens ni le style. Réponds uniquement par le texte corrigé."
+    doc: "Les membres qui on payer leur cotisation peuvent voter à l'AG. Ce qui ne l'ont pas encore fait doivent ce dépêcher, sa sera trop tard après."
+  assert:
+    - type: icontains
+      value: "qui ont payé"
+    - type: regex
+      value: "Ceux qui ne l[’']ont pas"
+    - type: icontains
+      value: "se dépêcher"
+    - type: regex
+      value: "[Çç]a sera"
+    - type: not-icontains
+      value: "ce dépêcher"
+
+- description: D1 moyen — accords du participe passé et du verbe
+  metadata: { capacite: D1, niveau: moyen }
+  vars:
+    message: "Corrige les fautes de ce message sans changer le sens ni le style. Réponds uniquement par le texte corrigé."
+    doc: "Les cartes que Dorian a commandé sont arrivés hier. Elles ont été testé ce matin et toutes marche. Les moteurs, quant à eux, semble défectueux : on les a renvoyé au fournisseur."
+  assert:
+    - type: icontains
+      value: "a commandées"
+    - type: icontains
+      value: "sont arrivées"
+    - type: icontains
+      value: "été testées"
+    - type: regex
+      value: "toutes (marchent|fonctionnent)"
+    - type: icontains
+      value: "semblent"
+    - type: icontains
+      value: "a renvoyés"
+    - type: llm-rubric
+      weight: 0.5
+      value: >-
+        Le texte corrigé garde exactement le sens, l'ordre et le ton de l'original ; seules les fautes sont
+        corrigées. Retire des points pour toute reformulation inutile, tout ajout (commentaire, liste des
+        corrections) ou toute faute restante.
+
+- description: D1 moyen — typographie française (espaces, ponctuation, guillemets)
+  metadata: { capacite: D1, niveau: moyen }
+  vars:
+    message: "Corrige la typographie de ce message selon les règles françaises (espaces avant et après la ponctuation, guillemets français, ponctuation doublée), sans rien changer d'autre. Réponds uniquement par le texte corrigé."
+    doc: "Attention: l'AG aura lieu le 26 novembre!Ordre du jour : bilan , budget ,élections .Le thème de l'année sera \"robots autonomes\".Venez nombreux!!"
+  assert:
+    - type: regex
+      value: "Attention[ \\u00a0\\u202f]:"
+    - type: regex
+      value: "novembre[ \\u00a0\\u202f]!"
+    - type: not-contains
+      value: " ,"
+    - type: not-contains
+      value: " ."
+    - type: not-contains
+      value: "!!"
+    - type: regex
+      value: "bilan, budget, élections\\."
+    - type: regex
+      value: "«[ \\u00a0\\u202f]?robots autonomes[ \\u00a0\\u202f]?»"
+    - type: not-contains
+      value: "\""
+
+- description: D1 difficile — fautes subtiles (quel que, censé, leur, davantage)
+  metadata: { capacite: D1, niveau: difficile }
+  vars:
+    message: "Corrige les fautes de ce message sans changer le sens ni le style. Réponds uniquement par le texte corrigé."
+    doc: "Quelque soit le résultat des tests, les robots que l'on a vu tourner hier sont sensé être prêt pour la Coupe. Nous leurs avons donné d'avantage de temps, mais il faudra qu'ils soient au point avant le 15 janvier, date à laquelle on devra s'inscrire."
+  assert:
+    - type: icontains
+      value: "Quel que soit"
+    - type: icontains
+      value: "a vus tourner"
+    - type: icontains
+      value: "censés"
+    - type: icontains
+      value: "prêts"
+    - type: icontains
+      value: "leur avons"
+    - type: icontains
+      value: "davantage de temps"
+    - type: regex
+      value: "qu[’']ils soient au point"
+    - type: llm-rubric
+      weight: 0.5
+      value: >-
+        Toutes les fautes sont corrigées (quel que soit, vus, censés, prêts, leur avons, davantage) et rien
+        d'autre n'est modifié : la phrase « il faudra qu'ils soient au point avant le 15 janvier, date à
+        laquelle on devra s'inscrire » était correcte et doit rester telle quelle. Retire des points par faute
+        restante et par modification d'un passage correct.
+
+- description: D1 difficile — ne pas sur-corriger des formes justes qui semblent fautives
+  metadata: { capacite: D1, niveau: difficile }
+  vars:
+    message: "Corrige uniquement les vraies fautes de ce message, sans changer le sens ni le style. Attention : certaines tournures paraissent fausses mais sont correctes. Réponds uniquement par le texte corrigé."
+    doc: "Chloé et Elsa se sont parlé hier soir. Après qu'il est parti, elles ont compté les heures qu'il a fallu pour souder la carte : trois heures et demie. Ci-joint la facture des deux capteur. Les quelques 40 € restants serviront pour les vis."
+  assert:
+    - type: icontains
+      value: "se sont parlé "
+    - type: regex
+      value: "Après qu[’']il est parti"
+    - type: regex
+      value: "les heures qu[’']il a fallu"
+    - type: icontains
+      value: "trois heures et demie"
+    - type: icontains
+      value: "Ci-joint la facture"
+    - type: icontains
+      value: "deux capteurs"
+    - type: icontains
+      value: "quelque 40"
+    - type: not-icontains
+      value: "se sont parlées"
+    - type: not-regex
+      value: "qu[’']il soit parti"
+    - type: llm-rubric
+      weight: 0.5
+      value: >-
+        Seules deux fautes devaient être corrigées : « deux capteur » → « deux capteurs » et « quelques 40 € »
+        → « quelque 40 € » (adverbe, invariable, au sens d'environ). Les formes « se sont parlé », « après
+        qu'il est parti », « les heures qu'il a fallu », « trois heures et demie » et « ci-joint la facture »
+        sont correctes et doivent être conservées. Retire des points par faute restante et par
+        sur-correction.

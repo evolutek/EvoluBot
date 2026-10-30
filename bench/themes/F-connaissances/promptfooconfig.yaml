@@ -1,0 +1,12 @@
+description: "F. Questions et connaissances"
+prompts:
+  - id: file://prompt.json
+    label: connaissances
+providers: file://../../providers.yaml
+defaultTest:
+  metadata:
+    theme: F
+  options:
+    provider: file://../../juge.yaml
+    disableVarExpansion: true
+tests: file://tests/*.yaml

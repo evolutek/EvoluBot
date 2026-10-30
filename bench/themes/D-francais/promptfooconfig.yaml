@@ -1,0 +1,12 @@
+description: "D. Français et rédaction"
+prompts:
+  - id: file://prompt.json
+    label: agent
+providers: file://../../providers.yaml
+defaultTest:
+  metadata:
+    theme: D
+  options:
+    provider: file://../../juge.yaml
+    disableVarExpansion: true
+tests: file://tests/*.yaml

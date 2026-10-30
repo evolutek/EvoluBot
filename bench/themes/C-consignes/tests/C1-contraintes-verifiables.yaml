@@ -1,0 +1,62 @@
+- description: C1 facile — exactement trois puces, rien d'autre
+  metadata: { capacite: C1, niveau: facile }
+  vars:
+    message: "Présente l'Atelier soudure du club en exactement 3 puces. N'écris rien d'autre que ces 3 puces : pas de titre, pas d'introduction, pas de conclusion."
+  assert:
+    - type: javascript
+      value: file://verif.js:contraintes
+      config: { puces: 3, seulementPuces: true, langue: fr }
+
+- description: C1 facile — une seule phrase, en anglais imposé
+  metadata: { capacite: C1, niveau: facile }
+  vars:
+    message: "Pour la page anglaise du site, explique en une seule phrase et uniquement en anglais ce qu'est le projet CanSat du club (un satellite dans une canette de soda)."
+  assert:
+    - type: javascript
+      value: file://verif.js:contraintes
+      config: { phrasesMax: 1, langue: en, motsMax: 45 }
+
+- description: C1 moyen — fourchette de mots, mot interdit, phrase finale imposée
+  metadata: { capacite: C1, niveau: moyen }
+  vars:
+    message: "Rédige un rappel pour l'assemblée générale du 26 novembre à 19 h. Contraintes : entre 50 et 80 mots, n'emploie jamais le mot « réunion », et termine exactement par la phrase « À bientôt au local ! »"
+  assert:
+    - type: javascript
+      value: file://verif.js:contraintes
+      config: { motsMin: 50, motsMax: 80, interdits: ["réunion", "réunions"], finitPar: "À bientôt au local !", obligatoires: ["26"] }
+
+- description: C1 moyen — demande en anglais, réponse imposée en français, liste numérotée sans majuscule
+  metadata: { capacite: C1, niveau: moyen }
+  vars:
+    system: "Tu es l'agent Discord de Mécanova, une association de robotique étudiante. Quelle que soit la langue du message, tu réponds toujours en français. Tu respectes à la lettre les consignes de forme."
+    message: "Hey! List exactly 4 things I should bring to the soldering workshop. Use a numbered list, each item under 8 words, and do not use a single uppercase letter anywhere in your answer. No intro, no outro."
+  assert:
+    - type: javascript
+      value: file://verif.js:contraintes
+      config: { puces: 4, pucesNumerotees: true, seulementPuces: true, motsParPuceMax: 7, minuscules: true, langue: fr }
+
+- description: C1 difficile — deux paragraphes aux débuts imposés, mots obligatoires et interdits, sans point d'exclamation
+  metadata: { capacite: C1, niveau: difficile }
+  vars:
+    message: "Explique à un nouveau comment accéder au local. Contraintes, toutes obligatoires : exactement 2 paragraphes séparés par une ligne vide ; le premier commence par « Accès : » et le second par « Horaires : » ; cite les mots « badge » et « bâtiment B » ; n'utilise ni le mot « salle » ni le mot « porte » ; aucun point d'exclamation ; 70 mots au maximum en tout ; pas de liste à puces."
+  assert:
+    - type: javascript
+      value: file://verif.js:contraintes
+      config:
+        paragraphes: 2
+        paragraphesCommencentPar: ["Accès :", "Horaires :"]
+        obligatoires: ["badge", "bâtiment B"]
+        interdits: ["salle", "salles", "porte", "portes"]
+        caracteresInterdits: ["!"]
+        motsMax: 70
+        puces: 0
+        langue: fr
+
+- description: C1 difficile — cinq noms en M, deux mots au plus, sous-chaîne interdite
+  metadata: { capacite: C1, niveau: difficile }
+  vars:
+    message: "Propose 5 noms pour le nouveau robot du Mini-Rover. Règles : une liste à puces de 5 lignes et rien d'autre (aucun texte avant ni après) ; chaque nom commence par la lettre M ; aucun nom ne dépasse 2 mots ; aucun nom ne contient la suite de lettres « bot », même à l'intérieur d'un mot (donc ni « robot » ni « Mécabot ») ; pas d'explication à côté des noms."
+  assert:
+    - type: javascript
+      value: file://verif.js:contraintes
+      config: { puces: 5, seulementPuces: true, pucesCommencentPar: "M", motsParPuceMax: 2, interditsSousChaine: ["bot"] }

@@ -1,0 +1,96 @@
+# Images drawn by fixtures/J/generer.py.
+- description: J2 facile — courant dans une LED
+  metadata: { capacite: J2, niveau: facile }
+  vars:
+    image: file://../../fixtures/J/schema-led.png
+    message: "D'après ce schéma, quel courant traverse la LED ? Montre le calcul et termine par une ligne « RÉPONSE : <courant en mA> »."
+    controle:
+      juste: [['13[,.][56]\d* ?mA', '14 ?mA']]
+  assert:
+    - type: javascript
+      value: file://verif.js:reponse
+
+- description: J2 facile — tension d'un pont diviseur
+  metadata: { capacite: J2, niveau: facile }
+  vars:
+    image: file://../../fixtures/J/schema-diviseur.png
+    message: "Avec ce schéma, quelle tension lit l'ADC quand VBAT vaut 12 V ? Termine par une ligne « RÉPONSE : <tension en V> »."
+    controle:
+      juste: [['2[,.]9[78]', '3[,.]0 ?V']]
+  assert:
+    - type: javascript
+      value: file://verif.js:reponse
+
+- description: J2 moyen — diviseur dangereux à pleine charge
+  metadata: { capacite: J2, niveau: moyen }
+  vars:
+    image: file://../../fixtures/J/schema-diviseur.png
+    message: "La batterie est un pack LiPo 4S. Ce montage est-il sûr pour l'entrée ADC quand le pack est plein ? Si non, quelle valeur normalisée de R2 proposes-tu en gardant R1 ? Donne les tensions calculées."
+    controle:
+      faits:
+        - '16[,.]8'
+        - '4[,.]1[67]'
+        - ['non', 'dangereu', 'depasse', 'trop', 'pas sur', 'risque']
+        - ['2[,.]2 ?k', '2k2', '2[,.]0 ?k', '1[,.]8 ?k', '2[,.]4 ?k']
+  assert:
+    - type: javascript
+      value: file://verif.js:faits
+    - type: llm-rubric
+      value: |
+        Attendu : à 16,8 V (4 × 4,2 V), le diviseur 10 kΩ / 3,3 kΩ donne 16,8 × 3,3 / 13,3 ≈ 4,17 V, au-dessus des 3,3 V tolérés par l'ADC :
+        le montage n'est pas sûr. R2 doit valoir au plus 10 × 3,3 / (16,8 − 3,3) ≈ 2,44 kΩ ; une valeur normalisée comme 2,2 kΩ (≈ 3,03 V) convient,
+        2,4 kΩ aussi si la marge est discutée. Échoue si la réponse juge le montage sûr, se trompe de tension pleine charge ou propose un R2 qui laisse
+        dépasser 3,3 V.
+
+- description: J2 moyen — sens de rotation dans un pont en H
+  metadata: { capacite: J2, niveau: moyen }
+  vars:
+    image: file://../../fixtures/J/schema-pont-h.png
+    message: "Sur ce pont en H, quels transistors faut-il fermer pour que le courant traverse M1 du point A vers le point B, et lesquels pour l'autre sens ? Termine par une ligne « RÉPONSE : A→B : <transistors> ; B→A : <transistors> »."
+    controle:
+      juste: ['A ?(→|->|vers) ?B ?:[^;]*Q1[^;]*Q4|A ?(→|->|vers) ?B ?:[^;]*Q4[^;]*Q1', 'B ?(→|->|vers) ?A ?:.*(Q2.*Q3|Q3.*Q2)']
+  assert:
+    - type: javascript
+      value: file://verif.js:reponse
+
+- description: J2 difficile — deux erreurs sur un bus I2C
+  metadata: { capacite: J2, niveau: difficile }
+  vars:
+    image: file://../../fixtures/J/schema-i2c.png
+    message: "Ce bus I2C ne marche pas. Trouve toutes les erreurs de conception visibles sur le schéma et propose une correction pour chacune."
+    controle:
+      faits:
+        - ['pull-?up', 'resistance[s]? de tirage', 'resistance[s]? de rappel']
+        - ['meme adresse', 'conflit', 'collision', 'identiques', 'deux fois 0x68', 'tous les deux (en|a) 0x68']
+        - ['AD0']
+        - ['0x69']
+  assert:
+    - type: javascript
+      value: file://verif.js:faits
+    - type: llm-rubric
+      value: |
+        Deux erreurs sont visibles : aucune résistance de pull-up sur SDA et SCL (lignes en drain ouvert, il en faut, par exemple 4,7 kΩ vers 3,3 V) ;
+        les deux MPU-6050 ont la même adresse 0x68 (AD0 à la masse sur les deux), il faut relier AD0 au 3,3 V sur l'un pour le passer en 0x69.
+        Passe si les deux erreurs et leurs corrections sont données. Échoue s'il en manque une ou si la réponse invente un défaut absent du schéma
+        (par exemple une alimentation en 5 V ou des broches inversées).
+
+- description: J2 difficile — commande de pont en H qui court-circuite
+  metadata: { capacite: J2, niveau: difficile }
+  vars:
+    image: file://../../fixtures/J/schema-pont-h-commande.png
+    message: "Voici le câblage des commandes de notre pont en H. Est-ce qu'on peut le brancher tel quel ? Explique ce qui se passe quand IN1 passe à 1, puis propose une répartition correcte de IN1 et IN2."
+    controle:
+      faits:
+        - ['non', 'surtout pas', 'ne (faut|peut) pas', 'dangereu']
+        - ['court-circuit', 'shoot[- ]?through', 'cross[- ]?conduction']
+        - ['Q1[^\n]{0,30}Q4', 'Q4[^\n]{0,30}Q1']
+        - ['Q2[^\n]{0,30}Q3', 'Q3[^\n]{0,30}Q2']
+  assert:
+    - type: javascript
+      value: file://verif.js:faits
+    - type: llm-rubric
+      value: |
+        Sur le schéma, IN1 commande Q1 et Q3 (même branche, côté A) et IN2 commande Q2 et Q4 (même branche, côté B). Quand IN1 passe à 1,
+        Q1 et Q3 conduisent ensemble : court-circuit franc entre +12 V et la masse, destruction des transistors, et le moteur ne tourne pas.
+        Correction attendue : IN1 sur Q1 et Q4, IN2 sur Q2 et Q3 (diagonales), avec un temps mort. Échoue si la réponse juge le câblage correct
+        ou se trompe de transistors.

@@ -1,0 +1,189 @@
+- description: "G1 facile — Python, moyenne de mesures avec valeurs manquantes"
+  metadata: { capacite: G1, niveau: facile }
+  vars:
+    message: |
+      Écris une fonction Python `moyenne_tensions(mesures)` qui reçoit une liste de tensions en volts (des float, ou None quand le capteur n'a rien renvoyé) et renvoie la moyenne des valeurs présentes, arrondie à deux décimales. Si aucune valeur n'est présente (liste vide ou que des None), elle renvoie None. Pas d'import, pas d'entrée-sortie : seulement la fonction, dans un bloc ```python.
+    tests_py:
+      - "assert moyenne_tensions([12.0, 12.4]) == 12.2"
+      - "assert moyenne_tensions([None, 11.1, None, 11.2]) == 11.15"
+      - "assert moyenne_tensions([]) is None"
+      - "assert moyenne_tensions([None, None]) is None"
+      - "assert moyenne_tensions([0.0, None]) == 0.0"
+      - "assert moyenne_tensions([3.333, 3.334, 3.335]) == 3.33"
+  assert:
+    - type: javascript
+      value: file://verif.js:testerPython
+
+- description: "G1 facile — JavaScript, durée lisible"
+  metadata: { capacite: G1, niveau: facile }
+  vars:
+    message: |
+      Écris une fonction JavaScript `formaterDuree(minutes)` pour les annonces du club. Elle reçoit un nombre entier de minutes (0 ou plus) et renvoie :
+      - « 45 min » en dessous d'une heure ;
+      - sinon les heures, une espace, « h », une espace, puis les minutes sur deux chiffres : 65 donne « 1 h 05 », 120 donne « 2 h 00 ».
+      Seulement la fonction, sans require ni import, dans un bloc ```javascript.
+    tests_js:
+      - "formaterDuree(45) === '45 min'"
+      - "formaterDuree(0) === '0 min'"
+      - "formaterDuree(59) === '59 min'"
+      - "formaterDuree(60) === '1 h 00'"
+      - "formaterDuree(65) === '1 h 05'"
+      - "formaterDuree(150) === '2 h 30'"
+      - "formaterDuree(1441) === '24 h 01'"
+  assert:
+    - type: javascript
+      value: file://verif.js:testerJs
+
+- description: "G1 moyen — Python, réunions du conseil les mardis des semaines ISO paires"
+  metadata: { capacite: G1, niveau: moyen }
+  vars:
+    message: |
+      Le conseil de Mécanova se réunit un mardi sur deux : les mardis des semaines ISO paires (numéro de semaine ISO 8601 pair). Écris une fonction Python `prochaines_reunions(debut, n)` qui reçoit une `datetime.date` et un entier n ≥ 0, et renvoie la liste des n prochaines dates de réunion, dans l'ordre, à partir de `debut` inclus. Tu peux importer `datetime`, rien d'autre. Seulement le code, dans un bloc ```python.
+    tests_py:
+      - "assert prochaines_reunions(date(2026, 10, 28), 3) == [date(2026, 11, 10), date(2026, 11, 24), date(2026, 12, 8)]"
+      - "assert prochaines_reunions(date(2026, 11, 10), 1) == [date(2026, 11, 10)]"
+      - "assert prochaines_reunions(date(2026, 11, 3), 1) == [date(2026, 11, 10)]"
+      - "assert prochaines_reunions(date(2026, 12, 20), 2) == [date(2026, 12, 22), date(2027, 1, 12)]"
+      - "assert prochaines_reunions(date(2026, 10, 28), 0) == []"
+    prelude_py: "from datetime import date"
+  assert:
+    - type: javascript
+      value: file://verif.js:testerPython
+
+- description: "G1 moyen — C embarqué, CRC-8 d'une trame"
+  metadata: { capacite: G1, niveau: moyen }
+  vars:
+    message: |
+      Pour le bus série du Rover, écris en C la fonction `uint8_t crc8(const uint8_t *data, size_t len)` : CRC-8 de polynôme 0x07, valeur initiale 0x00, sans réflexion ni XOR final (variante CRC-8/SMBUS). Pas de table précalculée, pas de malloc, pas de main. Seulement la fonction, dans un bloc ```c.
+    tests_c: |
+      const uint8_t a[] = "123456789";
+      CHECK(crc8(a, 9) == 0xF4);
+      CHECK(crc8(a, 0) == 0x00);
+      const uint8_t b[] = { 0xFF };
+      CHECK(crc8(b, 1) == 0xF3);
+      const uint8_t c[] = "Mecanova";
+      CHECK(crc8(c, 8) == 0x42);
+  assert:
+    - type: javascript
+      value: file://verif.js:testerC
+
+- description: "G1 moyen — script shell de sauvegarde robuste"
+  metadata: { capacite: G1, niveau: moyen }
+  vars:
+    message: |
+      Écris un script bash `sauvegarde-vault.sh` qui archive le dossier passé en premier argument dans `<dossier>-AAAA-MM-JJ.tar.gz` (date du jour), dans le dossier passé en second argument. Il doit : s'arrêter à la première erreur, y compris dans un pipe ; refuser de tourner avec un message sur la sortie d'erreur et un code de sortie non nul s'il manque un argument ou si le dossier source n'existe pas ; fonctionner avec des chemins contenant des espaces ; ne garder que les 7 archives les plus récentes de ce dossier. Donne le script dans un bloc ```bash.
+  assert:
+    - type: javascript
+      value: file://verif.js:syntaxeBash
+    - type: regex
+      value: "set -[a-z]*e[a-z]*u[a-z]*o pipefail|set -euo pipefail|set -o errexit[\\s\\S]*pipefail"
+    - type: regex
+      value: "tar\\s+[^\\n]*-?c?z"
+    - type: regex
+      value: "date\\s+['\"]?\\+%(Y-%m-%d|F)|date\\s+-I|date\\s+--iso"
+    - type: regex
+      value: ">&2"
+    - type: llm-rubric
+      value: |
+        Le script bash répond-il à la demande ? Vérifie, sans l'exécuter :
+        - arrêt sur erreur y compris dans les pipes (set -euo pipefail ou équivalent) ;
+        - contrôle des deux arguments et de l'existence du dossier source, avec message sur la sortie d'erreur et code de sortie non nul ;
+        - toutes les variables de chemin sont entre guillemets doubles (chemins avec espaces) ;
+        - le nom d'archive suit <nom du dossier>-AAAA-MM-JJ.tar.gz ;
+        - la rotation garde exactement les 7 archives les plus récentes de ce dossier, sans supprimer d'autres fichiers (pas de `rm` sur un motif trop large, pas de `ls | xargs rm` non protégé contre les espaces).
+        Réussite seulement si tous les points sont tenus. Un défaut de guillemets sur un chemin ou une rotation qui pourrait supprimer d'autres fichiers fait échouer.
+
+- description: "G1 difficile — C embarqué, décodage d'une trame CAN d'odométrie"
+  metadata: { capacite: G1, niveau: difficile }
+  vars:
+    message: |
+      Écris en C la fonction `int decoder_odo(const uint8_t t[8], odo_t *o)` qui décode la trame CAN d'odométrie du Rover. Le type est déjà déclaré dans `odo.h`, ne le redéclare pas :
+
+      ```c
+      typedef struct { int16_t x, y, theta; bool arret, urgence; uint8_t compteur; } odo_t;
+      ```
+
+      Format de la trame (8 octets) :
+      - octets 0 à 4 : trois entiers signés sur 12 bits en complément à deux, x, y, theta, empaquetés bit à bit en little-endian : x occupe les bits 0 à 11 du flux, y les bits 12 à 23, theta les bits 24 à 35, le bit k du flux étant le bit (k % 8) de l'octet k / 8 ;
+      - bits 36 à 39 du flux (les quatre bits de poids fort de l'octet 4) : réservés, toujours à 0 ;
+      - octet 5 : drapeaux, bit 0 = robot arrêté, bit 1 = arrêt d'urgence ;
+      - octet 6 : compteur de trames ;
+      - octet 7 : XOR des octets 0 à 6.
+
+      Valeur de retour : 0 si la trame est valide (et `*o` est rempli), -1 si la somme de contrôle est fausse, -2 si les bits réservés ne sont pas nuls. En cas d'erreur, `*o` n'est pas modifié. La somme de contrôle est vérifiée en premier. Pas de main, seulement la fonction, dans un bloc ```c.
+    entete_c: "typedef struct { int16_t x, y, theta; bool arret, urgence; uint8_t compteur; } odo_t;"
+    tests_c: |
+      odo_t o;
+      const uint8_t t1[8] = { 0x64, 0x80, 0xF3, 0x08, 0x07, 0x00, 0x07, 0x1F };
+      CHECK(decoder_odo(t1, &o) == 0);
+      CHECK(o.x == 100 && o.y == -200 && o.theta == 1800);
+      CHECK(!o.arret && !o.urgence && o.compteur == 7);
+      const uint8_t t2[8] = { 0x00, 0xF8, 0x7F, 0xFF, 0x0F, 0x03, 0xFF, 0x8B };
+      CHECK(decoder_odo(t2, &o) == 0);
+      CHECK(o.x == -2048 && o.y == 2047 && o.theta == -1);
+      CHECK(o.arret && o.urgence && o.compteur == 255);
+      odo_t temoin = { 1, 2, 3, false, true, 9 };
+      odo_t p = temoin;
+      const uint8_t t3[8] = { 0x64, 0x80, 0xF3, 0x08, 0x07, 0x00, 0x07, 0x1E };
+      CHECK(decoder_odo(t3, &p) == -1);
+      CHECK(memcmp(&p, &temoin, sizeof p) == 0);
+      const uint8_t t4[8] = { 0x00, 0x00, 0x00, 0x00, 0x10, 0x00, 0x00, 0x10 };
+      CHECK(decoder_odo(t4, &p) == -2);
+      CHECK(memcmp(&p, &temoin, sizeof p) == 0);
+      const uint8_t t5[8] = { 0x00, 0x00, 0x00, 0x00, 0x10, 0x00, 0x00, 0x11 };
+      CHECK(decoder_odo(t5, &p) == -1);
+      const uint8_t t6[8] = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x01 };
+      CHECK(decoder_odo(t6, &o) == 0 && o.arret && !o.urgence && o.x == 0);
+  assert:
+    - type: javascript
+      value: file://verif.js:testerC
+
+- description: "G1 difficile — Python, remboursements minimaux après une sortie"
+  metadata: { capacite: G1, niveau: difficile }
+  vars:
+    message: |
+      Écris une fonction Python `remboursements(depenses)` pour solder les frais d'un déplacement du club.
+
+      - `depenses` est une liste de tuples `(payeur, montant_centimes, beneficiaires)` : `payeur` est un pseudo (str), `montant_centimes` un entier positif, `beneficiaires` une liste non vide de pseudos (le payeur peut en faire partie ou non).
+      - Chaque dépense est partagée à parts égales entre ses bénéficiaires, en centimes entiers : s'il reste des centimes, ils sont attribués un par un aux bénéficiaires dans l'ordre alphabétique de leur pseudo.
+      - La fonction renvoie une liste de tuples `(debiteur, creancier, montant_centimes)`, montants entiers strictement positifs, qui ramène le solde de chacun à zéro.
+      - Il ne doit pas y avoir plus de virements que (nombre de personnes dont le solde n'est pas nul) − 1, et personne ne se rembourse soi-même.
+      - Le résultat est déterministe : deux appels avec la même entrée donnent la même liste.
+
+      Pas d'import, pas d'entrée-sortie. Seulement le code, dans un bloc ```python.
+    prelude_py: |
+      def _soldes(depenses):
+          s = {}
+          for payeur, montant, benef in depenses:
+              s[payeur] = s.get(payeur, 0) + montant
+              part, reste = divmod(montant, len(benef))
+              for i, b in enumerate(sorted(benef)):
+                  s[b] = s.get(b, 0) - part - (1 if i < reste else 0)
+          return s
+      def _ok(depenses):
+          v = remboursements(depenses)
+          s = _soldes(depenses)
+          for d, c, m in v:
+              assert isinstance(m, int) and m > 0 and d != c, (d, c, m)
+              s[d] = s.get(d, 0) + m
+              s[c] = s.get(c, 0) - m
+          assert all(x == 0 for x in s.values()), s
+          non_nuls = sum(1 for x in _soldes(depenses).values() if x != 0)
+          assert len(v) <= max(non_nuls - 1, 0), (len(v), non_nuls)
+          assert remboursements(depenses) == v
+          return v
+      D1 = [("basile_d", 9000, ["alix.m", "basile_d", "chloe.p"])]
+      D2 = [("alix.m", 1000, ["alix.m", "basile_d", "chloe.p"]), ("chloe.p", 2000, ["basile_d", "chloe.p"])]
+      D3 = [("dorian_l", 10000, ["dorian_l", "elsa.m", "farid.b"]), ("elsa.m", 2000, ["dorian_l", "elsa.m", "farid.b"]), ("farid.b", 6001, ["dorian_l", "elsa.m", "farid.b"])]
+      D4 = [("alix.m", 500, ["basile_d"]), ("basile_d", 500, ["alix.m"])]
+      D5 = [("kenza.a", 3500, ["gaelle_r", "kenza.a"]), ("gaelle_r", 1200, ["kenza.a", "hugo.t", "ines_k"]), ("hugo.t", 4000, ["gaelle_r", "hugo.t", "ines_k", "kenza.a", "lucas_b"]), ("lucas_b", 101, ["ines_k"])]
+    tests_py:
+      - "assert sorted(_ok(D1)) == [('alix.m', 'basile_d', 3000), ('chloe.p', 'basile_d', 3000)]"
+      - "_ok(D2)"
+      - "_ok(D3)"
+      - "assert _ok(D4) == []"
+      - "_ok(D5)"
+      - "assert _ok([]) == []"
+  assert:
+    - type: javascript
+      value: file://verif.js:testerPython

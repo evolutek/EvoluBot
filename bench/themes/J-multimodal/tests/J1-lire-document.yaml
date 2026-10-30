@@ -1,0 +1,105 @@
+# Images drawn by fixtures/J/generer.py.
+- description: J1 facile — en-tête et total d'une facture nette
+  metadata: { capacite: J1, niveau: facile }
+  vars:
+    image: file://../../fixtures/J/facture.png
+    message: "Voici une facture. Réponds uniquement avec un JSON : {\"fournisseur\", \"numero_facture\", \"date_facture\" (AAAA-MM-JJ), \"montant_ttc\" (nombre)}."
+    controle:
+      attendu:
+        fournisseur: Électro-Villebrune
+        numero_facture: FV-2026-0583
+        date_facture: "2026-10-14"
+        montant_ttc: 158.16
+  assert:
+    - type: javascript
+      value: file://verif.js:champs
+
+- description: J1 facile — transporteur et suivi d'un bon de livraison
+  metadata: { capacite: J1, niveau: facile }
+  vars:
+    image: file://../../fixtures/J/bon-livraison.png
+    message: "Bon de livraison reçu avec le colis. JSON uniquement : {\"numero_bl\", \"numero_commande\", \"transporteur\", \"numero_suivi\", \"nombre_colis\" (nombre)}."
+    controle:
+      attendu:
+        numero_bl: BL-77120
+        numero_commande: RP-48213
+        transporteur: Colissimo
+        numero_suivi: 6A23456789012
+        nombre_colis: 1
+  assert:
+    - type: javascript
+      value: file://verif.js:champs
+
+- description: J1 moyen — lignes de facture et sous-totaux
+  metadata: { capacite: J1, niveau: moyen }
+  vars:
+    image: file://../../fixtures/J/facture.png
+    message: "Recopie les lignes de cette facture pour la compta. JSON uniquement : {\"lignes\": [{\"designation\", \"quantite\" (nombre), \"prix_unitaire_ht\" (nombre), \"total_ht\" (nombre)}] dans l'ordre de la facture, \"total_ht\", \"tva\" (nombres)}."
+    controle:
+      attendu:
+        lignes.0.designation: { motif: 'moteur' }
+        lignes.0.quantite: 4
+        lignes.0.prix_unitaire_ht: 18.50
+        lignes.0.total_ht: 74.00
+        lignes.1.designation: { motif: 'roue' }
+        lignes.1.quantite: 4
+        lignes.1.prix_unitaire_ht: 3.20
+        lignes.2.designation: { motif: 'driver|pont' }
+        lignes.2.quantite: 2
+        lignes.2.prix_unitaire_ht: 22.50
+        lignes.2.total_ht: 45.00
+        total_ht: 131.80
+        tva: 26.36
+  assert:
+    - type: javascript
+      value: file://verif.js:champs
+
+- description: J1 moyen — livraison incomplète à repérer
+  metadata: { capacite: J1, niveau: moyen }
+  vars:
+    image: file://../../fixtures/J/bon-livraison.png
+    message: "On a tout reçu ? JSON uniquement : {\"livraison_complete\" (booléen), \"article_manquant\" (désignation ou null), \"quantite_manquante\" (nombre), \"delai_reliquat_jours\" (nombre ou null)}."
+    controle:
+      attendu:
+        livraison_complete: false
+        article_manquant: { motif: 'palonnier' }
+        quantite_manquante: 2
+        delai_reliquat_jours: 10
+  assert:
+    - type: javascript
+      value: file://verif.js:champs
+
+- description: J1 difficile — facture photographiée de travers
+  metadata: { capacite: J1, niveau: difficile }
+  vars:
+    image: file://../../fixtures/J/facture-photo.jpg
+    message: "Photo d'une facture prise au téléphone. JSON uniquement : {\"fournisseur\", \"numero_facture\", \"date_facture\" (AAAA-MM-JJ), \"quantite_cartes_stm32\" (nombre), \"frais_de_port\" (nombre), \"total_ht\", \"tva\" (nombres)}."
+    controle:
+      attendu:
+        fournisseur: MicroComposants Pro
+        numero_facture: FA-2026-1187
+        date_facture: "2026-11-02"
+        quantite_cartes_stm32: 2
+        frais_de_port: 6.50
+        total_ht: 71.00
+        tva: 14.20
+  assert:
+    - type: javascript
+      value: file://verif.js:champs
+
+- description: J1 difficile — total TTC imprimé faux sur une photo
+  metadata: { capacite: J1, niveau: difficile }
+  vars:
+    image: file://../../fixtures/J/facture-photo.jpg
+    message: "Avant de saisir cette facture, vérifie les calculs (lignes, total HT, TVA, TTC). Dis s'il y a une erreur et laquelle. Termine par une ligne « RÉPONSE : correcte » ou « RÉPONSE : erreur ; TTC attendu <montant> »."
+    controle:
+      juste: ['erreur', '85[,.]20?']
+      faux: ['(?<!in)correcte']
+      faits:
+        - ['87[,.]20?']
+  assert:
+    - type: javascript
+      value: file://verif.js:reponse
+      weight: 2
+    - type: javascript
+      value: file://verif.js:faits

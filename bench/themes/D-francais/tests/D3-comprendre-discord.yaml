@@ -1,0 +1,112 @@
+- description: D3 facile — abréviations et « mdr » qui n'est pas une réponse
+  metadata: { capacite: D3, niveau: facile }
+  vars:
+    message: |-
+      Message de dorian_l dans #rover : « jpp le robot a encore cramé sa carte mdr, jsp ce qu'il a, qqn peut regarder dm1 ? »
+      Questions : l'auteur sait-il pourquoi la carte a grillé ? Quand voudrait-il qu'on regarde ?
+      Réponds exactement sur deux lignes :
+      Sait pourquoi : oui ou non
+      Quand : <moment>
+  assert:
+    - type: regex
+      value: "Sait pourquoi\\s*:\\s*\\**\\s*[Nn]on"
+    - type: regex
+      value: "Quand\\s*:\\s*\\**\\s*[Dd]emain"
+
+- description: D3 facile — message en phonétique et abréviations
+  metadata: { capacite: D3, niveau: facile }
+  vars:
+    message: |-
+      Message de lucas_b : « tkt jsuis la jeudi pr l'atelier, g ramené le fer de chez moi, il chauff mieu ke ceux du local »
+      Réponds exactement sur trois lignes :
+      Jour : <jour>
+      Objet apporté : <objet>
+      Pourquoi : <raison en quelques mots>
+  assert:
+    - type: regex
+      value: "Jour\\s*:\\s*\\**\\s*[Jj]eudi"
+    - type: regex
+      value: "Objet apporté\\s*:.*fer"
+    - type: regex
+      value: "Pourquoi\\s*:.*(chauff|chaud)"
+
+- description: D3 moyen — ironie signalée par l'emoji
+  metadata: { capacite: D3, niveau: moyen }
+  vars:
+    message: |-
+      Message de kenza.a dans #general : « ah bah super, encore une réunion à 7 h du mat un samedi, trop hâte 🙃 »
+      Quel est le sentiment réel de Kenza envers cette réunion ? Réponds exactement sur une ligne :
+      Sentiment : positif, négatif ou neutre
+  assert:
+    - type: regex
+      value: "Sentiment\\s*:\\s*\\**\\s*[Nn]égatif"
+    - type: not-regex
+      value: "Sentiment\\s*:\\s*\\**\\s*[Pp]ositif"
+
+- description: D3 moyen — fil à plusieurs voix, qui a l'objet et quand il revient
+  metadata: { capacite: D3, niveau: moyen }
+  vars:
+    message: |-
+      Fil dans #soudure :
+      dorian_l : qqn a le multimètre ?
+      kenza.a : moi nn, demande à farid
+      farid.b : jl'ai prêté à elsa mardi
+      elsa.m : oe jle rends dm1 au local, dsl jl'avais oublié ds mon sac 😅
+      Qui a le multimètre en ce moment, et quand revient-il au local ? Réponds exactement sur deux lignes :
+      Détenteur : <pseudo>
+      Retour : <quand>
+  assert:
+    - type: regex
+      value: "Détenteur\\s*:\\s*\\**\\s*`?elsa"
+    - type: regex
+      value: "Retour\\s*:.*[Dd]emain"
+
+- description: D3 difficile — ironie, négation et décision implicite
+  metadata: { capacite: D3, niveau: difficile }
+  vars:
+    message: |-
+      Message de basile_d dans #achats : « nan mais grave, c'est pas comme si ça faisait 3 semaines qu'on attendait les moteurs hein 🙄 bref jm'en fous, jcommande ailleurs et on annule chez RoboShop »
+      Réponds exactement sur trois lignes :
+      Satisfait du délai : oui ou non
+      Attente : <durée>
+      Décision : <ce qu'il va faire, en quelques mots>
+  assert:
+    - type: regex
+      value: "Satisfait du délai\\s*:\\s*\\**\\s*[Nn]on"
+    - type: regex
+      value: "Attente\\s*:.*(3|trois) semaines"
+    - type: regex
+      value: "Décision\\s*:.*(command|achet).*(ailleurs|autre)"
+    - type: regex
+      value: "Décision\\s*:.*annul"
+
+- description: D3 difficile — disponibilités en argot avec double négation
+  metadata: { capacite: D3, niveau: difficile }
+  vars:
+    message: |-
+      Fil dans #rover à propos des essais de la semaine prochaine :
+      kenza.a : en vrai jsuis chaude, je serai là tous les soirs
+      hugo.t : moi c mort jsuis en partiels tte la semaine
+      basile_d : jpense pas que ce soit impossible pr toi de passer le we hugo
+      hugo.t : ah si le we ça passe tkt
+      kenza.a : par contre jeudi soir jpeux pas finalement, atelier soudure 💀
+      Pour chaque personne, indique si elle est disponible pour les essais. Réponds exactement sur trois lignes, avec « oui », « non » ou « partiellement », suivi de précisions entre parenthèses si besoin :
+      Kenza : …
+      Hugo : …
+      Basile : …
+  assert:
+    - type: regex
+      value: "Kenza\\s*:\\s*\\**\\s*[Pp]artiellement"
+    - type: regex
+      value: "Kenza\\s*:.*jeudi"
+    - type: regex
+      value: "Hugo\\s*:\\s*\\**\\s*[Pp]artiellement"
+    - type: regex
+      value: "Hugo\\s*:.*(we|week-end|weekend)"
+    - type: llm-rubric
+      weight: 0.5
+      value: >-
+        Kenza est disponible tous les soirs sauf jeudi ; Hugo seulement le week-end ; pour Basile, le fil ne
+        dit rien de ses disponibilités : la bonne réponse le signale (par exemple « non précisé » ou une
+        précision entre parenthèses) au lieu d'inventer. Retire des points pour chaque disponibilité fausse
+        ou inventée.

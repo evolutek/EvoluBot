@@ -11,6 +11,7 @@ Ce dépôt contient ce qui fait de Hermes l'agent d'Evolutek : ses consignes, se
 | [docs/llm/fournisseurs.md](docs/llm/fournisseurs.md) | Fournisseurs de modèles gratuits et leurs conditions |
 | [docs/llm/comptes.md](docs/llm/comptes.md) | Ouvrir et régler les comptes des fournisseurs, les brancher à OmniRoute |
 | [docs/llm/banc-essai.md](docs/llm/banc-essai.md) | Comment on compare les modèles et choisit lequel sert quelle tâche |
+| [bench/](bench/) | Les épreuves du banc d'essai, sur données fictives |
 | [docs/decisions/](docs/decisions/) | Décisions (ADR) |
 | [archive/n8n/](archive/n8n/) | Ancien bot n8n, décommissionné |
 

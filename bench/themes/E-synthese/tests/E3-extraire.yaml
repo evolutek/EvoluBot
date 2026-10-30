@@ -1,0 +1,120 @@
+- description: E3 facile — avis d'expédition simple
+  metadata: { capacite: E3, niveau: facile }
+  vars:
+    doc: file://../../fixtures/E/mail-expedition-1.md
+    message: "{{doc}}\n\nExtrais de ce mail un JSON avec exactement ces clés : fournisseur, numero_commande, transporteur, numero_suivi, date_livraison (AAAA-MM-JJ), montant_ttc (nombre). Réponds uniquement avec le JSON."
+    controle:
+      attendu:
+        fournisseur: Robo-Pièces
+        numero_commande: RP-48213
+        transporteur: Colissimo
+        numero_suivi: 6A23456789012
+        date_livraison: "2026-11-03"
+        montant_ttc: 31.60
+  assert:
+    - type: is-json
+      value:
+        type: object
+        required: [fournisseur, numero_commande, transporteur, numero_suivi, date_livraison, montant_ttc]
+        properties:
+          montant_ttc: { type: number }
+          date_livraison: { type: string, pattern: '^\d{4}-\d{2}-\d{2}$' }
+    - type: javascript
+      value: file://verif.js:champs
+      weight: 3
+
+- description: E3 facile — date en toutes lettres, numéro de téléphone à ne pas confondre
+  metadata: { capacite: E3, niveau: facile }
+  vars:
+    doc: file://../../fixtures/E/mail-expedition-2.md
+    message: "{{doc}}\n\nJSON uniquement, clés : fournisseur, numero_commande, transporteur, numero_suivi, date_livraison (AAAA-MM-JJ), montant_ttc (nombre)."
+    controle:
+      attendu:
+        fournisseur: Électro-Villebrune
+        numero_commande: EV-2026-7731
+        transporteur: Chronopost
+        numero_suivi: XQ482915637FR
+        date_livraison: "2026-11-09"
+        montant_ttc: 8.90
+  assert:
+    - type: javascript
+      value: file://verif.js:champs
+
+- description: E3 moyen — fil transféré, montant et transporteur modifiés après la commande
+  metadata: { capacite: E3, niveau: moyen }
+  vars:
+    doc: file://../../fixtures/E/mail-fil-3.md
+    message: "{{doc}}\n\nPour le tableur des colis : JSON uniquement, clés fournisseur, numero_commande, transporteur, numero_suivi, date_livraison (AAAA-MM-JJ), montant_ttc (nombre). Donne les valeurs à jour."
+    aujourdhui: "2026-11-09"
+    controle:
+      attendu:
+        fournisseur: { motif: 'Capteurs ?(&|et) ?Co' }
+        numero_commande: CP-10552
+        transporteur: DHL
+        numero_suivi: JD014600009871234567
+        date_livraison: "2026-11-12"
+        montant_ttc: 41.40
+  assert:
+    - type: javascript
+      value: file://verif.js:champs
+    - type: not-icontains
+      value: "54,30"
+    - type: not-icontains
+      value: "54.3"
+
+- description: E3 moyen — article retiré et montant non débité
+  metadata: { capacite: E3, niveau: moyen }
+  vars:
+    doc: file://../../fixtures/E/mail-fil-3.md
+    message: "{{doc}}\n\nJSON uniquement avec les clés : article_retire (nom de l'article), montant_non_debite (nombre), nombre_articles_livres (nombre total de pièces encore commandées, hors frais de port), frais_de_port (nombre)."
+    controle:
+      attendu:
+        article_retire: { motif: 'GPS|NEO-6M' }
+        montant_non_debite: 12.90
+        nombre_articles_livres: 3
+        frais_de_port: 4.90
+  assert:
+    - type: javascript
+      value: file://verif.js:champs
+
+- description: E3 difficile — facture, livraison partielle et erratum de suivi
+  metadata: { capacite: E3, niveau: difficile }
+  vars:
+    doc: file://../../fixtures/E/mail-facture-4.md
+    message: "{{doc}}\n\nPour la compta et le suivi, réponds uniquement avec ce JSON : {\"numero_facture\", \"date_facture\" (AAAA-MM-JJ), \"montant_ht\", \"tva\", \"montant_ttc\" (nombres), \"colis\": [{\"transporteur\", \"numero_suivi\", \"date_livraison\" (AAAA-MM-JJ)}] dans l'ordre d'expédition}. Les numéros de suivi doivent être les bons."
+    controle:
+      attendu:
+        numero_facture: FA-2026-1187
+        date_facture: "2026-11-02"
+        montant_ht: 71.00
+        tva: 14.20
+        montant_ttc: 85.20
+        colis.0.transporteur: UPS
+        colis.0.numero_suivi: 1ZA8V7290412345678
+        colis.0.date_livraison: "2026-11-05"
+        colis.1.transporteur: GLS
+        colis.1.numero_suivi: "68112345687"
+        colis.1.date_livraison: "2026-11-13"
+  assert:
+    - type: javascript
+      value: file://verif.js:champs
+      weight: 3
+    - type: not-contains
+      value: "68112345678"
+
+- description: E3 difficile — rapprochement articles et colis, reste à recevoir
+  metadata: { capacite: E3, niveau: difficile }
+  vars:
+    doc: file://../../fixtures/E/mail-facture-4.md
+    message: "{{doc}}\n\nNous sommes le 2026-11-10 ; le colis 1 a été reçu, pas le colis 2. JSON uniquement : {\"articles_recus\": nombre de pièces reçues (frais de port exclus), \"articles_attendus\": nombre de pièces encore attendues, \"montant_ht_attendu\": montant HT des pièces encore attendues, \"suivi_a_surveiller\": numéro de suivi à surveiller, \"commande_complete\": booléen}."
+    aujourdhui: "2026-11-10"
+    controle:
+      attendu:
+        articles_recus: 7
+        articles_attendus: 1
+        montant_ht_attendu: 22.50
+        suivi_a_surveiller: "68112345687"
+        commande_complete: false
+  assert:
+    - type: javascript
+      value: file://verif.js:champs

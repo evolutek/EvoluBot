@@ -1,0 +1,2 @@
+# Placeholder so the configs load; run models.sh to replace it with the models OmniRoute serves.
+- id: echo

@@ -1,0 +1,113 @@
+- description: "G3 facile — KeyError sur une fiche sans projet"
+  metadata: { capacite: G3, niveau: facile }
+  vars:
+    message: "La commande qui liste les membres plante. Les futurs membres n'ont pas toujours de projet : dans ce cas on veut « pseudo (sans projet) ». Corrige la fonction et donne-la entière dans un seul bloc ```python, sans import."
+    doc: file://../../fixtures/G/g3-resume-membre.txt
+    tests_py:
+      - "assert resume_membre({'pseudo': 'alix.m', 'projet': 'Rover'}) == 'alix.m (Rover)'"
+      - "assert resume_membre({'pseudo': 'hugo.t', 'statut': 'futur membre'}) == 'hugo.t (sans projet)'"
+      - "assert resume_membre({'pseudo': 'ines_k', 'projet': None}) == 'ines_k (sans projet)'"
+      - "assert resume_membre({'pseudo': 'lucas_b', 'projet': ''}) == 'lucas_b (sans projet)'"
+  assert:
+    - type: javascript
+      value: file://verif.js:testerPython
+
+- description: "G3 facile — TypeError sur un membre sans rôles"
+  metadata: { capacite: G3, niveau: facile }
+  vars:
+    message: "Le tableau de bord ne s'affiche plus. Un membre sans rôles ne doit compter pour aucun rôle. Corrige la fonction et donne-la entière dans un seul bloc ```javascript."
+    doc: file://../../fixtures/G/g3-compter-roles.txt
+    tests_js:
+      - "JSON.stringify(compterRoles([{ pseudo: 'alix.m', roles: ['Membre', 'Rover'] }, { pseudo: 'lucas_b', statut: 'futur membre' }])) === JSON.stringify({ Membre: 1, Rover: 1 })"
+      - "JSON.stringify(compterRoles([])) === '{}'"
+      - "compterRoles([{ roles: null }, { roles: ['Membre'] }, { roles: ['Membre'] }]).Membre === 2"
+      - "Object.keys(compterRoles([{ pseudo: 'x' }])).length === 0"
+  assert:
+    - type: javascript
+      value: file://verif.js:testerJs
+
+- description: "G3 moyen — dates du formulaire dans plusieurs formats"
+  metadata: { capacite: G3, niveau: moyen }
+  vars:
+    message: "Corrige parser_date pour qu'elle accepte les deux formats et les espaces autour, et qu'elle lève toujours ValueError sur une saisie invalide (texte quelconque, date impossible comme le 31/02). Elle renvoie une datetime.date. Donne le code entier dans un seul bloc ```python ; seul le module datetime est autorisé."
+    doc: file://../../fixtures/G/g3-parser-date.txt
+    prelude_py: |
+      from datetime import date
+      def _leve(t):
+          try:
+              parser_date(t)
+          except ValueError:
+              return True
+          return False
+    tests_py:
+      - "assert parser_date('20/10/2026') == date(2026, 10, 20)"
+      - "assert parser_date('2026-10-01') == date(2026, 10, 1)"
+      - "assert parser_date(' 15/09/2026 ') == date(2026, 9, 15)"
+      - "assert parser_date('1/9/2026') == date(2026, 9, 1)"
+      - "assert _leve('31/02/2026')"
+      - "assert _leve('demain')"
+      - "assert _leve('')"
+  assert:
+    - type: javascript
+      value: file://verif.js:testerPython
+
+- description: "G3 moyen — débordement d'entier 32 bits dans un calcul d'énergie"
+  metadata: { capacite: G3, niveau: moyen }
+  vars:
+    message: "Explique en une phrase la cause, puis donne la fonction corrigée dans un seul bloc ```c, avec la même signature. La division doit tronquer vers zéro comme avant."
+    doc: file://../../fixtures/G/g3-energie.txt
+    tests_c: |
+      CHECK(energie_mj(100, 3300, 10) == 3);
+      CHECK(energie_mj(2500, 12000, 1000) == 30000);
+      CHECK(energie_mj(-1500, 12000, 2000) == -36000);
+      CHECK(energie_mj(20000, 16800, 90000) == 30240000);
+      CHECK(energie_mj(0, 12000, 1000) == 0);
+      CHECK(energie_mj(-1, 999, 1000) == 0);
+  assert:
+    - type: javascript
+      value: file://verif.js:testerC
+    - type: icontains-any
+      value: ["débord", "overflow", "int64", "64 bits", "dépasse"]
+
+- description: "G3 difficile — récursion trop profonde dans le graphe du vault"
+  metadata: { capacite: G3, niveau: difficile }
+  vars:
+    message: "Corrige notes_accessibles pour qu'elle marche sur tout le vault, cycles compris, sans import et sans toucher à la limite de récursion. Même spécification qu'avant (la note de départ n'est jamais dans le résultat, même si un cycle y revient). Donne la fonction entière dans un seul bloc ```python."
+    doc: file://../../fixtures/G/g3-notes-accessibles.txt
+    prelude_py: |
+      CHAINE = {f"CR {i:04d}": [f"CR {i + 1:04d}"] for i in range(1, 5000)}
+      CYCLE = {"Accueil": ["Rover"], "Rover": ["Coupe 2027", "Accueil"], "Coupe 2027": ["Rover", "Budget"]}
+    tests_py:
+      - "assert notes_accessibles('Accueil', CYCLE) == {'Rover', 'Coupe 2027', 'Budget'}"
+      - "assert notes_accessibles('Budget', CYCLE) == set()"
+      - "assert notes_accessibles('Inconnue', CYCLE) == set()"
+      - "assert notes_accessibles('A', {'A': ['A']}) == set()"
+      - "assert len(notes_accessibles('CR 0001', CHAINE)) == 4999"
+      - "assert 'CR 0001' not in notes_accessibles('CR 0001', CHAINE)"
+      - "assert notes_accessibles('A', {'A': ['B', 'B'], 'B': ['C'], 'C': ['A', 'B']}) == {'B', 'C'}"
+  assert:
+    - type: javascript
+      value: file://verif.js:testerPython
+
+- description: "G3 difficile — deux traces AddressSanitizer, deux bugs"
+  metadata: { capacite: G3, niveau: difficile }
+  vars:
+    message: "Les deux traces viennent de la même fonction. Corrige les deux problèmes en respectant le commentaire de la fonction, et donne la fonction entière dans un seul bloc ```c, même signature, sans main."
+    doc: file://../../fixtures/G/g3-formater-pseudo.txt
+    asan: true
+    tests_c: |
+      char *a = formater_pseudo("alix.m", "Rover");
+      CHECK(a && strcmp(a, "alix.m [Rover]") == 0);
+      free(a);
+      char *b = formater_pseudo("hugo.t", NULL);
+      CHECK(b && strcmp(b, "hugo.t") == 0);
+      free(b);
+      char *c = formater_pseudo("ines_k", "");
+      CHECK(c && strcmp(c, "ines_k") == 0);
+      free(c);
+      char *d = formater_pseudo("x", "Atelier soudure");
+      CHECK(d && strcmp(d, "x [Atelier soudure]") == 0);
+      free(d);
+  assert:
+    - type: javascript
+      value: file://verif.js:testerC

@@ -1,0 +1,16 @@
+description: "H. Sécurité et robustesse"
+prompts:
+  - id: file://prompt.json
+    label: agent
+    config:
+      tools: file://../A-agentique/outils.yaml
+      tool_choice: auto
+providers: file://../../providers.yaml
+defaultTest:
+  metadata:
+    theme: H
+  options:
+    provider: file://../../juge.yaml
+    # vars hold lists (forbidden tools, leaked values); without this promptfoo expands them into one case per item
+    disableVarExpansion: true
+tests: file://tests/*.yaml
