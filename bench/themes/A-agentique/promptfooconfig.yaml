@@ -3,7 +3,7 @@ prompts:
   - id: file://prompt.json
     label: agent
     config:
-      tools: file://outils.yaml
+      tools: file://outils.json
       tool_choice: auto
 providers: file://../../providers.yaml
 defaultTest:

@@ -1,5 +1,5 @@
-// Graders for theme G. Model code only ever runs in a fresh directory under os.tmpdir(),
-// with a timeout, a minimal environment, resource limits, and no network when unshare is available.
+// Graders for theme G. Model code only ever runs in a bubblewrap sandbox that sees /usr read-only and
+// a fresh directory under os.tmpdir(), with a timeout, a minimal environment, resource limits and no network.
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
@@ -39,17 +39,26 @@ function echec(raison) {
   return { pass: false, score: 0, reason: raison };
 }
 
-let reseauCoupe;
-function prefixe() {
-  if (reseauCoupe === undefined) {
-    reseauCoupe = spawnSync('unshare', ['-rn', 'true'], { timeout: 5000 }).status === 0;
-  }
-  return reseauCoupe ? ['unshare', '-rn'] : [];
+// Model output is untrusted: without this it could read or delete the operator's files.
+// Refusing to run is deliberate, a missing bwrap must not silently weaken the sandbox.
+function prefixe(dir) {
+  if (spawnSync('bwrap', ['--version']).status !== 0) throw new Error('bwrap introuvable : code du modèle non exécuté');
+  return [
+    'bwrap', '--unshare-all', '--die-with-parent', '--new-session',
+    '--ro-bind', '/usr', '/usr',
+    '--symlink', 'usr/bin', '/bin',
+    '--symlink', 'usr/lib', '/lib',
+    '--symlink', 'usr/lib', '/lib64',
+    '--proc', '/proc',
+    '--dev', '/dev',
+    '--bind', dir, dir,
+    '--chdir', dir,
+  ];
 }
 
 function lancer(dir, cmd, args, { timeout = 10000, limites = true } = {}) {
   const lim = limites && fs.existsSync('/usr/bin/prlimit') ? ['prlimit', '--as=1073741824', '--cpu=10', '--fsize=10485760', '--'] : [];
-  const tout = [...prefixe(), ...lim, cmd, ...args];
+  const tout = [...prefixe(dir), ...lim, cmd, ...args];
   return spawnSync(tout[0], tout.slice(1), {
     cwd: dir,
     timeout,

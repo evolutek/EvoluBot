@@ -59,7 +59,7 @@ function schemas() {
   const Ajv = dependance('ajv');
   const ajv = new (Ajv.default || Ajv)({ strict: false, allErrors: true });
   ajv.addFormat('date', /^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/);
-  const outils = yaml.load(fs.readFileSync(path.join(__dirname, 'outils.yaml'), 'utf8'));
+  const outils = yaml.load(fs.readFileSync(path.join(__dirname, 'outils.json'), 'utf8'));
   validateurs = {};
   for (const { function: f } of outils) {
     validateurs[f.name] = ajv.compile({ ...f.parameters, additionalProperties: false });

@@ -41,7 +41,7 @@
       value: file://verif.js:fiche
       config: { nom: Gaëlle Roux, pseudo: gaelle_r, ecole: École Gamma, statut: membre en retard de cotisation, projet: Mini-Rover }
 
-- description: C3 moyen — récap #info à partir de notes en vrac
+- description: "C3 moyen — récap #info à partir de notes en vrac"
   metadata: { capacite: C3, niveau: moyen }
   vars:
     system: *gabarits

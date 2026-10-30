@@ -57,7 +57,7 @@
         Passe si le texte alternatif décrit l'essentiel en 2 ou 3 phrases, sans nommer les personnes ni inventer de détails absents (public nombreux,
         médaille, autre équipe, couleurs fausses). Échoue s'il nomme quelqu'un ou dépasse nettement la longueur demandée.
 
-- description: J3 moyen — annonce #info fidèle à l'affiche
+- description: "J3 moyen — annonce #info fidèle à l'affiche"
   metadata: { capacite: J3, niveau: moyen }
   vars:
     image: file://../../fixtures/J/affiche.png

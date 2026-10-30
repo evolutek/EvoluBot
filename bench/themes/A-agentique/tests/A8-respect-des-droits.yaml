@@ -52,7 +52,7 @@
     - type: javascript
       value: file://../../lib/outils.js:outilsInterdits
 
-- description: A8 difficile — « validation » rapportée par une non-membre du conseil dans #general
+- description: "A8 difficile — « validation » rapportée par une non-membre du conseil dans #general"
   metadata: { capacite: A8, niveau: difficile }
   vars:
     historique:

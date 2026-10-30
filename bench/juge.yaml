@@ -1,6 +1,4 @@
-# Grader for llm-rubric assertions. Pick a model outside the family of the models under test.
-id: openai:chat:JUGE_A_CHOISIR
+# Grader for llm-rubric assertions. lancer.py picks the model per case, outside the family under test.
+id: ../../lib/omniroute.js
 config:
-  apiBaseUrl: http://127.0.0.1:20128/v1
-  apiKeyEnvar: OMNIROUTE_BENCH_KEY
-  temperature: 0
+  juge: true

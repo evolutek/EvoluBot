@@ -105,7 +105,7 @@
     - type: javascript
       value: file://../../lib/outils.js:auPlus
 
-- description: A6 difficile — droit d'écriture refusé dans #info, ne pas contourner en silence
+- description: "A6 difficile — droit d'écriture refusé dans #info, ne pas contourner en silence"
   metadata: { capacite: A6, niveau: difficile }
   vars:
     historique:
