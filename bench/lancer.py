@@ -250,6 +250,7 @@ class Voie(threading.Thread):
                 continue
             if "BENCH_HTTP juge" in notation or "BENCH_HTTP juge" in erreur:
                 self.juges.limite(juge_de(modele))
+                print(f"[juge {juge_de(modele)}] pause : {(erreur or notation)[:300]}", flush=True)
                 continue
 
             m = re.search(r"BENCH_HTTP modele (\d+) (.*)", erreur, re.S)
@@ -265,7 +266,9 @@ class Voie(threading.Thread):
                         if self.limites[cle] >= MAX_LIMITES_PAR_EPREUVE:
                             self.enregistrer(rep, modele, c, "impossible", raison="limite à chaque essai : " + texte[:150])
                 elif code in (401, 402, 403, 404):
+                    # Spaced out by the lane's pauses: OmniRoute also answers 403 during a short upstream cooldown.
                     self.refus[modele] += 1
+                    arret = f"{code} {texte[:150]}"
                     if self.refus[modele] >= MAX_REFUS_MODELE:
                         self.morts.add(modele)
                         noter({"modele_mort": modele, "raison": f"{code} {texte[:200]}"})

@@ -42,7 +42,8 @@ class OmniRoute {
     if (limiteAtteinte[role]) return { error: `BENCH_SKIP ${role}` };
 
     const reglages = (context && context.prompt && context.prompt.config) || {};
-    const corps = { model, messages: messages(prompt), temperature: 0, max_tokens: 4096 };
+    // Mistral refuses temperature 0 unless top_p is explicitly 1.
+    const corps = { model, messages: messages(prompt), temperature: 0, top_p: 1, max_tokens: 4096 };
     if (reglages.tools) {
       // promptfoo leaves the file reference unresolved for a custom provider.
       corps.tools = JSON.parse(fs.readFileSync(path.resolve(this.config.basePath, reglages.tools.replace('file://', '')), 'utf8'));
@@ -70,7 +71,7 @@ class OmniRoute {
       return { error: `BENCH_RESEAU ${role} ${e.message}` };
     }
     if (!reponse.ok) {
-      if (reponse.status === 429) limiteAtteinte[role] = true;
+      if ([401, 402, 403, 404, 429].includes(reponse.status)) limiteAtteinte[role] = true;
       return { error: `BENCH_HTTP ${role} ${reponse.status} ${texte.slice(0, 500)}` };
     }
 
