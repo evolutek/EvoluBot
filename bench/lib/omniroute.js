@@ -6,7 +6,13 @@ const path = require('path');
 
 const DOSSIER = process.env.BENCH_REPONSES || path.join(__dirname, '..', 'resultats', 'reponses');
 const DELAI_MS = Number(process.env.BENCH_DELAI_MS || 300000);
-const limiteAtteinte = { modele: false, juge: false };
+const limiteAtteinte = { modele: null, juge: null };
+
+// promptfoo sleeps for minutes on any error that reads like a rate limit, so the status and the
+// upstream text travel to lancer.py in letters only (hex with its digits mapped to g-p).
+function masque(status, texte) {
+  return Buffer.from(`${status} ${texte}`).toString('hex').replace(/[0-9]/g, (d) => 'ghijklmnop'[d]);
+}
 
 function messages(prompt) {
   try {
@@ -39,7 +45,7 @@ class OmniRoute {
     const juge = Boolean(this.config.juge);
     const role = juge ? 'juge' : 'modele';
     const model = juge ? process.env.BENCH_JUGE : this.config.model;
-    if (limiteAtteinte[role]) return { error: `BENCH_SKIP ${role}` };
+    if (limiteAtteinte[role]) return { error: `BENCH_SKIP ${role} ${limiteAtteinte[role]}` };
 
     const reglages = (context && context.prompt && context.prompt.config) || {};
     // Mistral refuses temperature 0 unless top_p is explicitly 1.
@@ -71,8 +77,10 @@ class OmniRoute {
       return { error: `BENCH_RESEAU ${role} ${e.message}` };
     }
     if (!reponse.ok) {
-      if ([401, 402, 403, 404, 429].includes(reponse.status) || reponse.status >= 500) limiteAtteinte[role] = true;
-      return { error: `BENCH_HTTP ${role} ${reponse.status} ${texte.slice(0, 500)}` };
+      if ([401, 402, 403, 404, 429].includes(reponse.status) || reponse.status >= 500) {
+        limiteAtteinte[role] = masque(reponse.status, texte.slice(0, 300));
+      }
+      return { error: `BENCH_HTTP ${role} ${masque(reponse.status, texte.slice(0, 500))}` };
     }
 
     let message;
@@ -82,7 +90,7 @@ class OmniRoute {
       message = donnees.choices[0].message;
       usage = donnees.usage || {};
     } catch {
-      return { error: `BENCH_HTTP ${role} 502 réponse illisible : ${texte.slice(0, 200)}` };
+      return { error: `BENCH_HTTP ${role} ${masque(502, `réponse illisible : ${texte.slice(0, 200)}`)}` };
     }
     const resultat = {
       output: sortie(message),

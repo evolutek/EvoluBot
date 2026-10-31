@@ -77,6 +77,13 @@ def modeles():
     return re.findall(r"(?m)^  label: (.+)$", (RACINE / "providers.yaml").read_text())
 
 
+def demasquer(masque):
+    """Reads the status and upstream text encoded by lib/omniroute.js."""
+    brut = bytes.fromhex(masque.translate(str.maketrans("ghijklmnop", "0123456789"))).decode(errors="replace")
+    code, _, texte = brut.partition(" ")
+    return int(code), texte
+
+
 def voie_de(modele):
     fournisseur = modele.split("/")[0]
     return fournisseur if fournisseur in QUOTA_COMMUN else modele
@@ -229,10 +236,55 @@ class Voie(threading.Thread):
             "theme": c["theme"], "capacite": c["capacite"], "niveau": c["niveau"], **extra,
         })
 
+    def juge_limite(self, modele, raison):
+        self.juges.limite(juge_de(modele))
+        print(f"[juge {juge_de(modele)}] pause : {raison}", flush=True)
+
+    def reposer(self, modele, code, texte):
+        # Only this model rests, so a lane with a shared quota keeps serving the others.
+        # When the quota itself is exhausted they all come to rest in turn, which pauses the lane.
+        n = self.repos_suite[modele]
+        attente = min(PAUSE_MIN_S * 2 ** n, PAUSE_MAX_S)
+        self.repos[modele] = time.time() + attente
+        self.repos_suite[modele] = n + 1
+        self.reussi_depuis_pause = False
+        with verrou:
+            self.etat_pauses[modele] = {"jusqua": self.repos[modele], "raison": f"{code} {texte[:150]}"}
+            PAUSES.write_text(json.dumps(self.etat_pauses, ensure_ascii=False, indent=1))
+        print(f"[{self.nom}] {modele} au repos {attente} s : {code} {texte[:120]}", flush=True)
+
+    def reagir(self, rep, modele, c, code, texte):
+        cle = (modele, c["description"], rep)
+        if TROP_GROS.search(texte) or code == 413:
+            self.enregistrer(rep, modele, c, "impossible", raison=texte[:200])
+        elif code == 429 or LIMITE.search(texte):
+            # Counted only if the lane worked since its last rest: an exhausted quota blames no case.
+            if self.reussi_depuis_pause:
+                self.limites[cle] += 1
+                if self.limites[cle] >= MAX_LIMITES_PAR_EPREUVE:
+                    self.enregistrer(rep, modele, c, "impossible", raison="limite à chaque essai : " + texte[:150])
+            self.reposer(modele, code, texte)
+        elif (code in (401, 402, 403, 404) or code >= 500) and re.search(r"retry_after|reset after", texte):
+            self.reposer(modele, code, texte)  # OmniRoute's upstream cooldown, not a refusal
+        elif code in (401, 402, 403, 404):
+            self.refus[modele] += 1
+            self.reposer(modele, code, texte)
+            if self.refus[modele] >= MAX_REFUS_MODELE:
+                self.morts.add(modele)
+                noter({"modele_mort": modele, "raison": f"{code} {texte[:200]}"})
+        elif code >= 500:
+            self.erreurs[cle] += 1
+            if self.erreurs[cle] >= MAX_ERREURS_PAR_EPREUVE:
+                self.enregistrer(rep, modele, c, "erreur", raison=f"{code} {texte[:200]}")
+        else:
+            self.enregistrer(rep, modele, c, "impossible", raison=f"{code} {texte[:200]}")
+
     def traiter(self, rep, modele, lot, resultats):
         """Returns the reason to pause this lane, if any."""
         par_description = {c["description"]: c for c in lot}
         arret = None
+        sauts = {}
+        vus = set()
         rendues = {(r.get("testCase") or {}).get("description") for r in resultats}
         for c in lot:
             # A case promptfoo never returns would otherwise be picked again forever.
@@ -249,47 +301,23 @@ class Voie(threading.Thread):
             erreur = r.get("error") or ""
             notation = json.dumps(r.get("gradingResult") or {}, ensure_ascii=False)
 
-            if "BENCH_SKIP" in erreur or "BENCH_SKIP" in notation:
+            saut = re.search(r"BENCH_SKIP (modele|juge) ([a-p]+)", erreur + " " + notation)
+            if saut:
+                sauts.setdefault(saut.group(1), demasquer(saut.group(2)))
                 continue
             if "BENCH_RESEAU" in erreur or "BENCH_RESEAU" in notation:
                 arret = "réseau : " + (erreur or notation)[:150]
                 continue
-            if "BENCH_HTTP juge" in notation or "BENCH_HTTP juge" in erreur:
-                self.juges.limite(juge_de(modele))
-                print(f"[juge {juge_de(modele)}] pause : {(erreur or notation)[:300]}", flush=True)
+            m = re.search(r"BENCH_HTTP juge ([a-p]+)", erreur + " " + notation)
+            if m:
+                vus.add("juge")
+                self.juge_limite(modele, "%d %s" % demasquer(m.group(1)))
                 continue
 
-            m = re.search(r"BENCH_HTTP modele (\d+) (.*)", erreur, re.S)
+            m = re.search(r"BENCH_HTTP modele ([a-p]+)", erreur)
             if m:
-                code, texte = int(m.group(1)), m.group(2)
-                if TROP_GROS.search(texte) or code == 413:
-                    self.enregistrer(rep, modele, c, "impossible", raison=texte[:200])
-                elif code == 429 or LIMITE.search(texte):
-                    arret = f"{code} {texte[:150]}"
-                    # Counted only if the lane worked since its last pause: an exhausted quota blames no case.
-                    if self.reussi_depuis_pause:
-                        self.limites[cle] += 1
-                        if self.limites[cle] >= MAX_LIMITES_PAR_EPREUVE:
-                            self.enregistrer(rep, modele, c, "impossible", raison="limite à chaque essai : " + texte[:150])
-                elif (code in (401, 402, 403, 404) or code >= 500) and re.search(r"retry_after|reset after", texte):
-                    # OmniRoute's upstream cooldown, not a refusal: rest this model only, its lane may share a quota.
-                    n = self.repos_suite[modele]
-                    attente = min(PAUSE_MIN_S * 2 ** n, PAUSE_MAX_S)
-                    self.repos[modele] = time.time() + attente
-                    self.repos_suite[modele] = n + 1
-                    print(f"[{self.nom}] {modele} au repos {attente} s : {code} {texte[:120]}", flush=True)
-                elif code in (401, 402, 403, 404):
-                    self.refus[modele] += 1
-                    arret = f"{code} {texte[:150]}"
-                    if self.refus[modele] >= MAX_REFUS_MODELE:
-                        self.morts.add(modele)
-                        noter({"modele_mort": modele, "raison": f"{code} {texte[:200]}"})
-                elif code >= 500:
-                    self.erreurs[cle] += 1
-                    if self.erreurs[cle] >= MAX_ERREURS_PAR_EPREUVE:
-                        self.enregistrer(rep, modele, c, "erreur", raison=f"{code} {texte[:200]}")
-                else:
-                    self.enregistrer(rep, modele, c, "impossible", raison=f"{code} {texte[:200]}")
+                vus.add("modele")
+                self.reagir(rep, modele, c, *demasquer(m.group(1)))
                 continue
 
             if erreur and r.get("failureReason") == 2:
@@ -308,6 +336,10 @@ class Voie(threading.Thread):
             self.reussi_depuis_pause = True
             if c["juge"]:
                 self.juges.reussite(juge_de(modele))
+        if "juge" in sauts and "juge" not in vus:
+            self.juge_limite(modele, f"{sauts['juge'][0]} {sauts['juge'][1][:280]}")
+        if "modele" in sauts and "modele" not in vus:
+            self.reagir(rep, modele, lot[0], *sauts["modele"])
         return arret
 
     def run(self):
@@ -383,8 +415,8 @@ def etat(_):
     for modele in modeles():
         c = par_modele[modele]
         fin = f"  MORT : {morts[modele][:60]}" if modele in morts else ""
-        p = pauses.get(voie_de(modele))
-        if p and p["jusqua"] > time.time():
+        p = next((x for x in (pauses.get(modele), pauses.get(voie_de(modele))) if x and x["jusqua"] > time.time()), None)
+        if p:
             fin = f"  pause {int(p['jusqua'] - time.time())} s : {p['raison'][:60]}"
         print(f"{modele:50} {sum(c.values()):4}/{total:<4}  {c['note']:5} {c['impossible']:11} {c['erreur']:7}{fin}")
 
