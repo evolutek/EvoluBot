@@ -1,0 +1,86 @@
+- description: "G2 facile — repérer l'indice de départ oublié dans une moyenne"
+  metadata: { capacite: G2, niveau: facile }
+  vars:
+    message: "Cette fonction du Rover renvoie une moyenne trop basse. Donne le numéro de la ligne fautive sous la forme « ligne N », explique le bug en deux phrases et propose la correction."
+    doc: file://../../fixtures/G/g2-moyenne.py.txt
+  assert:
+    - type: regex
+      value: "[Ll]igne\\s*6\\b"
+    - type: icontains-any
+      value: ["premier", "mesures[0]", "range(len", "range(0", "indice 0", "index 0", "sum(mesures)"]
+    - type: llm-rubric
+      value: |
+        La réponse doit dire que la boucle commence à l'indice 1 (ligne 6) et ignore donc la première mesure, alors que la division se fait par le nombre total de mesures : la moyenne est sous-estimée. La correction attendue est de parcourir toute la liste (range(len(mesures)), une boucle sur les valeurs, ou sum(mesures) / len(mesures)). Échec si la réponse désigne un autre bug comme cause principale ou si la correction proposée est fausse.
+
+- description: "G2 facile — expliquer un anti-rebond logiciel"
+  metadata: { capacite: G2, niveau: facile }
+  vars:
+    message: "Un nouveau du club demande ce que fait cette fonction du Rover et pourquoi elle est si compliquée pour lire un simple bouton. Explique-lui en quelques phrases, sans jargon inutile, et dis combien de temps le bouton doit rester stable pour que l'état change."
+    doc: file://../../fixtures/G/g2-bouton.c
+  assert:
+    - type: icontains-any
+      value: ["rebond", "debounce", "anti-rebond"]
+    - type: regex
+      value: "50\\s*ms|0[,.]05\\s*s|cinquante millisecondes"
+    - type: llm-rubric
+      value: |
+        L'explication doit dire que la fonction filtre les rebonds mécaniques du bouton : l'état renvoyé ne change que si la lecture brute diffère de l'état mémorisé pendant 5 appels consécutifs, soit 50 ms à raison d'un appel toutes les 10 ms ; toute lecture égale à l'état remet le compteur à zéro. Elle peut mentionner que le bouton est actif à l'état bas (GPIO_PIN_RESET = appuyé). Elle doit être compréhensible par un débutant. Échec si la durée est fausse ou si l'explication du rôle du compteur est erronée.
+
+- description: "G2 moyen — compteur de boucle trop petit pour la longueur"
+  metadata: { capacite: G2, niveau: moyen }
+  vars:
+    message: "Sur le banc, recevoir_trame fonctionne avec des trames de 200 octets mais le microcontrôleur se bloque dès qu'on envoie une trame de 300 octets. Trouve la cause, donne la ligne sous la forme « ligne N » et corrige."
+    doc: file://../../fixtures/G/g2-trames.c
+  assert:
+    - type: regex
+      value: "[Ll]igne\\s*16\\b"
+    - type: icontains-any
+      value: ["uint8_t i", "255", "déborde", "débordement", "overflow", "repasse à 0", "revient à 0"]
+    - type: llm-rubric
+      value: |
+        La cause attendue : le compteur `i` est un uint8_t (ligne 16) ; il ne dépasse jamais 255 et repasse à 0, donc pour une longueur supérieure à 255 la condition i < longueur reste toujours vraie : boucle infinie (et tampon réécrit). La correction : déclarer i en uint16_t (ou size_t). La somme sur uint8_t qui déborde est voulue (modulo 256) et ne doit pas être présentée comme le bug. Échec si la cause principale donnée est autre, ou si la réponse « corrige » la somme modulo 256.
+
+- description: "G2 moyen — argument par défaut mutable partagé entre les jours"
+  metadata: { capacite: G2, niveau: moyen }
+  vars:
+    message: "Le lundi, traiter_formulaire reçoit 2 réponses et renvoie 2 inscrits. Le mardi, elle reçoit 1 nouvelle réponse et renvoie 3 inscrits au lieu de 1. Pourquoi ? Donne la ligne responsable sous la forme « ligne N » et la correction minimale."
+    doc: file://../../fixtures/G/g2-inscriptions.py.txt
+  assert:
+    - type: regex
+      value: "[Ll]igne\\s*13\\b"
+    - type: icontains-any
+      value: ["mutable", "par défaut", "default", "=[]", "= []"]
+    - type: llm-rubric
+      value: |
+        La cause attendue : la liste par défaut `inscrits=[]` (ligne 13) est créée une seule fois à la définition de la fonction et partagée entre tous les appels ; les inscrits de la veille y restent. La correction minimale : `inscrits=None` puis `if inscrits is None: inscrits = []`, ou créer la liste dans traiter_formulaire et la passer en argument. Le choix de `>` à la ligne 23 ou des 30 jours n'explique pas le symptôme : la réponse peut le signaler à part, mais échoue si elle en fait la cause.
+
+- description: "G2 difficile — variable partagée avec une interruption sur un AVR 8 bits"
+  metadata: { capacite: G2, niveau: difficile }
+  vars:
+    message: "Compilé en -Os, attendre_ms ne rend parfois jamais la main ; en -O0 elle marche, mais de temps en temps l'attente est beaucoup plus courte ou beaucoup plus longue que prévu. Explique les deux problèmes, avec les lignes concernées, et donne le code corrigé."
+    doc: file://../../fixtures/G/g2-ticks.c
+  assert:
+    - type: icontains
+      value: "volatile"
+    - type: icontains-any
+      value: ["ATOMIC_BLOCK", "cli()", "atomique", "atomic"]
+    - type: llm-rubric
+      value: |
+        Deux problèmes doivent être identifiés :
+        1. `ticks_ms` (ligne 6) n'est pas `volatile` : le compilateur peut garder sa valeur dans un registre et la boucle des lignes 26 à 28 ne relit jamais la variable, d'où le blocage en -Os.
+        2. Sur un AVR 8 bits, la lecture d'un uint32_t prend plusieurs instructions et l'interruption peut tomber au milieu (lignes 25 et 26) : la valeur lue est incohérente, d'où des attentes trop courtes ou trop longues. La correction attendue lit la variable dans une section atomique (ATOMIC_BLOCK(ATOMIC_RESTORESTATE) de <util/atomic.h>, ou cli()/sei() en restaurant SREG).
+        La soustraction `ticks_ms - debut` en non signé est correcte même au débordement : la présenter comme un bug retire des points. Échec si l'un des deux problèmes manque.
+
+- description: "G2 difficile — pagination de l'historique Discord sur le mauvais message"
+  metadata: { capacite: G2, niveau: difficile }
+  vars:
+    message: "Pour le récap hebdomadaire, messages_depuis renvoie des messages en double et met très longtemps sur les salons actifs. Le décalage horaire a déjà été vérifié. Trouve le bug, donne la ligne sous la forme « ligne N », explique pourquoi il produit exactement ces deux symptômes, et corrige."
+    doc: file://../../fixtures/G/g2-historique.py.txt
+  assert:
+    - type: regex
+      value: "[Ll]igne\\s*28\\b"
+    - type: icontains-any
+      value: ["page[-1]", "plus ancien", "dernier message"]
+    - type: llm-rubric
+      value: |
+        La cause attendue : ligne 28, `avant = page[0]` prend le message le plus récent de la page, alors que l'historique est trié du plus récent au plus ancien. La requête suivante renvoie donc presque la même page (tous les messages antérieurs au plus récent) : 99 doublons à chaque tour, et une progression d'un seul message par requête, d'où la lenteur (une requête et une pause de 0,5 s par message). La correction : `avant = page[-1]`. Échec si la réponse accuse le fuseau horaire, la comparaison `<=` ou la pause comme cause principale.

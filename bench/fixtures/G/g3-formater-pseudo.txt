@@ -1,0 +1,46 @@
+Code (outils/etiquettes.c) :
+
+```c
+/* Étiquette d'un casier : « pseudo [projet] », ou le pseudo seul si le membre n'a pas de projet
+   (projet NULL ou chaîne vide). Le résultat est alloué, l'appelant le libère. */
+char *formater_pseudo(const char *pseudo, const char *projet)
+{
+    size_t n = strlen(pseudo) + strlen(projet) + 3; /* " [" et "]" */
+    char *s = malloc(n);
+    if (!s)
+        return NULL;
+    sprintf(s, "%s [%s]", pseudo, projet);
+    return s;
+}
+```
+
+Compilé avec `-fsanitize=address`, premier test :
+
+```
+$ ./test_etiquettes alix.m Rover
+=================================================================
+==4242==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x602000000020 at pc 0x7f3a1c2b5e2d bp 0x7ffd4c1e0a10 sp 0x7ffd4c1e01b8
+WRITE of size 15 at 0x602000000020 thread T0
+    #0 0x7f3a1c2b5e2c in __interceptor_vsprintf
+    #1 0x7f3a1c2b61a6 in sprintf
+    #2 0x55d0e3a0b2f1 in formater_pseudo outils/etiquettes.c:9
+    #3 0x55d0e3a0b45a in main tests/test_etiquettes.c:14
+0x60200000002e is located 0 bytes after 14-byte region [0x602000000020,0x60200000002e)
+allocated by thread T0 here:
+    #0 0x7f3a1c2e0b6f in malloc
+    #1 0x55d0e3a0b2b9 in formater_pseudo outils/etiquettes.c:6
+SUMMARY: AddressSanitizer: heap-buffer-overflow in __interceptor_vsprintf
+```
+
+Deuxième test, un futur membre sans projet :
+
+```
+$ ./test_etiquettes hugo.t
+AddressSanitizer:DEADLYSIGNAL
+==4243==ERROR: AddressSanitizer: SEGV on unknown address 0x000000000000 (pc 0x7f3a1c1f6d75 T0)
+==4243==The signal is caused by a READ memory access.
+==4243==Hint: address points to the zero page.
+    #0 0x7f3a1c1f6d75 in __strlen_avx2
+    #1 0x55d0e3a0b29e in formater_pseudo outils/etiquettes.c:5
+    #2 0x55d0e3a0b45a in main tests/test_etiquettes.c:12
+```

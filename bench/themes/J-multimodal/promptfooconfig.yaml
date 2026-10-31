@@ -1,0 +1,12 @@
+description: "J. Multimodal"
+prompts:
+  - id: file://prompt.json
+    label: multimodal
+providers: file://../../providers.yaml
+defaultTest:
+  metadata:
+    theme: J
+  options:
+    provider: file://../../juge.yaml
+    disableVarExpansion: true
+tests: file://tests/*.yaml

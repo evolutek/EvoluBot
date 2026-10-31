@@ -1,0 +1,127 @@
+- description: A6 facile — numéro de suivi refusé, le signaler sans réessayer à l'identique
+  metadata: { capacite: A6, niveau: facile }
+  vars:
+    historique:
+      - { role: user, content: "Le colis Colissimo 6A1234567890, il est où ?" }
+      - role: assistant
+        content: null
+        tool_calls:
+          - { id: call_1, type: function, function: { name: suivre_colis, arguments: '{"transporteur":"Colissimo","numero":"6A1234567890"}' } }
+      - { role: tool, tool_call_id: call_1, content: '{"erreur":"numéro inconnu : un numéro Colissimo compte 13 caractères"}' }
+    exclus:
+      - { nom: suivre_colis, arguments: { numero: "6A1234567890" } }
+    texte_motif: "num[ée]ro"
+  assert:
+    - type: javascript
+      value: file://verifs.js:appelsExclus
+    - type: javascript
+      value: file://verifs.js:texte
+    - type: llm-rubric
+      value: >-
+        Le service a refusé le numéro (12 caractères au lieu de 13). Note 1 si la réponse dit que le numéro semble incomplet
+        ou erroné et demande de le vérifier. Note 0 si elle invente un état du colis ou affirme qu'il est en route.
+
+- description: A6 facile — service météo indisponible, ne rien inventer
+  metadata: { capacite: A6, niveau: facile }
+  vars:
+    historique:
+      - { role: user, content: "Il va pleuvoir à Villebrune cet après-midi ?" }
+      - role: assistant
+        content: null
+        tool_calls:
+          - { id: call_1, type: function, function: { name: meteo, arguments: '{"ville":"Villebrune"}' } }
+      - { role: tool, tool_call_id: call_1, content: '{"erreur":"503 Service Unavailable"}' }
+    max_appels: 1
+  assert:
+    - type: javascript
+      value: file://../../lib/outils.js:auPlus
+    - type: llm-rubric
+      value: >-
+        L'outil météo a renvoyé une erreur 503. Deux comportements valent 1 : réessayer une fois le même appel, ou dire
+        que la météo est momentanément indisponible. Note 0 si la réponse donne une prévision (pluie, température, ciel)
+        qui ne vient d'aucun outil.
+
+- description: A6 moyen — recherche vide sur une orthographe fautive, réessayer autrement
+  metadata: { capacite: A6, niveau: moyen }
+  vars:
+    historique:
+      - { role: user, content: "Donne le rôle CanSat à Inès Kassi." }
+      - role: assistant
+        content: null
+        tool_calls:
+          - { id: call_1, type: function, function: { name: chercher_membre, arguments: '{"recherche":"Inès Kassi"}' } }
+      - { role: tool, tool_call_id: call_1, content: '[]' }
+    exclus:
+      - { nom: chercher_membre, arguments: { recherche: "Inès Kassi" } }
+    interdits: [donner_role]
+  assert:
+    - type: javascript
+      value: file://verifs.js:appelsExclus
+    - type: javascript
+      value: file://../../lib/outils.js:outilsInterdits
+    - type: llm-rubric
+      value: >-
+        La recherche « Inès Kassi » n'a rien donné. Note 1 si la réponse relance une recherche plus large ou corrigée
+        (prénom seul, « Kaci », « ines ») ou demande le pseudo exact. Note 0 si elle conclut que la personne n'existe pas
+        sans autre tentative ni question, ou si elle invente un pseudo.
+
+- description: A6 moyen — pseudo introuvable, se corriger par la recherche ou le bon pseudo
+  metadata: { capacite: A6, niveau: moyen }
+  vars:
+    historique:
+      - { role: user, content: "Mets le rôle CanSat à ines.k." }
+      - role: assistant
+        content: null
+        tool_calls:
+          - { id: call_1, type: function, function: { name: donner_role, arguments: '{"pseudo":"ines.k","role":"CanSat"}' } }
+      - { role: tool, tool_call_id: call_1, content: '{"erreur":"pseudo introuvable : ines.k"}' }
+    alternatives:
+      - { nom: chercher_membre }
+      - { nom: lister_membres }
+      - { nom: donner_role, arguments: { pseudo: ines_k, role: CanSat } }
+    exclus:
+      - { nom: donner_role, arguments: { pseudo: ines.k } }
+  assert:
+    - type: javascript
+      value: file://verifs.js:unParmi
+    - type: javascript
+      value: file://verifs.js:appelsExclus
+
+- description: A6 difficile — énumération refusée, corriger l'argument d'après le message d'erreur
+  metadata: { capacite: A6, niveau: difficile }
+  vars:
+    historique:
+      - { role: user, content: "Ajoute 23,50 € de fil d'étain acheté hier chez Électro Villebrune, pour la soudure." }
+      - role: assistant
+        content: null
+        tool_calls:
+          - { id: call_1, type: function, function: { name: ajouter_depense, arguments: '{"date":"2026-10-27","montant_ttc":23.5,"fournisseur":"Électro Villebrune","projet":"Soudure"}' } }
+      - { role: tool, tool_call_id: call_1, content: '{"erreur":"projet invalide : Soudure. Valeurs acceptées : Rover, Mini-Rover, CanSat, Atelier soudure, Fonctionnement"}' }
+    attendu: { nom: ajouter_depense, arguments: { date: "2026-10-27", montant_ttc: 23.5, projet: Atelier soudure } }
+    max_appels: 1
+  assert:
+    - type: javascript
+      value: file://../../lib/outils.js:outilAttendu
+    - type: javascript
+      value: file://../../lib/outils.js:auPlus
+
+- description: "A6 difficile — droit d'écriture refusé dans #info, ne pas contourner en silence"
+  metadata: { capacite: A6, niveau: difficile }
+  vars:
+    historique:
+      - { role: user, content: "Publie dans #info que le local sera fermé vendredi 30 octobre pour travaux." }
+      - role: assistant
+        content: null
+        tool_calls:
+          - { id: call_1, type: function, function: { name: envoyer_message, arguments: '{"destination":"#info","texte":"Le local sera fermé le vendredi 30 octobre pour travaux."}' } }
+      - { role: tool, tool_call_id: call_1, content: '{"erreur":"403 Forbidden : le rôle Bot ne peut pas écrire dans #info"}' }
+    interdits: [envoyer_message]
+  assert:
+    - type: javascript
+      value: file://../../lib/outils.js:outilsInterdits
+    - type: llm-rubric
+      value: >-
+        Le bot n'a pas le droit d'écrire dans #info (erreur 403). Note 1 si la réponse signale l'échec, en donne la cause
+        (droits du bot) et propose une solution (qu'un admin publie le texte, qu'on donne le droit au bot, ou de publier
+        ailleurs si l'utilisateur le veut). Note 0 si elle affirme que l'annonce est publiée, ou si elle publie dans un autre
+        salon sans le demander.

@@ -1,0 +1,80 @@
+- description: A3 facile — deux rôles au même membre
+  metadata: { capacite: A3, niveau: facile }
+  vars:
+    message: "Donne les rôles Membre et Rover à hugo.t."
+    attendus:
+      - { nom: donner_role, arguments: { pseudo: hugo.t, role: Membre } }
+      - { nom: donner_role, arguments: { pseudo: hugo.t, role: Rover } }
+  assert:
+    - type: javascript
+      value: file://../../lib/outils.js:ensembleOutils
+
+- description: A3 facile — deux questions sans lien
+  metadata: { capacite: A3, niveau: facile }
+  vars:
+    message: "Quel temps il fait à Villebrune ? Et le colis UPS 1Z999AA10123456784, il arrive quand ?"
+    attendus:
+      - { nom: meteo }
+      - { nom: suivre_colis, arguments: { transporteur: UPS, numero: "1Z999AA10123456784" } }
+  assert:
+    - type: javascript
+      value: file://../../lib/outils.js:ensembleOutils
+
+- description: A3 moyen — deux membres, deux changements de rôle chacun
+  metadata: { capacite: A3, niveau: moyen }
+  vars:
+    message: "lucas_b et ines_k ont cotisé tous les deux : enlève-leur Futur-membre et mets-leur Membre."
+    attendus:
+      - { nom: retirer_role, arguments: { pseudo: lucas_b, role: Futur-membre } }
+      - { nom: retirer_role, arguments: { pseudo: ines_k, role: Futur-membre } }
+      - { nom: donner_role, arguments: { pseudo: lucas_b, role: Membre } }
+      - { nom: donner_role, arguments: { pseudo: ines_k, role: Membre } }
+  assert:
+    - type: javascript
+      value: file://../../lib/outils.js:ensembleOutils
+
+- description: A3 moyen — deux événements et une annonce, comptes exacts
+  metadata: { capacite: A3, niveau: moyen }
+  vars:
+    message: "Ajoute deux ateliers soudure au calendrier, les jeudis 5 et 12 novembre 2026, 18 h, 1 h 30 chacun, au local. Et préviens #soudure que les deux dates sont posées."
+    attendus:
+      - { nom: ajouter_evenement, arguments: { duree_minutes: 90 } }
+      - { nom: envoyer_message, arguments: { destination: "#soudure" } }
+    compte: { ajouter_evenement: 2, envoyer_message: 1 }
+  assert:
+    - type: javascript
+      value: file://../../lib/outils.js:ensembleOutils
+    - type: javascript
+      value: file://verifs.js:compteOutils
+
+- description: A3 difficile — quatre lectures indépendantes, une action qui dépend d'elles à ne pas lancer
+  metadata: { capacite: A3, niveau: difficile }
+  vars:
+    message: "Tu peux regarder le colis Colissimo 6A11111111111 et le DHL 1234567890, lire #achats depuis le 2026-10-20 et me donner la météo à Villebrune ? Ensuite, selon ce qui s'est dit dans #achats, on verra ce qu'on met en compta."
+    attendus:
+      - { nom: suivre_colis, arguments: { transporteur: Colissimo, numero: "6A11111111111" } }
+      - { nom: suivre_colis, arguments: { transporteur: DHL, numero: "1234567890" } }
+      - { nom: lire_salon, arguments: { depuis: "2026-10-20" } }
+      - { nom: meteo }
+    interdits: [ajouter_depense]
+  assert:
+    - type: javascript
+      value: file://../../lib/outils.js:ensembleOutils
+    - type: javascript
+      value: file://../../lib/outils.js:outilsInterdits
+
+- description: A3 difficile — six appels en un tour, deux membres changent d'équipe
+  metadata: { capacite: A3, niveau: difficile }
+  vars:
+    message: "gaelle_r et kenza.a passent du Mini-Rover au Rover. Enlève-leur Mini-Rover, donne-leur Rover, et envoie à chacune un MP pour leur dire de passer voir Dorian jeudi. Ne touche pas à leurs autres rôles."
+    attendus:
+      - { nom: retirer_role, arguments: { pseudo: gaelle_r, role: Mini-Rover } }
+      - { nom: retirer_role, arguments: { pseudo: kenza.a, role: Mini-Rover } }
+      - { nom: donner_role, arguments: { pseudo: gaelle_r, role: Rover } }
+      - { nom: donner_role, arguments: { pseudo: kenza.a, role: Rover } }
+    compte: { retirer_role: 2, donner_role: 2, envoyer_message: 2 }
+  assert:
+    - type: javascript
+      value: file://../../lib/outils.js:ensembleOutils
+    - type: javascript
+      value: file://verifs.js:compteOutils

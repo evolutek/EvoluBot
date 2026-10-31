@@ -1,0 +1,118 @@
+- description: D2 facile — accueil chaleureux d'une nouvelle
+  metadata: { capacite: D2, niveau: facile }
+  vars:
+    message: "Écris le message d'accueil pour Inès (ines_k), qui vient d'arriver sur le serveur et veut rejoindre le CanSat. Elle est en mois d'essai. Message court, pour #accueil."
+  assert:
+    - type: javascript
+      value: file://verif.js:francais
+    - type: icontains
+      value: CanSat
+    - type: llm-rubric
+      value: >-
+        Ton chaleureux et accueillant, tutoiement, phrases courtes, un emoji au plus deux. Le message salue
+        Inès par son prénom ou son pseudo, mentionne le CanSat et donne une piste concrète (passer dans
+        #cansat, parler à Elsa, ou venir au local). Retire des points pour un ton froid ou administratif, un
+        vouvoiement, un message long (plus de 80 mots), une avalanche d'emojis ou de points d'exclamation,
+        ou une information inventée.
+
+- description: D2 facile — convocation officielle à l'AG
+  metadata: { capacite: D2, niveau: facile }
+  vars:
+    message: "Rédige la convocation officielle à l'assemblée générale pour #info : jeudi 26 novembre 2026 à 19 h, amphi A du bâtiment C. Ordre du jour : rapport moral, bilan financier, élection du conseil. Tous les membres à jour de cotisation peuvent voter."
+  assert:
+    - type: javascript
+      value: file://verif.js:francais
+    - type: not-regex
+      value: "mdr|lol|😂|🤣|\\bslt\\b|\\bstp\\b"
+    - type: llm-rubric
+      value: >-
+        Registre officiel et sobre d'une convocation associative : formule d'adresse aux membres, date, heure,
+        lieu, ordre du jour complet, droit de vote réservé aux membres à jour, éventuellement une formule de
+        clôture et une signature du conseil. Retire des points pour un registre familier (abréviations,
+        argot, emojis décoratifs), une information manquante ou inventée (procurations, quorum non mentionnés
+        dans la demande), ou un ton commercial.
+
+- description: D2 moyen — seconde relance ferme mais polie, avec la conséquence prévue par les règles
+  metadata: { capacite: D2, niveau: moyen }
+  vars:
+    contexte: file://../../fixtures/club-fictif.md
+    message: "Écris le message privé de deuxième relance à Lucas (lucas_b) : son mois d'essai est fini depuis le 15 octobre, il n'a pas cotisé et n'a pas répondu à la première relance. Applique les règles du club."
+  assert:
+    - type: javascript
+      value: file://verif.js:francais
+    - type: icontains
+      value: "15 €"
+    - type: icontains
+      value: Futur-membre
+    - type: llm-rubric
+      value: >-
+        Ton ferme mais poli et bienveillant : rappelle les faits (essai terminé, première relance restée
+        sans réponse), le montant (15 €) et les moyens de paiement (virement ou espèces auprès de Basile),
+        et annonce clairement mais sans menace qu'en l'absence de réponse il perdra le rôle Futur-membre.
+        Laisse une porte ouverte (répondre, poser une question). Retire des points pour un ton culpabilisant,
+        sec ou menaçant, pour toute mention d'expulsion ou de kick (contraire aux règles), pour un ton trop
+        mou qui ne dit pas la conséquence, ou pour une échéance inventée.
+
+- description: D2 moyen — même information dans deux registres
+  metadata: { capacite: D2, niveau: moyen }
+  vars:
+    message: >-
+      Le local sera fermé du 21 au 29 décembre pour les vacances de l'école. Écris deux versions de cette
+      information : (1) l'annonce officielle pour #info ; (2) un message détendu pour #general. Sépare-les
+      par une ligne contenant seulement « --- ».
+  assert:
+    - type: javascript
+      value: |
+        const parts = output.split(/^\s*---\s*$/m).filter((p) => p.trim());
+        const ok = parts.length === 2 && parts.every((p) => /21/.test(p) && /29/.test(p));
+        return { pass: ok, score: ok ? 1 : 0, reason: ok ? 'deux versions datées' : parts.length + ' partie(s), dates manquantes ou séparateur absent' };
+    - type: llm-rubric
+      value: >-
+        Les deux versions disent la même chose (fermeture du 21 au 29 décembre, vacances de l'école) dans
+        deux registres nettement distincts : la première neutre et officielle, sans familiarité ; la seconde
+        détendue et chaleureuse (tutoiement, éventuellement un emoji) sans faute ni vulgarité. Retire des
+        points si les registres se ressemblent, si une version perd ou modifie une information, ou si la
+        version détendue devient incompréhensible ou familière à l'excès.
+
+- description: D2 difficile — répondre à un membre en colère sans s'excuser à tort ni accuser
+  metadata: { capacite: D2, niveau: difficile }
+  vars:
+    message: |-
+      Réponds publiquement dans #general à ce message, au nom du conseil :
+      gaelle_r : « franchement c'est n'importe quoi, le local est un taudis, y a des chutes de fils partout et le fer à souder était encore chaud hier soir sans personne, c'est sûrement encore l'équipe Rover qui se croit tout permis »
+  assert:
+    - type: javascript
+      value: file://verif.js:francais
+    - type: llm-rubric
+      value: >-
+        Réponse calme, ferme et constructive : remercie ou reconnaît le signalement, prend au sérieux le
+        risque de sécurité (fer à souder laissé chaud), rappelle une règle ou propose une action concrète
+        (rangement, vérification des fers en partant, point au prochain conseil), et refuse de désigner
+        l'équipe Rover sans preuve, sans pour autant contredire Gaëlle sur un ton défensif. Retire des points
+        pour un ton défensif, condescendant ou sarcastique, pour une accusation de l'équipe Rover, pour des
+        excuses excessives ou des promesses intenables, ou pour une réponse trop longue pour Discord (plus
+        de 120 mots).
+
+- description: D2 difficile — annonce officielle d'une mauvaise nouvelle
+  metadata: { capacite: D2, niveau: difficile }
+  vars:
+    message: >-
+      Rédige l'annonce pour #info : faute de budget (la subvention de l'école a baissé de 40 %), seule
+      l'équipe Rover ira à la Coupe de robotique en mai 2027 ; le Mini-Rover n'ira pas cette année. Le travail
+      du Mini-Rover continue et il pourra être présenté à la journée portes ouvertes. Le conseil cherche un
+      sponsor et toute piste est bienvenue dans #conseil-sponsors... non, plutôt en message privé à Alix.
+  assert:
+    - type: javascript
+      value: file://verif.js:francais
+    - type: icontains
+      value: Alix
+    - type: not-icontains
+      value: "#conseil-sponsors"
+    - type: llm-rubric
+      value: >-
+        Annonce officielle, claire et empathique : annonce sans détour la décision et sa raison (baisse de 40 %
+        de la subvention), reconnaît la déception de l'équipe Mini-Rover et valorise son travail, donne la
+        suite (portes ouvertes, travail qui continue) et l'appel aux pistes de sponsor par message privé à
+        Alix. Retire des points pour un ton froid ou bureaucratique, un ton trop léger (blagues, emojis
+        festifs), une dramatisation, une promesse non contenue dans la demande (« vous irez l'an prochain »),
+        ou la mention du salon abandonné.

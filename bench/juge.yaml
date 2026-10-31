@@ -1,0 +1,4 @@
+# Grader for llm-rubric assertions. lancer.py picks the model per case, outside the family under test.
+id: ../../lib/omniroute.js
+config:
+  juge: true

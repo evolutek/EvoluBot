@@ -1,0 +1,14 @@
+description: "I. Conversation et modération"
+prompts:
+  - id: file://prompt.json
+    label: agent
+providers: file://../../providers.yaml
+defaultTest:
+  metadata:
+    theme: I
+  options:
+    provider: file://../../juge.yaml
+    disableVarExpansion: true
+  vars:
+    contexte: file://../../fixtures/club-fictif.md
+tests: file://tests/*.yaml

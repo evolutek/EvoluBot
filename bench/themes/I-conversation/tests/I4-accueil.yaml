@@ -1,0 +1,104 @@
+- description: I4 facile — nouveau qui ne sait pas par où commencer
+  metadata: { capacite: I4, niveau: facile }
+  vars:
+    message: "salut, je suis nouveau, je sais pas trop par où commencer 😅"
+  assert:
+    - type: javascript
+      value: file://verif.js:francais
+    - type: javascript
+      value: "output.split(/\\s+/).length <= 150"
+    - type: llm-rubric
+      value: >-
+        Accueil chaleureux et rassurant, tutoiement, puis deux ou trois premiers pas concrets tirés du club :
+        se présenter dans #accueil, choisir un projet (Rover, Mini-Rover, CanSat, Atelier soudure), passer au
+        local ou à l'atelier du jeudi 18 h. Se termine par une invitation à poser des questions ou une question
+        ouverte sur ses envies. Retire des points pour un mur de texte, une liste exhaustive de règles, un
+        ton froid, ou une information inventée.
+
+- description: I4 facile — débutante qui craint de ne pas avoir le niveau
+  metadata: { capacite: I4, niveau: facile }
+  vars:
+    message: "Bonjour, je suis en première année à l'École Gamma, j'ai jamais fait de robotique de ma vie, est-ce que je peux quand même venir ?"
+  assert:
+    - type: javascript
+      value: file://verif.js:francais
+    - type: javascript
+      value: "output.split(/\\s+/).length <= 150"
+    - type: llm-rubric
+      value: >-
+        Rassure clairement (oui, aucun niveau requis), valorise la démarche, et propose un point d'entrée
+        adapté aux débutants (l'Atelier soudure du jeudi 18 h, ou un projet où on apprend en équipe) ainsi
+        que le mois d'essai gratuit. Retire des points pour un ton condescendant, du jargon technique non
+        expliqué, une réponse trop longue, ou une promesse inventée (tutorat, cours particuliers).
+
+- description: I4 moyen — nouvelle intimidée qui n'ose pas parler
+  metadata: { capacite: I4, niveau: moyen }
+  vars:
+    message: "dsl de déranger... je suis arrivée il y a deux semaines et j'ose pas trop parler dans les salons, j'ai l'impression que tout le monde se connaît déjà"
+  assert:
+    - type: javascript
+      value: file://verif.js:francais
+    - type: javascript
+      value: "output.split(/\\s+/).length <= 130"
+    - type: llm-rubric
+      value: >-
+        Valide le ressenti sans le minimiser, dit qu'elle ne dérange pas, et propose un premier pas facile et
+        concret (par exemple venir à l'atelier soudure du jeudi, écrire dans le salon d'un projet, ou être
+        mise en relation avec un responsable de projet). Ton doux et personnel, pas de liste à rallonge.
+        Retire des points pour un ton enjoué qui balaie le ressenti, une injonction (« il faut que tu… »),
+        ou des conseils génériques sans lien avec le club.
+
+- description: I4 moyen — nouveau frustré par un local fermé
+  metadata: { capacite: I4, niveau: moyen }
+  vars:
+    message: "ça fait 3 fois que je viens au local et c'est fermé ou j'arrive pas à rentrer, c'est quoi les horaires ??? je commence à me demander si ce club existe vraiment"
+  assert:
+    - type: javascript
+      value: file://verif.js:francais
+    - type: regex
+      value: "9\\s?h"
+    - type: regex
+      value: "22\\s?h"
+    - type: icontains
+      value: badge
+    - type: llm-rubric
+      value: >-
+        Reconnaît la frustration sans se justifier longuement, donne l'information utile (sous-sol du bâtiment B,
+        ouvert en semaine de 9 h à 22 h, fermé le week-end, badge de l'école obligatoire) et propose une aide
+        concrète pour la prochaine visite (venir à l'atelier du jeudi 18 h, prévenir quelqu'un sur le serveur).
+        Retire des points pour un ton défensif, une réponse sans excuse ni empathie, ou une information inventée.
+
+- description: I4 difficile — futur membre inquiet de ne pas pouvoir payer
+  metadata: { capacite: I4, niveau: difficile }
+  vars:
+    message: "coucou, c'est Inès (ines_k). en ce moment je peux vraiment pas mettre 15 €, j'ai des galères d'argent... est-ce que je vais me faire virer du serveur à la fin de mon essai ? j'aime trop le CanSat 😢"
+  assert:
+    - type: javascript
+      value: file://verif.js:francais
+    - type: icontains
+      value: Basile
+    - type: regex
+      value: "20 novembre|20/11|2026-11-20"
+    - type: llm-rubric
+      value: >-
+        Réponse empathique et discrète : rassure Inès sur le fait que personne n'est expulsé sans décision du
+        conseil, rappelle que son essai court jusqu'au 20 novembre, et l'invite à en parler en message privé à
+        Basile (trésorier) pour trouver une solution, sans promettre d'exonération ni de délai que les règles
+        ne donnent pas. Valorise son envie de rester sur le CanSat. Retire des points pour une promesse
+        inventée (gratuité, report), une mention publique de sa situation, ou un ton administratif.
+
+- description: I4 difficile — étudiant Erasmus qui craint la barrière de la langue
+  metadata: { capacite: I4, niveau: difficile }
+  vars:
+    message: "Hi, sorry my French is not good, I am Erasmus student at École Beta. I want to join robotique but I am scared everything is in French and I will not understand."
+  assert:
+    - type: javascript
+      value: "output.split(/\\s+/).length <= 160"
+    - type: llm-rubric
+      value: >-
+        Accueil chaleureux qui répond d'abord à la peur : réponse en français simple (phrases courtes, mots
+        courants), avec éventuellement une ou deux phrases en anglais pour être sûr d'être compris, sans
+        basculer entièrement en anglais. Rassure (on peut écrire en anglais, les membres aideront), et donne
+        un premier pas concret (se présenter dans #accueil, venir à l'atelier du jeudi 18 h, choisir un
+        projet). Retire des points pour un français complexe, une réponse tout en anglais, un mur de texte,
+        ou une promesse inventée (traduction systématique, référent anglophone).
