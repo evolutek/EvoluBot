@@ -43,12 +43,13 @@ function echec(raison) {
 // Refusing to run is deliberate, a missing bwrap must not silently weaken the sandbox.
 function prefixe(dir) {
   if (spawnSync('bwrap', ['--version']).status !== 0) throw new Error('bwrap introuvable : code du modèle non exécuté');
+  // Merged-/usr distributions and NixOS lay these out differently: mirror what exists, read-only.
+  const systeme = ['/usr', '/bin', '/sbin', '/lib', '/lib64', '/nix/store']
+    .filter((p) => fs.existsSync(p))
+    .flatMap((p) => (fs.lstatSync(p).isSymbolicLink() ? ['--symlink', fs.readlinkSync(p), p] : ['--ro-bind', p, p]));
   return [
     'bwrap', '--unshare-all', '--die-with-parent', '--new-session',
-    '--ro-bind', '/usr', '/usr',
-    '--symlink', 'usr/bin', '/bin',
-    '--symlink', 'usr/lib', '/lib',
-    '--symlink', 'usr/lib', '/lib64',
+    ...systeme,
     '--proc', '/proc',
     '--dev', '/dev',
     '--bind', dir, dir,
@@ -57,7 +58,7 @@ function prefixe(dir) {
 }
 
 function lancer(dir, cmd, args, { timeout = 10000, limites = true } = {}) {
-  const lim = limites && fs.existsSync('/usr/bin/prlimit') ? ['prlimit', '--as=1073741824', '--cpu=10', '--fsize=10485760', '--'] : [];
+  const lim = limites ? ['prlimit', '--as=1073741824', '--cpu=10', '--fsize=10485760', '--'] : [];
   const tout = [...prefixe(dir), ...lim, cmd, ...args];
   return spawnSync(tout[0], tout.slice(1), {
     cwd: dir,
@@ -65,7 +66,8 @@ function lancer(dir, cmd, args, { timeout = 10000, limites = true } = {}) {
     input: '',
     encoding: 'utf8',
     maxBuffer: 1 << 20,
-    env: { PATH: '/usr/bin:/bin', HOME: dir, TMPDIR: dir, LANG: 'C.UTF-8', ASAN_OPTIONS: 'detect_leaks=0' },
+    // The caller's PATH, not /usr/bin: on NixOS the tools live in /nix/store.
+    env: { PATH: process.env.PATH, HOME: dir, TMPDIR: dir, LANG: 'C.UTF-8', ASAN_OPTIONS: 'detect_leaks=0' },
   });
 }
 
