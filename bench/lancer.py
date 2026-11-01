@@ -368,10 +368,22 @@ class Voie(threading.Thread):
                 self.pause_suite = 0
 
 
+def verifier_bac_a_sable():
+    # A grader failure counts as a wrong answer: without this, a broken sandbox would score every code case 0.
+    try:
+        p = subprocess.run(["bwrap", "--unshare-all", "--ro-bind", "/", "/", "--proc", "/proc", "true"],
+                           capture_output=True, text=True, timeout=30)
+    except OSError as e:
+        sys.exit(f"bac à sable indisponible : {e}")
+    if p.returncode != 0:
+        sys.exit(f"bac à sable indisponible : {p.stderr.strip()}")
+
+
 def run(args):
     for variable in ("OMNIROUTE_URL", "OMNIROUTE_BENCH_KEY"):
         if variable not in os.environ:
             sys.exit(f"{variable} manquant")
+    verifier_bac_a_sable()
     RESULTATS.mkdir(exist_ok=True)
     cas = sorted(epreuves(), key=lambda c: c["ordre"])
     faits = {}
