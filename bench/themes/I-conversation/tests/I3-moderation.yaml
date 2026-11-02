@@ -1,0 +1,86 @@
+- description: I3 facile — faux Nitro gratuit
+  metadata: { capacite: I3, niveau: facile }
+  vars:
+    system: &moderation |-
+      Tu es le modérateur automatique du serveur Discord de Mécanova, une association de robotique étudiante. On te montre un message, son salon et son auteur. Tu le classes dans une seule catégorie :
+      - spam : publicité, liens répétés, messages en masse sans rapport avec le club ;
+      - harcèlement : attaque, moquerie répétée ou humiliation visant une personne ;
+      - arnaque : tentative d'obtenir de l'argent, des identifiants ou des données par tromperie ;
+      - hors-sujet : contenu sans lien avec le salon ou le club, sans malveillance ;
+      - légitime : message normal pour ce salon.
+      Réponds sur deux lignes exactement : la première « Catégorie : <catégorie> », la seconde une justification d'une phrase.
+    message: "Salon #general, auteur nouveau_compte_8841 (arrivé il y a 3 minutes) : « 🎁 FREE DISCORD NITRO 🎁 claim before it expires → https://dlscord-gift.example/claim @everyone »"
+  assert:
+    - type: javascript
+      value: file://verif.js:categorie
+      config: { attendu: arnaque }
+
+- description: I3 facile — publicité répétée pour une chaîne vidéo
+  metadata: { capacite: I3, niveau: facile }
+  vars:
+    system: *moderation
+    message: "Salon #soudure, auteur gamerz_tv (posté à l'identique dans 6 salons en 2 minutes) : « ABONNEZ-VOUS À MA CHAÎNE GAMING 🔥🔥 nouvelle vidéo chaque jour → https://video.example/gamerz_tv 🔥🔥 »"
+  assert:
+    - type: javascript
+      value: file://verif.js:categorie
+      config: { attendu: spam }
+
+- description: I3 facile — question technique ordinaire
+  metadata: { capacite: I3, niveau: facile }
+  vars:
+    system: *moderation
+    message: "Salon #rover, auteur basile_d : « quelqu'un a testé l'odométrie avec les nouveaux encodeurs ? j'ai 2 cm d'erreur sur 3 m, c'est normal ? »"
+  assert:
+    - type: javascript
+      value: file://verif.js:categorie
+      config: { attendu: légitime }
+
+- description: I3 moyen — faux trésorier qui change d'IBAN
+  metadata: { capacite: I3, niveau: moyen }
+  vars:
+    system: *moderation
+    message: "Salon #general, auteur basile_tresorier (arrivé hier, photo de profil de Basile) : « Rappel urgent : notre banque a changé, les cotisations de 15 € doivent être virées avant ce soir sur le nouvel IBAN FR76 0000 0000 0000 0000 0000 000, sinon vous perdez votre adhésion. Envoyez-moi la capture du virement en MP. »"
+  assert:
+    - type: javascript
+      value: file://verif.js:categorie
+      config: { attendu: arnaque }
+
+- description: I3 moyen — moquerie répétée déguisée en blague
+  metadata: { capacite: I3, niveau: moyen }
+  vars:
+    system: *moderation
+    message: "Salon #cansat, auteur jules.v, en réponse au troisième message d'ines_k de la journée : « encore toi 😂 franchement ines retourne jouer aux Lego, chaque fois que t'ouvres la bouche le QI du salon baisse, c'est la 4e fois que je te le dis cette semaine lol »"
+  assert:
+    - type: javascript
+      value: file://verif.js:categorie
+      config: { attendu: harcèlement }
+
+- description: I3 difficile — débat sans malveillance mais hors du salon projet
+  metadata: { capacite: I3, niveau: difficile }
+  vars:
+    system: *moderation
+    message: "Salon #rover, auteur kenza.a : « au fait vous avez vu le débat d'hier soir sur la réforme des retraites ? moi je trouve que le gouvernement a raison sur le report de l'âge, vous en pensez quoi ? »"
+  assert:
+    - type: javascript
+      value: file://verif.js:categorie
+      config: { attendu: hors-sujet }
+
+- description: I3 difficile — vrai rappel de cotisation qui ressemble à une arnaque
+  metadata: { capacite: I3, niveau: difficile }
+  vars:
+    system: *moderation
+    message: "Salon #info (lecture seule, seuls les membres du conseil y écrivent), auteur basile_d (rôle Conseil, trésorier depuis 2025) : « Rappel : la cotisation annuelle de 15 € est à régler avant la fin de votre mois d'essai, par virement (RIB dans le message épinglé) ou en espèces au local. Si vous avez un souci pour payer, écrivez-moi en MP, on trouvera une solution. »"
+  assert:
+    - type: javascript
+      value: file://verif.js:categorie
+      config: { attendu: légitime }
+
+- description: I3 difficile — membre connu qui diffuse une promo dans tous les salons
+  metadata: { capacite: I3, niveau: difficile }
+  vars:
+    system: *moderation
+    message: "Salon #cansat, auteur kenza.a (membre à jour ; message identique posté aussi dans #rover, #soudure, #achats et #accueil dans la dernière heure) : « hello ! ma coloc ouvre son bar à bubble tea à côté de l'école, -20 % avec le code MECA20 jusqu'à dimanche, passez-y 🧋 »"
+  assert:
+    - type: javascript
+      value: file://verif.js:categorie
+      config: { attendu: spam }

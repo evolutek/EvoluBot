@@ -1,0 +1,13 @@
+description: "G. Code et technique"
+prompts:
+  - id: file://prompt.json
+    label: technique
+providers: file://../../providers.yaml
+defaultTest:
+  metadata:
+    theme: G
+  options:
+    provider: file://../../juge.yaml
+    # vars hold lists of tests; without this promptfoo expands them into one case per item
+    disableVarExpansion: true
+tests: file://tests/*.yaml

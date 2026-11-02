@@ -1,0 +1,359 @@
+[
+  {
+    "type": "function",
+    "function": {
+      "name": "chercher_membre",
+      "description": "Cherche un membre du club par pseudo Discord, nom ou mail. Renvoie sa fiche (statut, rôles, projet).",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "recherche": {
+            "type": "string",
+            "description": "Pseudo",
+            "nom ou mail": null
+          }
+        },
+        "required": [
+          "recherche"
+        ]
+      }
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "donner_role",
+      "description": "Donne un rôle Discord à un membre.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "pseudo": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "Membre",
+              "Futur-membre",
+              "Ancien",
+              "Rover",
+              "Mini-Rover",
+              "CanSat",
+              "Soudure"
+            ]
+          }
+        },
+        "required": [
+          "pseudo",
+          "role"
+        ]
+      }
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "retirer_role",
+      "description": "Retire un rôle Discord à un membre.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "pseudo": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "Membre",
+              "Futur-membre",
+              "Ancien",
+              "Rover",
+              "Mini-Rover",
+              "CanSat",
+              "Soudure"
+            ]
+          }
+        },
+        "required": [
+          "pseudo",
+          "role"
+        ]
+      }
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "kick_membre",
+      "description": "Expulse un membre du serveur Discord. Réservé aux cas validés par un membre du conseil dans",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "pseudo": {
+            "type": "string"
+          },
+          "raison": {
+            "type": "string"
+          },
+          "validation": {
+            "type": "string",
+            "description": "Lien du message de validation dans #conseil"
+          }
+        },
+        "required": [
+          "pseudo",
+          "raison",
+          "validation"
+        ]
+      }
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "envoyer_message",
+      "description": "Publie un message dans un salon Discord ou en message privé.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "destination": {
+            "type": "string",
+            "description": "Nom du salon (#info) ou pseudo pour un message privé"
+          },
+          "texte": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "destination",
+          "texte"
+        ]
+      }
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "lire_salon",
+      "description": "Lit les derniers messages d'un salon Discord.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "salon": {
+            "type": "string"
+          },
+          "depuis": {
+            "type": "string",
+            "format": "date",
+            "description": "Date de début (AAAA-MM-JJ)"
+          }
+        },
+        "required": [
+          "salon"
+        ]
+      }
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "ajouter_evenement",
+      "description": "Ajoute un événement au calendrier du club.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "titre": {
+            "type": "string"
+          },
+          "debut": {
+            "type": "string",
+            "description": "Date et heure ISO 8601, heure de Paris"
+          },
+          "duree_minutes": {
+            "type": "integer",
+            "minimum": 15
+          },
+          "lieu": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "titre",
+          "debut",
+          "duree_minutes"
+        ]
+      }
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "suivre_colis",
+      "description": "Donne l'état d'un colis à partir de son numéro de suivi.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "transporteur": {
+            "type": "string",
+            "enum": [
+              "Colissimo",
+              "Chronopost",
+              "DHL",
+              "UPS",
+              "Mondial Relay"
+            ]
+          },
+          "numero": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "transporteur",
+          "numero"
+        ]
+      }
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "ajouter_depense",
+      "description": "Ajoute une ligne à la comptabilité du club.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "date": {
+            "type": "string",
+            "format": "date"
+          },
+          "montant_ttc": {
+            "type": "number"
+          },
+          "fournisseur": {
+            "type": "string"
+          },
+          "projet": {
+            "type": "string",
+            "enum": [
+              "Rover",
+              "Mini-Rover",
+              "CanSat",
+              "Atelier soudure",
+              "Fonctionnement"
+            ]
+          }
+        },
+        "required": [
+          "date",
+          "montant_ttc",
+          "fournisseur",
+          "projet"
+        ]
+      }
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "chercher_vault",
+      "description": "Cherche dans les notes du club (le vault) et renvoie les passages pertinents avec le nom de la note.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "question": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "question"
+        ]
+      }
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "meteo",
+      "description": "Donne la météo d'une ville.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "ville": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "ville"
+        ]
+      }
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "lister_membres",
+      "description": "Liste les membres du club selon leur statut et, au besoin, leur projet. Renvoie pseudo, nom, statut, date d'entrée et relances déjà faites.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "statut": {
+            "type": "string",
+            "enum": [
+              "membre",
+              "futur-membre",
+              "ancien",
+              "cotisation-en-retard"
+            ]
+          },
+          "projet": {
+            "type": "string",
+            "enum": [
+              "Rover",
+              "Mini-Rover",
+              "CanSat",
+              "Atelier soudure"
+            ]
+          }
+        },
+        "required": [
+          "statut"
+        ]
+      }
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "enregistrer_cotisation",
+      "description": "Enregistre le paiement de la cotisation annuelle d'un membre.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "pseudo": {
+            "type": "string"
+          },
+          "montant": {
+            "type": "number"
+          },
+          "moyen": {
+            "type": "string",
+            "enum": [
+              "virement",
+              "especes"
+            ]
+          },
+          "date": {
+            "type": "string",
+            "format": "date"
+          }
+        },
+        "required": [
+          "pseudo",
+          "montant",
+          "moyen",
+          "date"
+        ]
+      }
+    }
+  }
+]

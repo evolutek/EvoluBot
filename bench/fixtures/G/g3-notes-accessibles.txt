@@ -1,0 +1,32 @@
+Code (vault/graphe.py) :
+
+```python
+def notes_accessibles(note, liens):
+    """Toutes les notes atteignables depuis `note` en suivant les liens [[...]], `note` exclue.
+
+    `liens` associe à chaque nom de note la liste des notes vers lesquelles elle pointe.
+    Une note sans entrée dans `liens` ne pointe vers rien.
+    """
+    resultat = set()
+    for cible in liens.get(note, []):
+        resultat.add(cible)
+        resultat |= notes_accessibles(cible, liens)
+    return resultat
+```
+
+Journal de la tâche de nuit qui cherche les notes orphelines (le vault compte environ 4 000 notes) :
+
+```
+2026-10-27 03:00:00 INFO  graphe chargé : 4012 notes, 9877 liens
+Traceback (most recent call last):
+  File "/srv/vault/orphelines.py", line 12, in main
+    atteintes = notes_accessibles("Accueil", liens)
+  File "/srv/vault/graphe.py", line 10, in notes_accessibles
+    resultat |= notes_accessibles(cible, liens)
+  File "/srv/vault/graphe.py", line 10, in notes_accessibles
+    resultat |= notes_accessibles(cible, liens)
+  [Previous line repeated 996 more times]
+RecursionError: maximum recursion depth exceeded
+```
+
+On a d'abord cru à un cycle (« Rover » → « Coupe 2027 » → « Rover »), mais même en supprimant ce lien la tâche plante encore : la série des comptes rendus chaînés (« CR 0001 » → « CR 0002 » → … → « CR 3100 ») est très longue.

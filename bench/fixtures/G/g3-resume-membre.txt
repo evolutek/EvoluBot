@@ -1,0 +1,21 @@
+Code (bot/fiches.py) :
+
+```python
+def resume_membre(fiche):
+    """Une ligne pour la liste des membres : « pseudo (projet) »."""
+    return f"{fiche['pseudo']} ({fiche['projet']})"
+```
+
+Journal du bot :
+
+```
+2026-10-28 09:14:02 INFO  liste des membres demandée par chloe.p
+Traceback (most recent call last):
+  File "/srv/bot/commandes.py", line 41, in liste_membres
+    lignes = [resume_membre(f) for f in fiches]
+  File "/srv/bot/fiches.py", line 3, in resume_membre
+    return f"{fiche['pseudo']} ({fiche['projet']})"
+                                ~~~~~^^^^^^^^^^
+KeyError: 'projet'
+2026-10-28 09:14:02 DEBUG fiche en cause : {'pseudo': 'hugo.t', 'statut': 'futur membre'}
+```

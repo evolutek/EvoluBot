@@ -1,0 +1,137 @@
+- description: E2 facile — réunion propre, décisions et responsables
+  metadata: { capacite: E2, niveau: facile }
+  vars:
+    doc: file://../../fixtures/E/transcription-1.md
+    message: "{{doc}}\n\nFais le compte rendu de cette réunion. Réponds uniquement avec un JSON de la forme {\"decisions\": [\"…\"], \"actions\": [{\"tache\": \"…\", \"responsable\": \"Prénom\", \"echeance\": \"AAAA-MM-JJ ou null\"}]}."
+    controle:
+      decisions:
+        - ['26 novembre', '2026-11-26', 'B-?012']
+        - ['station']
+      actions:
+        - { tache: 'convocation', responsable: 'Chlo' }
+        - { tache: 'bilan', responsable: 'Basile' }
+        - { tache: 'station', responsable: 'Farid' }
+        - { tache: 'Gamma', responsable: 'Alix' }
+  assert:
+    - type: is-json
+      value:
+        type: object
+        required: [decisions, actions]
+        properties:
+          decisions: { type: array, items: { type: string } }
+          actions:
+            type: array
+            items:
+              type: object
+              required: [tache, responsable, echeance]
+    - type: javascript
+      value: file://verif.js:compteRendu
+      weight: 3
+
+- description: E2 facile — échéances exactes au format date
+  metadata: { capacite: E2, niveau: facile }
+  vars:
+    doc: file://../../fixtures/E/transcription-1.md
+    message: "{{doc}}\n\nExtrais seulement les actions de cette réunion, en JSON : {\"decisions\": [], \"actions\": [{\"tache\": \"…\", \"responsable\": \"Prénom\", \"echeance\": \"AAAA-MM-JJ\" ou null si aucune date n'est donnée}]}. Laisse decisions vide. Rien d'autre que le JSON."
+    controle:
+      actions:
+        - { tache: 'convocation', responsable: 'Chlo', echeance: { motif: '^2026-11-0[45]$' } }
+        - { tache: 'bilan', responsable: 'Basile', echeance: '2026-11-20' }
+        - { tache: 'station', responsable: 'Farid', echeance: { motif: '^2026-11-0[56]$' } }
+        - { tache: 'Gamma', responsable: 'Alix', echeance: null }
+  assert:
+    - type: javascript
+      value: file://verif.js:compteRendu
+
+- description: E2 moyen — transcription bruitée, prénoms mal reconnus
+  metadata: { capacite: E2, niveau: moyen }
+  vars:
+    doc: file://../../fixtures/E/transcription-2.md
+    message: "{{doc}}\n\nCompte rendu en JSON uniquement : {\"decisions\": [\"…\"], \"actions\": [{\"tache\": \"…\", \"responsable\": \"Prénom réel\", \"echeance\": \"AAAA-MM-JJ ou null\"}]}. Utilise les vrais prénoms des participants."
+    controle:
+      decisions:
+        - ['pince', '(trois|3) servos']
+        - ['batterie']
+      actions:
+        - { tache: ['servo', 'renvo', 'echange'], responsable: 'Basile' }
+        - { tache: ['inscri', 'Coupe'], responsable: 'Kenza' }
+        - { tache: ['sequence', 'prise', 'code'], responsable: 'Hugo' }
+        - { tache: ['plaque', 'chassis'], responsable: 'Dorian(?!e)' }
+      seuil: 0.8
+  assert:
+    - type: is-json
+    - type: javascript
+      value: file://verif.js:compteRendu
+      weight: 3
+    - type: not-icontains
+      value: "Doriane"
+    - type: not-icontains
+      value: "\"Basil\""
+
+- description: E2 moyen — échéances relatives à convertir, action retirée en cours de route
+  metadata: { capacite: E2, niveau: moyen }
+  vars:
+    doc: file://../../fixtures/E/transcription-2.md
+    message: "{{doc}}\n\nListe les actions en JSON : {\"decisions\": [], \"actions\": [{\"tache\": \"…\", \"responsable\": \"Prénom réel\", \"echeance\": \"AAAA-MM-JJ\" ou null}]}. Convertis les dates relatives en dates complètes. Rien d'autre que le JSON."
+    aujourdhui: "2026-11-04"
+    controle:
+      actions:
+        - { tache: ['inscri', 'Coupe'], responsable: 'Kenza', echeance: { motif: '^2027-01-1[45]$' } }
+        - { tache: ['sequence', 'prise', 'code'], responsable: 'Hugo', echeance: '2026-11-12' }
+        - { tache: ['plaque', 'chassis'], responsable: 'Dorian(?!e)', echeance: { motif: '^2026-11-(09|10)$' } }
+        - { tache: ['servo', 'renvo', 'echange'], responsable: 'Basile' }
+      actions_interdites:
+        - { tache: ['support', 'capteur', 'Mini-Rover'], responsable: 'Kenza' }
+  assert:
+    - type: javascript
+      value: file://verif.js:compteRendu
+
+- description: E2 difficile — décision renversée, action réattribuée, locuteur à identifier
+  metadata: { capacite: E2, niveau: difficile }
+  vars:
+    doc: file://../../fixtures/E/transcription-3.md
+    message: "{{doc}}\n\nRédige le compte rendu de cette réunion en JSON uniquement : {\"decisions\": [\"…\"], \"actions\": [{\"tache\": \"…\", \"responsable\": \"Prénom\", \"echeance\": \"AAAA-MM-JJ ou null\"}]}. Ne garde que l'état final des décisions : ce qui a été annulé ou abandonné n'est pas une décision."
+    controle:
+      decisions:
+        - ['boissons', 'gateaux']
+        - ['statuts', 'main levee', 'bulletin', 'pas de vote (en ligne|electronique)', 'formulaire']
+        - ['depouill']
+      decisions_annulees:
+        - '^(?!.*(annul|abandon|remplac|pas de|renonc|au lieu|plutot)).*traiteur'
+        - '^(?!.*(pas de|abandon|renonc|oubli|non |refus|statuts|ecart|exclu)).*(formulaire|en ligne|electronique)'
+        - '^(?!.*(report|plus tard|pas encore|de cote|en suspens|reparl|attente)).*invit.*Gamma'
+      actions:
+        - { tache: 'bilan', responsable: 'Basile' }
+        - { tache: 'affiche', responsable: 'Elsa' }
+        - { tache: ['course', 'boisson', 'gateau'], responsable: 'Elsa' }
+        - { tache: 'depouill', responsable: 'Farid' }
+        - { tache: 'rapport moral', responsable: 'Alix' }
+      actions_interdites:
+        - { tache: 'affiche', responsable: 'Chlo' }
+      seuil: 0.85
+  assert:
+    - type: is-json
+    - type: javascript
+      value: file://verif.js:compteRendu
+      weight: 3
+
+- description: E2 difficile — échéances finales après changements
+  metadata: { capacite: E2, niveau: difficile }
+  vars:
+    doc: file://../../fixtures/E/transcription-3.md
+    message: "{{doc}}\n\nDonne uniquement les actions restant à faire après la réunion, en JSON : {\"decisions\": [], \"actions\": [{\"tache\": \"…\", \"responsable\": \"Prénom\", \"echeance\": \"AAAA-MM-JJ\" ou null}]}. Une action déjà faite n'en fait pas partie. Rien d'autre que le JSON."
+    aujourdhui: "2026-11-10"
+    controle:
+      actions:
+        - { tache: 'bilan', responsable: 'Basile', echeance: '2026-11-18' }
+        - { tache: 'affiche', responsable: 'Elsa', echeance: '2026-11-17' }
+        - { tache: ['course', 'boisson', 'gateau'], responsable: 'Elsa', echeance: '2026-11-26' }
+        - { tache: 'rapport moral', responsable: 'Alix', echeance: '2026-11-20' }
+        - { tache: 'depouill', responsable: 'Farid' }
+      actions_interdites:
+        - { tache: 'affiche', responsable: 'Chlo' }
+        - { tache: 'convocation', responsable: '' }
+        - { tache: 'traiteur', responsable: '' }
+  assert:
+    - type: javascript
+      value: file://verif.js:compteRendu

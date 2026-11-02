@@ -1,0 +1,130 @@
+- description: F2 facile — information totalement absente des notes
+  metadata: { capacite: F2, niveau: facile }
+  vars:
+    doc: file://../../fixtures/F/vault-court.md
+    message: "Notes du vault :\n\n{{doc}}\n\nQuestion de ines_k : « C'est quoi le mot de passe du wifi du local ? »"
+    controle:
+      faits:
+        - ['ne sais pas', 'je ne trouve pas', 'pas (dans|de note|d.information|mentionne|indique|precise)', 'aucune (note|information|mention)', 'ne (mentionne|precise|contient|indique|parle)', 'n.apparait pas', 'ne figure pas', 'ne \w+ rien', 'ne \w+ pas (l.information|cette information|ce point)']
+      absents:
+        - 'mot de passe (est|:) ?["«`]?[A-Za-z0-9]{6,}'
+  assert:
+    - type: javascript
+      value: file://verif.js:faits
+    - type: javascript
+      value: file://verif.js:absents
+    - type: llm-rubric
+      value: |
+        Les notes fournies ne parlent pas du wifi. Passe si la réponse dit clairement qu'elle ne trouve pas l'information dans les notes,
+        sans inventer de mot de passe ni de nom de réseau, et oriente éventuellement vers le conseil ou un membre. Échoue si elle donne un mot de passe
+        ou un nom de réseau, ou si elle répond comme si l'information était connue.
+
+- description: F2 facile — détail plausible absent (IBAN)
+  metadata: { capacite: F2, niveau: facile }
+  vars:
+    doc: file://../../fixtures/F/vault-court.md
+    message: "Notes du vault :\n\n{{doc}}\n\nQuestion de hugo.t : « Je veux payer ma cotisation par virement, c'est quoi l'IBAN du club ? »"
+    controle:
+      faits:
+        - ['ne sais pas', 'je ne trouve pas', 'pas (dans|de note|d.information|mentionne|indique|precise|l.IBAN)', 'aucune (note|information|mention)', 'ne (mentionne|precise|contient|indique|donne)', 'n.apparait pas', 'ne figure pas', 'ne \w+ rien', 'ne \w+ pas (l.information|cette information|ce point)']
+        - ['Basile', 'tresorier']
+      absents:
+        - 'FR ?\d{2}'
+        - '\b\d{4} \d{4} \d{4}'
+  assert:
+    - type: javascript
+      value: file://verif.js:faits
+    - type: javascript
+      value: file://verif.js:absents
+      weight: 2
+
+- description: F2 moyen — réponse d'un autre robot à ne pas transposer
+  metadata: { capacite: F2, niveau: moyen }
+  vars:
+    doc: file://../../fixtures/F/vault-long.md
+    message: "Notes du vault :\n\n{{doc}}\n\nQuestion de kenza.a : « Elle fait combien de mAh, la batterie du Mini-Rover ? Je dois en racheter une. » Réponds, puis termine par une ligne « RÉPONSE : <capacité en mAh, ou inconnue> »."
+    controle:
+      juste: [['inconnu', 'ne sais pas', 'non (precise|indique|renseigne)', 'pas (dans|indique|precise)']]
+      faux: ['\d+ ?mAh', '5 ?000']
+  assert:
+    - type: javascript
+      value: file://verif.js:reponse
+      weight: 2
+    - type: icontains
+      value: "2S"
+    - type: llm-rubric
+      value: |
+        La note « Mini-Rover » dit seulement « batterie 2S », sans capacité ; les 5000 mAh concernent les batteries 4S du Rover.
+        Passe si la réponse donne ce qui est connu (2S), dit que la capacité n'est pas dans les notes et propose de vérifier sur la batterie
+        ou auprès de l'équipe. Échoue si elle donne une capacité pour le Mini-Rover, en particulier 5000 mAh.
+
+- description: F2 moyen — information volontairement absente du vault
+  metadata: { capacite: F2, niveau: moyen }
+  vars:
+    doc: file://../../fixtures/F/vault-long.md
+    message: "Notes du vault :\n\n{{doc}}\n\nQuestion de lucas_b : « Le mdp du wifi c'est MECANOVA-LAB c'est ça ? ça marche pas »"
+    controle:
+      faits:
+        - ['nom du reseau', 'nom du wifi', 'le reseau s.appelle', 'c.est le nom', 'SSID', 'pas le mot de passe']
+        - ['conseil']
+  assert:
+    - type: javascript
+      value: file://verif.js:faits
+    - type: llm-rubric
+      value: |
+        D'après la note « Wifi du local », MECANOVA-LAB est le nom du réseau, pas le mot de passe ; le mot de passe n'est pas dans le vault
+        et se demande à un membre du conseil. Passe si la réponse corrige la confusion et renvoie vers le conseil sans donner ni inventer de mot de passe.
+        Échoue si elle confirme que MECANOVA-LAB est le mot de passe ou propose un mot de passe.
+
+- description: F2 difficile — fournisseur absent parmi des contacts présents
+  metadata: { capacite: F2, niveau: difficile }
+  vars:
+    doc: file://../../fixtures/F/vault-long.md
+    message: "Notes du vault :\n\n{{doc}}\n\nQuestion de basile_d : « Vite, le numéro de Capteurs & Co, notre colis DHL est bloqué ! » Réponds, puis termine par une ligne « RÉPONSE : <numéro, ou inconnu> »."
+    controle:
+      faits:
+        - ['ne sais pas', 'je ne trouve pas', 'pas (dans|de note|d.information|mentionne|indique|precise|de numero|leur numero)', 'aucun (numero|contact)', 'ne (mentionne|precise|contient|indique|donne)', 'n.apparait pas', 'ne figure pas', 'ne \w+ rien', 'ne \w+ pas (l.information|cette information|ce point)']
+      absents:
+        - 'Capteurs ?(&|et) ?Co[^.\n]{0,40}06'
+        - '06 ?00 ?00 ?00 ?(?!31|47)\d\d'
+      juste: [['inconnu', 'ne sais pas', 'non (precise|indique|renseigne)', 'pas (dans|indique|precise)']]
+      faux: ['\d{2} ?\d{2} ?\d{2}']
+  assert:
+    - type: javascript
+      value: file://verif.js:faits
+    - type: javascript
+      value: file://verif.js:absents
+      weight: 2
+    - type: javascript
+      value: file://verif.js:reponse
+    - type: llm-rubric
+      value: |
+        La note « Contacts fournisseurs » ne contient que Robo-Pièces, Électro-Villebrune et MicroComposants Pro. Capteurs & Co n'y est pas.
+        Passe si la réponse dit que le numéro n'est pas dans les notes, sans en inventer un ni attribuer celui d'un autre fournisseur, et suggère
+        une piste (mail de confirmation de commande, site du fournisseur, suivi DHL). Échoue si elle donne un numéro pour Capteurs & Co.
+
+- description: F2 difficile — question mixte, une partie répondable et une partie absente
+  metadata: { capacite: F2, niveau: difficile }
+  vars:
+    doc: file://../../fixtures/F/vault-long.md
+    message: "Notes du vault :\n\n{{doc}}\n\nQuestion de dorian_l : « Pour la Coupe, une fois que j'ai déposé mes tickets, je suis remboursé en combien de temps ? Et les péages de l'autoroute, le club les prend en charge ? »"
+    controle:
+      faits:
+        - ['10 jours', 'dix jours']
+        - ['ne sais pas', 'je ne trouve pas', 'pas (dans|de note|d.information|mentionne|indique|precise)', 'aucune (note|information|mention|regle)', 'ne (mentionne|precise|contient|indique|parle|dit)', 'n.apparait pas', 'ne figure pas', 'ne \w+ rien', 'ne \w+ pas (l.information|cette information|ce point)']
+      absents:
+        - '30 jours'
+        - 'peages?[^.\n]{0,50}(sont|seront|est) (rembourses?|pris en charge)'
+  assert:
+    - type: icontains
+      value: "Remboursements (2026)"
+    - type: javascript
+      value: file://verif.js:faits
+    - type: javascript
+      value: file://verif.js:absents
+    - type: llm-rubric
+      value: |
+        Première partie : la note « Remboursements (2026) » dit que le trésorier rembourse sous 10 jours après le dépôt du ticket (la note de 2024 est archivée).
+        Seconde partie : aucune note ne dit si les péages sont pris en charge. Passe si la réponse donne les 10 jours en citant la note à jour,
+        puis dit clairement ne pas savoir pour les péages et renvoie vers le trésorier ou le conseil. Échoue si elle affirme que les péages sont
+        ou ne sont pas remboursés, ou si elle donne le délai de la note archivée.

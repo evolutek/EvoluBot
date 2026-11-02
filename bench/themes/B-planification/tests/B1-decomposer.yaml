@@ -1,0 +1,93 @@
+- description: B1 facile — objectif clair, étapes à ordonner
+  metadata: { capacite: B1, niveau: facile }
+  vars:
+    message: "Je veux organiser une session de l'atelier soudure pour les nouveaux, un jeudi de novembre. Donne-moi les étapes dans l'ordre, sous forme de liste numérotée, sans rien d'autre."
+  assert:
+    - type: regex
+      value: "(^|\\n)\\s*1[.)]"
+    - type: javascript
+      value: "(String(output).match(/^\\s*\\d+[.)]/gm) || []).length >= 4"
+    - type: llm-rubric
+      value: >-
+        Liste numérotée d'étapes pour organiser une session d'atelier soudure (jeudi 18 h, local du bâtiment B). Un point
+        par élément présent et bien placé : choisir la date un jeudi de novembre ; vérifier le matériel et la sécurité
+        (fers, fumées, consommables) avant l'annonce ; annoncer la session et recueillir les inscriptions ; rappeler la veille
+        ou le jour même. Retirer un point si l'ordre est illogique (annonce avant la date fixée, par exemple) ou si la liste
+        contient des étapes sans rapport. Score = points / 4.
+
+- description: B1 facile — objectif administratif court
+  metadata: { capacite: B1, niveau: facile }
+  vars:
+    message: "Hugo a payé sa cotisation en espèces à Basile. Quelles sont les étapes, dans l'ordre, pour qu'il devienne membre à part entière ? Liste numérotée."
+  assert:
+    - type: regex
+      value: "(^|\\n)\\s*1[.)]"
+    - type: llm-rubric
+      value: >-
+        Étapes attendues, dans cet ordre : enregistrer le paiement (trésorier ou compta) ; passer Hugo de Futur-membre à
+        Membre sur Discord (retirer Futur-membre, donner Membre) ; le prévenir ou l'accueillir. Un point par étape présente
+        et à sa place (3 points). Retirer un point par étape inventée qui contredit les repères du club (frais en plus de
+        15 €, validation du conseil exigée pour une simple adhésion). Score = points / 3.
+
+- description: B1 moyen — objectif flou, contraintes implicites du calendrier
+  metadata: { capacite: B1, niveau: moyen }
+  vars:
+    message: "Faudrait qu'on prépare l'AG. Tu peux me découper ça en étapes ordonnées avec pour chacune qui s'en occupe et pour quand ? Liste numérotée."
+  assert:
+    - type: regex
+      value: "(^|\\n)\\s*1[.)]"
+    - type: llm-rubric
+      value: >-
+        L'AG est le jeudi 2026-11-26 à 19 h. Un point pour chacun : convocation et ordre du jour envoyés bien avant
+        (secrétaire, Chloé) ; rapport moral (référente, Alix) ; rapport financier (trésorier, Basile) ; réservation de la salle
+        et logistique ; tenue de l'AG et procès-verbal (secrétaire). Un point si chaque étape a une date antérieure ou égale
+        au 26 novembre, cohérente avec l'ordre. Retirer un point par responsable attribué à tort (le trésorier qui rédige le
+        PV, par exemple) ou par date après l'AG pour une tâche préparatoire. Score = points / 6.
+
+- description: B1 moyen — objectif technique, dépendances à respecter
+  metadata: { capacite: B1, niveau: moyen }
+  vars:
+    message: "L'équipe CanSat veut remplacer son altimètre par un capteur de pression plus précis avant le lancer de test de janvier. Découpe-moi ça en étapes ordonnées (liste numérotée), en indiquant les dépendances."
+  assert:
+    - type: regex
+      value: "(^|\\n)\\s*1[.)]"
+    - type: llm-rubric
+      value: >-
+        Un point pour chacun : choisir le capteur selon des critères explicites (précision, interface, alimentation) ;
+        commander en tenant compte des délais et du budget (dépense à déclarer en compta) ; tester le capteur seul sur banc
+        avant intégration ; adapter le logiciel embarqué et le câblage ; intégrer dans la canette et vérifier la masse ;
+        essai complet avant le lancer de janvier. Un point si les dépendances sont dites (pas de test d'intégration avant
+        réception). Retirer un point si une étape dépend d'une étape placée après elle. Score = points / 7.
+
+- description: B1 difficile — objectif vague à long terme, jalons datés jusqu'à la Coupe
+  metadata: { capacite: B1, niveau: difficile }
+  vars:
+    message: "On veut faire mieux à la Coupe cette année. Je sais pas trop par où commencer. Propose un plan en étapes ordonnées d'ici la compétition, avec des jalons datés. Liste numérotée."
+  assert:
+    - type: regex
+      value: "(^|\\n)\\s*1[.)]"
+    - type: javascript
+      value: "/2027-01-15|15 janvier/i.test(String(output))"
+    - type: llm-rubric
+      value: >-
+        La Coupe a lieu du 2027-05-20 au 2027-05-23, inscription avant le 2027-01-15. Un point pour chacun : un premier
+        bilan de la saison précédente ou des objectifs mesurables ; l'inscription placée avant le 15 janvier 2027 ;
+        conception puis fabrication puis intégration dans un ordre logique ; des essais et une homologation interne avant
+        la Coupe, avec une marge de plusieurs semaines ; un budget ou des commandes anticipées ; une répartition entre Rover
+        et Mini-Rover ou des responsables nommés. Retirer un point par jalon daté après le 20 mai 2027 ou par incohérence
+        de dates (fabrication avant conception). Score = points / 6.
+
+- description: B1 difficile — objectif flou avec contraintes cachées dans le message
+  metadata: { capacite: B1, niveau: difficile }
+  vars:
+    message: "Alors voilà, on voudrait refaire le local, genre ranger, racheter des étagères, peut-être repeindre, mais bon le budget est serré (300 € max), le local est fermé le week-end et la moitié des gens sont en partiels la semaine du 14 décembre. Ah et l'école doit valider toute peinture. Fais-moi un plan en étapes ordonnées, liste numérotée."
+  assert:
+    - type: regex
+      value: "(^|\\n)\\s*1[.)]"
+    - type: llm-rubric
+      value: >-
+        Un point pour chacun : demander la validation de l'école avant toute peinture (et ne pas acheter la peinture avant) ;
+        un inventaire ou un tri avant les achats ; un budget chiffré qui tient dans 300 € ; des séances placées en semaine,
+        aucune le samedi ou le dimanche ; aucune séance la semaine du 14 décembre ; un rangement final ou une règle pour
+        garder le local en ordre. Retirer un point par contrainte violée (séance le week-end, budget dépassé, peinture avant
+        validation). Score = points / 6.

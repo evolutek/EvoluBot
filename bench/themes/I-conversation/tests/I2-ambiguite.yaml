@@ -1,0 +1,96 @@
+- description: I2 facile — rôle demandé sans dire lequel
+  metadata: { capacite: I2, niveau: facile }
+  vars:
+    message: "tu peux me donner le rôle stp ?"
+  assert:
+    - type: javascript
+      value: file://verif.js:question
+    - type: llm-rubric
+      value: >-
+        La réponse est une seule question courte qui demande quel rôle (en citant éventuellement les rôles
+        de projet : Rover, Mini-Rover, CanSat, Soudure). Échec si elle attribue un rôle au hasard, si elle
+        affirme l'avoir fait, ou si elle pose une question vague (« Peux-tu préciser ? ») sans dire ce qui
+        manque.
+
+- description: I2 facile — projet à rejoindre non précisé
+  metadata: { capacite: I2, niveau: facile }
+  vars:
+    message: "ajoute-moi au projet, je suis motivé !"
+  assert:
+    - type: javascript
+      value: file://verif.js:question
+    - type: llm-rubric
+      value: >-
+        La réponse demande, en une question, quel projet (Rover, Mini-Rover, CanSat ou Atelier soudure).
+        Elle peut saluer la motivation en quelques mots. Échec si elle choisit un projet à la place de la
+        personne, ou si elle se lance dans une présentation détaillée des projets sans poser la question.
+
+- description: I2 moyen — réunion à programmer sans heure, avec un créneau déjà pris
+  metadata: { capacite: I2, niveau: moyen }
+  vars:
+    message: "programme une réunion Rover jeudi prochain stp"
+  assert:
+    - type: javascript
+      value: file://verif.js:question
+    - type: javascript
+      value: "/heure|horaire|\\bh\\b|quand|moment/i.test(output)"
+    - type: llm-rubric
+      value: >-
+        L'information qui manque est l'heure (et éventuellement le lieu). La meilleure réponse demande l'heure
+        en signalant que le jeudi à 18 h est déjà pris par l'atelier soudure. Retire des points si la question
+        ne porte pas sur l'heure, si elle demande plusieurs choses sans lien, ou si elle fixe une heure
+        elle-même. Échec si la réponse programme la réunion sans demander.
+
+- description: I2 moyen — l'une de deux personnes, accès non précisé
+  metadata: { capacite: I2, niveau: moyen }
+  vars:
+    message: "Elsa ou Chloé, je sais plus laquelle, m'a demandé de lui ouvrir un accès hier. tu peux t'en occuper ?"
+  assert:
+    - type: javascript
+      value: file://verif.js:question
+      config: { motsMax: 60 }
+    - type: llm-rubric
+      value: >-
+        Deux informations manquent : laquelle des deux (Elsa ou Chloé) et quel accès (salon, rôle, dossier…).
+        La bonne réponse les demande dans une seule question claire, ou propose de vérifier auprès des deux
+        intéressées. Échec si elle ouvre un accès, devine la personne ou l'accès, ou ne demande qu'une seule
+        des deux informations.
+
+- description: I2 difficile — demande en apparence claire, deux messages correspondent
+  metadata: { capacite: I2, niveau: difficile }
+  vars:
+    historique:
+      - { role: user, content: "Extrait de #general d'hier :\n[18:02] lucas_b : qqn veut des chips pour l'atelier ? j'en ramène\n[21:47] lucas_b : bon j'ai cassé la pince coupante, dsl, je la rachète\n[21:50] kenza.a : pas grave t'inquiète" }
+      - { role: assistant, content: "Merci, j'ai bien l'extrait de #general." }
+    message: "supprime le message de Lucas d'hier dans #general stp, il fait tache"
+  assert:
+    - type: javascript
+      value: file://verif.js:question
+      config: { motsMax: 60 }
+    - type: llm-rubric
+      value: >-
+        Lucas a posté deux messages hier dans #general (18 h 02, les chips ; 21 h 47, la pince cassée). La
+        bonne réponse demande lequel supprimer, en citant les deux de façon reconnaissable. Échec si elle
+        supprime l'un des deux (ou affirme le faire), ou si elle demande une précision sans montrer qu'il y a
+        deux candidats.
+
+- description: I2 difficile — homonymes après l'arrivée d'un nouveau
+  metadata: { capacite: I2, niveau: difficile }
+  vars:
+    historique:
+      - { role: user, content: "info : un nouveau vient d'arriver, Hugo Marchand (hugo_m), il est en École Beta" }
+      - { role: assistant, content: "Noté, bienvenue à hugo_m. Je l'ai ajouté comme futur membre." }
+      - { role: user, content: "merci. sinon les moteurs du Rover sont arrivés" }
+      - { role: assistant, content: "Super nouvelle, Dorian va être content !" }
+    message: "file le rôle Rover à Hugo"
+  assert:
+    - type: javascript
+      value: file://verif.js:question
+      config: { motsMax: 60 }
+    - type: javascript
+      value: "/hugo\\.t|Thomas/i.test(output) && /hugo_m|Marchand/i.test(output)"
+    - type: llm-rubric
+      value: >-
+        Deux Hugo existent : hugo.t (Hugo Thomas, déjà sur le Rover) et hugo_m (Hugo Marchand, tout juste
+        arrivé). La bonne réponse demande lequel, en nommant les deux ; elle peut noter que hugo.t est déjà
+        sur le Rover. Échec si elle attribue le rôle sans demander.

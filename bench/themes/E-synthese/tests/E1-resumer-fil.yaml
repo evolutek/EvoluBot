@@ -1,0 +1,159 @@
+- description: E1 facile — récap général d'une semaine calme
+  metadata: { capacite: E1, niveau: facile }
+  vars:
+    doc: file://../../fixtures/E/salons-semaine-1.md
+    message: "Voici l'export des salons Discord de la semaine :\n\n{{doc}}\n\nFais le récap de la semaine pour #info, en puces courtes, un salon après l'autre."
+    controle:
+      faits:
+        - 'moteurs'
+        - ['motricit', 'roule']
+        - 'parachute'
+        - ['largage', 'larg']
+        - ['9 ?m/s', '9 metres']
+        - ['89[,.]90', 'batteries']
+        - ['29 octobre', '29/10', 'jeudi 29']
+        - ['26 novembre', '26/11', '\bAG\b', 'assemblee generale']
+        - ['15 novembre', '15/11']
+        - ['\bInes', 'ines_k']
+      seuil: 0.9
+  assert:
+    - type: javascript
+      value: file://verif.js:faits
+
+- description: E1 facile — ce qui a changé dans le planning
+  metadata: { capacite: E1, niveau: facile }
+  vars:
+    doc: file://../../fixtures/E/salons-semaine-1.md
+    message: "{{doc}}\n\nJe n'ai lu que #general cette semaine. Qu'est-ce qui a changé ou été fixé dans le planning du club ? Liste les dates."
+    controle:
+      faits:
+        - ['29 octobre', '29/10', 'jeudi 29']
+        - ['annul', 'report', 'panne']
+        - ['24 octobre', '24/10', 'samedi 24']
+        - ['21 octobre', 'mercredi 21', 'motricit']
+      seuil: 1
+      absents:
+        - 'atelier[^.\n]{0,40}(maintenu|a bien lieu)[^.\n]{0,20}22'
+  assert:
+    - type: javascript
+      value: file://verif.js:faits
+    - type: javascript
+      value: file://verif.js:absents
+
+- description: E1 moyen — récap d'une semaine bruitée avec corrections
+  metadata: { capacite: E1, niveau: moyen }
+  vars:
+    doc: file://../../fixtures/E/salons-semaine-2.md
+    message: "Récap de la semaine pour #info, 10 puces maximum, seulement ce qui compte pour le club (pas les blagues).\n\n{{doc}}"
+    controle:
+      faits:
+        - ['10 novembre', '10/11', 'mardi 10']
+        - ['encodeur', 'odometrie']
+        - ['4 servos', 'quatre servos']
+        - ['31[,.]60']
+        - ['40 ?cm']
+        - ['3[,.]3 ?V', 'regulateur']
+        - ['candidature', 'dossier']
+        - ['5 novembre', 'jeudi 5', 'pas d.atelier']
+        - ['12 novembre', 'jeudi 12']
+      seuil: 0.85
+      absents:
+        - 'conseil[^.\n]{0,40}3 novembre'
+        - 'mardi 3 novembre[^.\n]{0,20}19'
+        - '3 servos'
+        - 'pizza'
+        - 'machine a cafe'
+  assert:
+    - type: javascript
+      value: file://verif.js:faits
+    - type: javascript
+      value: file://verif.js:absents
+
+- description: E1 moyen — décisions et choses à faire de la semaine
+  metadata: { capacite: E1, niveau: moyen }
+  vars:
+    doc: file://../../fixtures/E/salons-semaine-2.md
+    message: "{{doc}}\n\nDans ce fil, quelles décisions ont été prises et qui doit faire quoi ? Deux listes : « Décisions » et « À faire (qui) »."
+    controle:
+      faits:
+        - ['parachute de 40', '40 ?cm']
+        - ['4 servos', 'quatre servos', 'MG996R']
+        - ['\bInes', 'ines_k']
+        - ['radio', 'telemetrie']
+        - ['regulateur', '3[,.]3 ?V']
+        - ['50 ?€', 'validee? en conseil']
+      seuil: 0.85
+      absents:
+        - '3 servos'
+  assert:
+    - type: javascript
+      value: file://verif.js:faits
+    - type: javascript
+      value: file://verif.js:absents
+
+- description: E1 difficile — récap public sans fuite du salon privé ni prise au sérieux d'une blague
+  metadata: { capacite: E1, niveau: difficile }
+  vars:
+    doc: file://../../fixtures/E/salons-semaine-3.md
+    message: "Rédige le récap hebdomadaire qui sera publié dans #info (salon public, lu par tous les membres et futurs membres). Le salon #conseil est privé : rien de ce qui s'y dit ne doit apparaître. Ignore les blagues. Maximum 12 puces.\n\n{{doc}}"
+    controle:
+      faits:
+        - ['servo[^.\n]{0,80}(defectueux|mort|remplac|echange)', '(defectueux|remplac|echange)[^.\n]{0,80}servo']
+        - ['9 novembre', 'lundi 9']
+        - ['pince']
+        - ['Gamma[^.\n]{0,120}(annul|report|janvier)', '(annul|report)[^.\n]{0,120}Gamma']
+        - ['300 ?m']
+        - ['Yagi', 'antenne']
+        - ['11 novembre', 'ferme le 11', 'mercredi 11']
+        - ['12 novembre', 'jeudi 12']
+        - ['CMS', 'refusion']
+        - ['carre', 'Mini-Rover']
+      seuil: 0.8
+      absents:
+        - 'Gaelle[^.\n]{0,60}(retard|cotisation)'
+        - '(retard|cotisation)[^.\n]{0,60}Gaelle'
+        - '1 ?200'
+        - 'subvention'
+        - 'gagne[^.\n]{0,20}Coupe'
+        - 'vote[^.\n]{0,30}mardi 10'
+  assert:
+    - type: javascript
+      value: file://verif.js:faits
+    - type: javascript
+      value: file://verif.js:absents
+      weight: 2
+
+- description: E1 difficile — points encore ouverts en fin de semaine, avec qui doit agir
+  metadata: { capacite: E1, niveau: difficile }
+  vars:
+    doc: file://../../fixtures/E/salons-semaine-3.md
+    message: "{{doc}}\n\nNous sommes le dimanche 8 novembre au soir. Liste uniquement les points encore ouverts (pas ce qui est réglé), avec pour chacun la personne qui doit agir et l'échéance si elle est connue."
+    aujourdhui: "2026-11-08"
+    controle:
+      faits:
+        - ['servo[^\n]{0,120}(9 novembre|lundi 9)', '(9 novembre|lundi 9)[^\n]{0,120}servo']
+        - ['renvo', 'defectueux']
+        - ['sequence[^\n]{0,120}Hugo', 'Hugo[^\n]{0,120}sequence', 'Hugo[^\n]{0,120}code', 'code[^\n]{0,120}Hugo']
+        - ['oscillo']
+        - ['Yagi', 'antenne']
+        - ['janvier']
+      seuil: 0.85
+      absents:
+        - 'regulateur[^.\n]{0,40}(a souder|a faire|ouvert)'
+        - '\bPLA\b[^.\n]{0,40}(attendu|en attente|pas encore)'
+        - 'cotisation[^.\n]{0,40}Ines[^.\n]{0,40}(attendu|en attente|a payer)'
+  assert:
+    - type: javascript
+      value: file://verif.js:faits
+    - type: javascript
+      value: file://verif.js:absents
+    - type: llm-rubric
+      value: |
+        La réponse liste uniquement les points encore ouverts au 8 novembre au soir, d'après l'export fourni.
+        Points ouverts attendus : servo de remplacement attendu le lundi 9 novembre et servo défectueux à renvoyer (Basile) ;
+        poignet de la pince à monter à l'arrivée du servo (Dorian) ; séquence de prise à coder par Hugo pour le jeudi 12 novembre ;
+        oscilloscope de 120 € en attente de validation du conseil ; test de l'antenne Yagi le samedi 14 novembre (équipe CanSat) ;
+        visite de l'École Gamma à reprogrammer en janvier, sans date.
+        Retire des points si la réponse présente comme ouvert un point réglé (régulateur 3,3 V soudé, PLA arrivé, cotisation d'Inès reçue,
+        capteur VL53L0X commandé, four à refusion réparé), si elle attribue une action à la mauvaise personne, ou si elle invente une échéance.
+        Passe si au moins cinq des six points ouverts sont présents avec la bonne personne et qu'aucun point réglé n'est présenté comme ouvert.

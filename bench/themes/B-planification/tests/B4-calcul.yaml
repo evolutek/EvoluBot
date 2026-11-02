@@ -1,0 +1,73 @@
+- description: B4 facile — total TTC d'une commande
+  metadata: { capacite: B4, niveau: facile }
+  vars:
+    message: "On commande 12 kits de capteurs à 23,50 € HT pièce, TVA 20 %. Quel est le total TTC ? Termine par une ligne « Réponse : » suivie du montant en euros."
+    nombre: 338.40
+  assert:
+    - type: javascript
+      value: file://verifs.js:reponse
+
+- description: B4 facile — cotisations encaissées
+  metadata: { capacite: B4, niveau: facile }
+  vars:
+    message: >-
+      Statut des cotisations : Alix payée, Basile payée, Chloé payée, Dorian payée, Elsa payée, Farid payée, Gaëlle en
+      retard, Hugo en essai, Inès en essai, Kenza payée, Lucas en essai. Combien le club a-t-il encaissé en cotisations ?
+      Termine par une ligne « Réponse : » suivie du montant en euros.
+    nombre: 105
+  assert:
+    - type: javascript
+      value: file://verifs.js:reponse
+
+- description: B4 moyen — reste du budget Rover, lignes HT et TTC mêlées
+  metadata: { capacite: B4, niveau: moyen }
+  vars:
+    message: >-
+      Le budget Rover de l'année est de 1 200 € TTC. Dépenses déjà faites : moteurs 249,90 € TTC ; usinage 180 € HT (TVA
+      20 %) ; visserie 37,45 € TTC. Combien reste-t-il, en TTC ? Termine par une ligne « Réponse : » suivie du montant en
+      euros.
+    nombre: 696.65
+  assert:
+    - type: javascript
+      value: file://verifs.js:reponse
+
+- description: B4 moyen — part de chaque participant après prise en charge du club
+  metadata: { capacite: B4, niveau: moyen }
+  vars:
+    message: >-
+      Déplacement à une rencontre de robotique : location du minibus 180 €, carburant 96,40 €, péages 43,60 €. Le club prend
+      en charge 40 % du total, le reste est partagé à parts égales entre les 8 participants. Combien paie chaque
+      participant ? Termine par une ligne « Réponse : » suivie du montant en euros.
+    nombre: 24
+  assert:
+    - type: javascript
+      value: file://verifs.js:reponse
+
+- description: B4 difficile — HT d'une facture à deux taux de TVA
+  metadata: { capacite: B4, niveau: difficile }
+  vars:
+    message: >-
+      Une facture fait 517,80 € TTC au total. Elle comprend un livre technique à 31,65 € TTC, au taux réduit de 5,5 %, et
+      des composants électroniques pour le reste, au taux de 20 %. Quel est le montant HT total de la facture, arrondi au
+      centime ? Termine par une ligne « Réponse : » suivie du montant en euros.
+    nombre: 435.13
+    tolerance: 0.01
+  assert:
+    - type: javascript
+      value: file://verifs.js:reponse
+
+- description: B4 difficile — équilibrer les dépenses avec le moins de virements
+  metadata: { capacite: B4, niveau: difficile }
+  vars:
+    message: >-
+      Quatre membres ont avancé les frais d'un week-end de tests, à partager à parts égales entre eux quatre : Alix a payé
+      120 €, Basile 45 €, Chloé rien, Dorian 75 €. Quels virements faut-il faire pour que chacun ait payé la même chose, avec
+      le moins de virements possible ? Termine par une ligne « Réponse : » qui liste les virements sous la forme
+      « Payeur → Bénéficiaire montant », séparés par des points-virgules.
+    motifs_reponse:
+      - "chlo[ée]\\s*(→|->|vers|à)\\s*alix\\D{0,5}60"
+      - "basile\\s*(→|->|vers|à)\\s*dorian\\D{0,5}15"
+      - "^[^;]*;[^;]*$"
+  assert:
+    - type: javascript
+      value: file://verifs.js:reponse

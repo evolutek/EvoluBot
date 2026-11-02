@@ -1,0 +1,16 @@
+description: "A. Agentique et appels d'outils"
+prompts:
+  - id: file://prompt.json
+    label: agent
+    config:
+      tools: file://outils.json
+      tool_choice: auto
+providers: file://../../providers.yaml
+defaultTest:
+  metadata:
+    theme: A
+  options:
+    provider: file://../../juge.yaml
+    # list-valued vars (interdits) must not fan out into one case per item
+    disableVarExpansion: true
+tests: file://tests/*.yaml

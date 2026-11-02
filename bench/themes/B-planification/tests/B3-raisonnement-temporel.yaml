@@ -1,0 +1,59 @@
+- description: B3 facile — « mardi prochain » depuis un mercredi
+  metadata: { capacite: B3, niveau: facile }
+  vars:
+    message: "Quelle date tombe mardi prochain ? Termine par une ligne « Réponse : AAAA-MM-JJ »."
+    reponse_motif: "^2026-11-03$"
+  assert:
+    - type: javascript
+      value: file://verifs.js:reponse
+
+- description: B3 facile — nombre de jours avant l'AG
+  metadata: { capacite: B3, niveau: facile }
+  vars:
+    message: "Dans combien de jours a lieu l'assemblée générale ? Termine par une ligne « Réponse : » suivie du seul nombre de jours."
+    nombre: 29
+  assert:
+    - type: javascript
+      value: file://verifs.js:reponse
+
+- description: B3 moyen — prochain conseil, semaine ISO paire
+  metadata: { capacite: B3, niveau: moyen }
+  vars:
+    message: "C'est quand le prochain conseil ? Termine par une ligne « Réponse : AAAA-MM-JJ »."
+    reponse_motif: "^2026-11-10$"
+  assert:
+    - type: javascript
+      value: file://verifs.js:reponse
+
+- description: B3 moyen — durée jusqu'à la Coupe en semaines et jours
+  metadata: { capacite: B3, niveau: moyen }
+  vars:
+    message: "Combien de temps reste-t-il avant le premier jour de la Coupe ? Donne-le en semaines complètes et jours. Termine par une ligne « Réponse : N semaines et M jours »."
+    reponse_motif: "^29\\s+semaines?\\s+et\\s+1\\s+jours?$"
+  assert:
+    - type: javascript
+      value: file://verifs.js:reponse
+
+- description: B3 difficile — conseils de décembre à janvier, année à 53 semaines et vacances
+  metadata: { capacite: B3, niveau: difficile }
+  vars:
+    message: >-
+      Liste toutes les dates de conseil entre le 2026-12-01 et le 2027-01-31 inclus. Attention : il n'y a pas de conseil
+      pendant les vacances de Noël, du samedi 2026-12-19 au dimanche 2027-01-03 inclus. Termine par une ligne
+      « Réponse : » suivie des dates au format AAAA-MM-JJ, dans l'ordre, séparées par des virgules.
+    reponse_motif: "^2026-12-08\\s*,\\s*2027-01-12\\s*,\\s*2027-01-26$"
+  assert:
+    - type: javascript
+      value: file://verifs.js:reponse
+
+- description: B3 difficile — visio avec Montréal, deux changements d'heure décalés
+  metadata: { capacite: B3, niveau: difficile }
+  vars:
+    message: >-
+      Un sponsor basé à Montréal propose deux visios, chacune à 13 h heure de Montréal : le mardi 2026-10-27 et le mardi
+      2026-11-03. Quelle heure est-il alors à Villebrune pour chacune ? Termine par une ligne « Réponse : HH:MM, HH:MM »
+      (heure de Paris, dans l'ordre des dates).
+    reponse_motif: "^18[:h]00\\s*,\\s*19[:h]00$"
+  assert:
+    - type: javascript
+      value: file://verifs.js:reponse
