@@ -255,7 +255,10 @@ class Voie(threading.Thread):
 
     def reagir(self, rep, modele, c, code, texte):
         cle = (modele, c["description"], rep)
-        if TROP_GROS.search(texte) or code == 413:
+        if "live catalog" in texte:
+            # OmniRoute's own catalogue going through a bad refresh, not something the model cannot do.
+            self.reposer(modele, code, texte)
+        elif TROP_GROS.search(texte) or code == 413:
             self.enregistrer(rep, modele, c, "impossible", raison=texte[:200])
         elif code == 429 or LIMITE.search(texte):
             # Counted only if the lane worked since its last rest: an exhausted quota blames no case.
@@ -318,6 +321,14 @@ class Voie(threading.Thread):
             if m:
                 vus.add("modele")
                 self.reagir(rep, modele, c, *demasquer(m.group(1)))
+                continue
+
+            # A judge answer promptfoo cannot read says nothing about the model: never let it become a score.
+            if re.search(r'malformed response|"No output"|Could not extract JSON', notation):
+                self.erreurs[cle] += 1
+                print(f"[juge {juge_de(modele)}] réponse illisible sur : {c['description'][:60]}", flush=True)
+                if self.erreurs[cle] >= MAX_ERREURS_PAR_EPREUVE:
+                    self.enregistrer(rep, modele, c, "erreur", raison="réponse du juge illisible")
                 continue
 
             if erreur and r.get("failureReason") == 2:

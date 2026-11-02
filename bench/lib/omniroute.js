@@ -24,11 +24,25 @@ function messages(prompt) {
   return [{ role: 'user', content: prompt }];
 }
 
+// Mistral's reasoning models answer with a list of parts; only the text parts are the answer.
+function texte(content) {
+  if (!Array.isArray(content)) return content || '';
+  return content.filter((p) => p.type === 'text').map((p) => p.text).join('');
+}
+
 function sortie(message) {
   if (message.tool_calls && message.tool_calls.length) {
-    return { content: message.content || '', tool_calls: message.tool_calls };
+    return { content: texte(message.content), tool_calls: message.tool_calls };
   }
-  return message.content || '';
+  return texte(message.content);
+}
+
+// Answers kept before the parts were read are still valid, and paid for.
+function relire(resultat) {
+  const { output } = resultat;
+  if (Array.isArray(output)) return { ...resultat, output: texte(output) };
+  if (output && output.tool_calls) return { ...resultat, output: { ...output, content: texte(output.content) } };
+  return resultat;
 }
 
 class OmniRoute {
@@ -60,7 +74,13 @@ class OmniRoute {
     const repetition = juge ? 'juge' : process.env.BENCH_REP || '0';
     const cle = crypto.createHash('sha256').update(repetition + JSON.stringify(corps)).digest('hex');
     const fichier = path.join(DOSSIER, cle.slice(0, 2), `${cle}.json`);
-    if (fs.existsSync(fichier)) return { ...JSON.parse(fs.readFileSync(fichier, 'utf8')), cached: true };
+    if (fs.existsSync(fichier)) {
+      const garde = relire(JSON.parse(fs.readFileSync(fichier, 'utf8')));
+      if (!juge || garde.output) return { ...garde, cached: true };
+    }
+    // Set after the key, which keeps the answers already paid for. A reasoning judge can spend 4096 tokens
+    // thinking and never give its verdict; the models under test keep the common limit.
+    if (juge) corps.max_tokens = 16000;
 
     const debut = Date.now();
     let reponse;
@@ -97,6 +117,7 @@ class OmniRoute {
       latencyMs: Date.now() - debut,
       tokenUsage: { prompt: usage.prompt_tokens, completion: usage.completion_tokens, total: usage.total_tokens },
     };
+    if (juge && !resultat.output) return resultat;
     fs.mkdirSync(path.dirname(fichier), { recursive: true });
     const provisoire = `${fichier}.${process.pid}`;
     fs.writeFileSync(provisoire, JSON.stringify(resultat));
