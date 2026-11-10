@@ -27,6 +27,7 @@ export OMNIROUTE_BENCH_KEY=…   # lue dans le trousseau au lancement, jamais é
 ./lancer.py run                # jusqu'à la fin, sur plusieurs jours ; se relance sans rien perdre
 ./lancer.py etat               # où en est chaque modèle, et les pauses en cours
 ./lancer.py classement         # classement par thème et par niveau, à tout moment
+./lancer.py juges              # accord des juges du panel avec le juge principal
 ```
 
 Le code écrit par les modèles (thème G) tourne dans un bac à sable, sans quoi il pourrait lire ou effacer les fichiers du poste : il faut `bwrap` (bubblewrap), et le banc refuse d'exécuter ce code sans lui.
