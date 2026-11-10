@@ -1,0 +1,89 @@
+- description: A2 facile — cotisation en espèces, énumération sans accent
+  metadata: { capacite: A2, niveau: facile }
+  vars:
+    message: "Enregistre la cotisation d'ines_k : 15 € en espèces, payée aujourd'hui."
+    attendu: { nom: enregistrer_cotisation, arguments: { pseudo: ines_k, montant: 15, moyen: especes, date: "2026-10-28" } }
+  assert:
+    - type: javascript
+      value: file://verifs.js:argumentsConformes
+    - type: javascript
+      value: file://../../lib/outils.js:outilAttendu
+
+- description: A2 facile — événement, durée en minutes entières
+  metadata: { capacite: A2, niveau: facile }
+  vars:
+    message: "Ajoute au calendrier l'atelier soudure du jeudi 29 octobre 2026 à 18 h, il dure 2 heures, au local."
+    attendu: { nom: ajouter_evenement, arguments: { duree_minutes: 120 } }
+    motifs: { nom: ajouter_evenement, champs: { debut: "^2026-10-29T18:00" } }
+  assert:
+    - type: javascript
+      value: file://verifs.js:argumentsConformes
+    - type: javascript
+      value: file://../../lib/outils.js:outilAttendu
+    - type: javascript
+      value: file://verifs.js:champsMotifs
+
+- description: A2 moyen — dépense avec virgule décimale et date relative
+  metadata: { capacite: A2, niveau: moyen }
+  vars:
+    message: "Basile a payé hier 42,90 € TTC chez Robotique Express pour les roues du Mini-Rover, tu peux le mettre dans la compta ?"
+    attendu: { nom: ajouter_depense, arguments: { date: "2026-10-27", montant_ttc: 42.9, projet: Mini-Rover } }
+  assert:
+    - type: javascript
+      value: file://verifs.js:argumentsConformes
+    - type: javascript
+      value: file://../../lib/outils.js:outilAttendu
+
+- description: A2 moyen — transporteur écrit en minuscules, numéro à recopier tel quel
+  metadata: { capacite: A2, niveau: moyen }
+  vars:
+    message: "j'ai commandé les capteurs du cansat, c'est en mondial relay, suivi n° 48213977, tu regardes où ça en est ?"
+    attendu: { nom: suivre_colis, arguments: { transporteur: Mondial Relay, numero: "48213977" } }
+  assert:
+    - type: javascript
+      value: file://verifs.js:argumentsConformes
+    - type: javascript
+      value: file://../../lib/outils.js:outilAttendu
+
+- description: A2 difficile — montant HT à convertir en TTC, projet à nommer selon l'énumération
+  metadata: { capacite: A2, niveau: difficile }
+  vars:
+    message: "Facture Électro Villebrune du 23 octobre : 120 € HT, TVA 20 %, c'est pour le matériel de la formation soudure. Ajoute-la à la compta, le montant attendu est le TTC."
+    attendu: { nom: ajouter_depense, arguments: { date: "2026-10-23", montant_ttc: 144, projet: Atelier soudure } }
+  assert:
+    - type: javascript
+      value: file://verifs.js:argumentsConformes
+    - type: javascript
+      value: file://../../lib/outils.js:outilAttendu
+
+- description: A2 difficile — horaire par plage, durée à calculer, date dans le message
+  metadata: { capacite: A2, niveau: difficile }
+  vars:
+    message: "Mets l'assemblée générale du 26 novembre dans le calendrier : accueil à 18 h 45 mais l'AG elle-même va de 19 h à 21 h 30, salle B12. Mets l'heure de début de l'AG, pas de l'accueil."
+    attendu: { nom: ajouter_evenement, arguments: { duree_minutes: 150 } }
+    motifs: { nom: ajouter_evenement, champs: { debut: "^2026-11-26T19:00", lieu: "B12" } }
+  assert:
+    - type: javascript
+      value: file://verifs.js:argumentsConformes
+    - type: javascript
+      value: file://../../lib/outils.js:outilAttendu
+    - type: javascript
+      value: file://verifs.js:champsMotifs
+
+- description: A2 difficile — rôle hors énumération, ne pas forcer un appel invalide
+  metadata: { capacite: A2, niveau: difficile }
+  vars:
+    message: "Donne le rôle Conseil à kenza.a, elle vient d'être élue."
+    appel_facultatif: true
+    interdits: [donner_role]
+  assert:
+    - type: javascript
+      value: file://verifs.js:argumentsConformes
+    - type: javascript
+      value: file://../../lib/outils.js:outilsInterdits
+    - type: llm-rubric
+      value: >-
+        L'outil donner_role n'accepte que les rôles Membre, Futur-membre, Ancien, Rover, Mini-Rover, CanSat et Soudure :
+        le rôle Conseil ne peut pas être donné par l'agent. Note 1 si la réponse explique qu'il ne peut pas attribuer ce rôle
+        et oriente vers un administrateur ou le conseil. Note 0 si elle prétend l'avoir attribué, ou si elle donne un autre
+        rôle à la place sans qu'on le lui ait demandé.

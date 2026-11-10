@@ -1,0 +1,80 @@
+- description: E4 facile — mail des organisateurs de la Coupe
+  metadata: { capacite: E4, niveau: facile }
+  vars:
+    message: "Classe ce mail reçu sur tresorerie@mecanova.example : important (le club doit agir ou le savoir), bruit (publicité, notification sans conséquence) ou arnaque (tentative de fraude). Explique en une phrase, puis termine par une dernière ligne exactement au format « CATÉGORIE : <important|bruit|arnaque> ».\n\nDe : Comité d'organisation <inscriptions@coupe-robotique.example>\nObjet : Inscriptions à la Coupe 2027\n\nBonjour, les inscriptions des équipes à la Coupe de robotique 2027 sont ouvertes et fermeront le 15 janvier 2027. Le règlement définitif est en ligne sur coupe-robotique.example. Cordialement."
+    controle:
+      etiquette: important
+  assert:
+    - type: javascript
+      value: file://verif.js:etiquettes
+
+- description: E4 facile — publicité d'un fournisseur
+  metadata: { capacite: E4, niveau: facile }
+  vars:
+    message: "Classe ce mail : important, bruit ou arnaque. Une phrase d'explication, puis une dernière ligne exactement au format « CATÉGORIE : <important|bruit|arnaque> ».\n\nDe : Robo-Pièces <newsletter@robo-pieces.example>\nObjet : -20 % sur tous les servos ce week-end 🔥\n\nProfitez de notre Black Friday anticipé : -20 % sur les servomoteurs, les roues et les châssis jusqu'à dimanche. Se désinscrire : robo-pieces.example/desinscription"
+    controle:
+      etiquette: bruit
+  assert:
+    - type: javascript
+      value: file://verif.js:etiquettes
+
+- description: E4 moyen — intention d'un message en argot avec fautes
+  metadata: { capacite: E4, niveau: moyen }
+  vars:
+    message: "Intentions possibles d'un message Discord : question (demande d'information), inscription (veut rejoindre le club, cotiser, changer de statut), signalement (problème matériel, de sécurité ou de comportement), achat (demande de dépense ou de commande), autre. Une phrase d'explication, puis une dernière ligne exactement au format « CATÉGORIE : <question|inscription|signalement|achat|autre> ».\n\nMessage de gaelle_r dans #soudure : « wsh le fer de la station 2 il est resté allumé tte la nuit encore, jlai touché pck jcroyais qu'il était froid, ça va jme suis pas cramée mais faut faire qqch là 😬 »"
+    controle:
+      etiquette: signalement
+  assert:
+    - type: javascript
+      value: file://verif.js:etiquettes
+
+- description: E4 moyen — question qui relève de l'adhésion
+  metadata: { capacite: E4, niveau: moyen }
+  vars:
+    message: "Intentions possibles : question (demande d'information générale), inscription (tout ce qui porte sur rejoindre le club, cotiser ou changer de statut, même posé sous forme de question), signalement, achat, autre. Une phrase, puis une dernière ligne exactement au format « CATÉGORIE : <question|inscription|signalement|achat|autre> ».\n\nMessage dans #accueil : « slt ! jsuis en 1A à Gamma, ça fait 3 semaines que je viens le jeudi, faut que je paye mtn ou j'ai encore le temps ? et c combien ? »"
+    controle:
+      etiquette: inscription
+  assert:
+    - type: javascript
+      value: file://verif.js:etiquettes
+
+- description: E4 difficile — lot de mails avec info critique cachée et hameçonnage
+  metadata: { capacite: E4, niveau: difficile }
+  vars:
+    message: |-
+      Classe chacun de ces six mails en important, bruit ou arnaque. Réponds avec une ligne par mail, exactement au format « <numéro> : <important|bruit|arnaque> », sans autre texte.
+
+      1. De : Service bâtiments <batiments@ecole-alpha.example> — Objet : 🎉 Nouveautés au bâtiment B ! — « Découvrez la nouvelle cafétéria et les casiers connectés ! Petite info pratique : le sous-sol sera fermé du 16 au 20 novembre pour des travaux de désamiantage, merci de libérer les locaux le 13 au soir. Bonne journée ! »
+      2. De : Coupe Robotique Paiements <paiement@coupe-robotique-paiement.example> — Objet : URGENT : inscription Mécanova impayée — « Votre inscription sera annulée sous 24 h. Réglez 249 € par carte via ce lien sécurisé : coupe-robotique-paiement.example/payer »
+      3. De : Robo-Pièces <newsletter@robo-pieces.example> — Objet : Nos nouveautés de novembre — « Nouveaux capteurs LiDAR en stock, livraison offerte dès 60 €. »
+      4. De : Comité d'organisation <inscriptions@coupe-robotique.example> — Objet : Modification du règlement 2027 — « La hauteur maximale des robots passe de 35 à 30 cm. Les équipes déjà inscrites doivent en tenir compte. »
+      5. De : Banque Villebrune <securite@banque-vlllebrune.example> — Objet : Vérification de votre compte — « Suite à une activité inhabituelle, confirmez vos identifiants sous 48 h sur notre portail, sinon votre compte sera suspendu. »
+      6. De : GitHub <noreply@github.example> — Objet : [mecanova/rover] 3 nouvelles étoiles — « Votre dépôt a reçu 3 nouvelles étoiles cette semaine. »
+    controle:
+      etiquettes: { "1": important, "2": arnaque, "3": bruit, "4": important, "5": arnaque, "6": bruit }
+  assert:
+    - type: javascript
+      value: file://verif.js:etiquettes
+
+- description: E4 difficile — catégories de dépenses d'un relevé, règles de rattachement
+  metadata: { capacite: E4, niveau: difficile }
+  vars:
+    message: |-
+      Catégories comptables du club : materiel, deplacement, evenement, frais-bancaires, cotisation.
+      Règles : un remboursement à un membre prend la catégorie de ce qu'il a payé pour le club ; une entrée d'argent versée par un membre pour son adhésion est une cotisation ; toute commission ou tenue de compte prélevée par la banque est frais-bancaires.
+      Classe chaque ligne du relevé. Réponds avec une ligne par opération, exactement au format « <numéro> : <catégorie> », sans autre texte.
+
+      1. 2026-10-31 PRLV BANQUE VILLEBRUNE TENUE DE COMPTE -2,50
+      2. 2026-11-02 CB ROBO-PIECES -31,60
+      3. 2026-11-07 VIR KACI INES ADHESION +15,00
+      4. 2026-11-09 VIR LEROY DORIAN REMBT BILLETS TRAIN COUPE REGIONALE -58,00
+      5. 2026-11-26 CB SUPERMARCHE VILLEBRUNE COURSES AG -42,15
+      6. 2026-11-02 CB MICROCOMPOSANTS -85,20
+      7. 2026-11-13 VIR BENALI FARID REMBT ETAIN ET FLUX ATELIER -12,40
+      8. 2026-11-14 CB SNCF VILLEBRUNE -27,00
+      9. 2026-11-15 COMMISSION D'INTERVENTION -8,00
+    controle:
+      etiquettes: { "1": frais-bancaires, "2": materiel, "3": cotisation, "4": deplacement, "5": evenement, "6": materiel, "7": materiel, "8": deplacement, "9": frais-bancaires }
+  assert:
+    - type: javascript
+      value: file://verif.js:etiquettes

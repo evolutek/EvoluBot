@@ -1,0 +1,194 @@
+- description: "A9 facile — dixième action d'une liste de onze, après neuf faites"
+  metadata: { capacite: A9, niveau: facile }
+  vars:
+    historique:
+      - {"role": "user", "content": "Liste de rentrée, fais-la dans l'ordre, une action à la fois et sans rien sauter :\n1. donne le rôle Membre à ines_k\n2. retire le rôle Futur-membre de ines_k\n3. donne le rôle CanSat à ines_k\n4. donne le rôle Soudure à lucas_b\n5. donne le rôle Ancien à jules.v\n6. retire le rôle Membre de jules.v\n7. retire le rôle Rover de jules.v\n8. donne le rôle Rover à kenza.a\n9. retire le rôle Mini-Rover de kenza.a\n10. donne le rôle Rover à gaelle_r\n11. poste dans #conseil un récap des 10 changements."}
+      - {"role": "assistant", "content": null, "tool_calls": [{"id": "call_1", "type": "function", "function": {"name": "donner_role", "arguments": "{\"pseudo\": \"ines_k\", \"role\": \"Membre\"}"}}]}
+      - {"role": "tool", "tool_call_id": "call_1", "content": "{\"ok\": true}"}
+      - {"role": "assistant", "content": null, "tool_calls": [{"id": "call_2", "type": "function", "function": {"name": "retirer_role", "arguments": "{\"pseudo\": \"ines_k\", \"role\": \"Futur-membre\"}"}}]}
+      - {"role": "tool", "tool_call_id": "call_2", "content": "{\"ok\": true}"}
+      - {"role": "assistant", "content": null, "tool_calls": [{"id": "call_3", "type": "function", "function": {"name": "donner_role", "arguments": "{\"pseudo\": \"ines_k\", \"role\": \"CanSat\"}"}}]}
+      - {"role": "tool", "tool_call_id": "call_3", "content": "{\"ok\": true}"}
+      - {"role": "assistant", "content": null, "tool_calls": [{"id": "call_4", "type": "function", "function": {"name": "donner_role", "arguments": "{\"pseudo\": \"lucas_b\", \"role\": \"Soudure\"}"}}]}
+      - {"role": "tool", "tool_call_id": "call_4", "content": "{\"ok\": true}"}
+      - {"role": "assistant", "content": null, "tool_calls": [{"id": "call_5", "type": "function", "function": {"name": "donner_role", "arguments": "{\"pseudo\": \"jules.v\", \"role\": \"Ancien\"}"}}]}
+      - {"role": "tool", "tool_call_id": "call_5", "content": "{\"ok\": true}"}
+      - {"role": "assistant", "content": null, "tool_calls": [{"id": "call_6", "type": "function", "function": {"name": "retirer_role", "arguments": "{\"pseudo\": \"jules.v\", \"role\": \"Membre\"}"}}]}
+      - {"role": "tool", "tool_call_id": "call_6", "content": "{\"ok\": true}"}
+      - {"role": "assistant", "content": null, "tool_calls": [{"id": "call_7", "type": "function", "function": {"name": "retirer_role", "arguments": "{\"pseudo\": \"jules.v\", \"role\": \"Rover\"}"}}]}
+      - {"role": "tool", "tool_call_id": "call_7", "content": "{\"ok\": true}"}
+      - {"role": "assistant", "content": null, "tool_calls": [{"id": "call_8", "type": "function", "function": {"name": "donner_role", "arguments": "{\"pseudo\": \"kenza.a\", \"role\": \"Rover\"}"}}]}
+      - {"role": "tool", "tool_call_id": "call_8", "content": "{\"ok\": true}"}
+      - {"role": "assistant", "content": null, "tool_calls": [{"id": "call_9", "type": "function", "function": {"name": "retirer_role", "arguments": "{\"pseudo\": \"kenza.a\", \"role\": \"Mini-Rover\"}"}}]}
+      - {"role": "tool", "tool_call_id": "call_9", "content": "{\"ok\": true}"}
+    attendu: {"nom": "donner_role", "arguments": {"pseudo": "gaelle_r", "role": "Rover"}}
+    max_appels: 1
+    exclus: [{"nom": "donner_role", "arguments": {"pseudo": "ines_k", "role": "Membre"}}, {"nom": "retirer_role", "arguments": {"pseudo": "ines_k", "role": "Futur-membre"}}, {"nom": "donner_role", "arguments": {"pseudo": "ines_k", "role": "CanSat"}}, {"nom": "donner_role", "arguments": {"pseudo": "lucas_b", "role": "Soudure"}}, {"nom": "donner_role", "arguments": {"pseudo": "jules.v", "role": "Ancien"}}, {"nom": "retirer_role", "arguments": {"pseudo": "jules.v", "role": "Membre"}}, {"nom": "retirer_role", "arguments": {"pseudo": "jules.v", "role": "Rover"}}, {"nom": "donner_role", "arguments": {"pseudo": "kenza.a", "role": "Rover"}}, {"nom": "retirer_role", "arguments": {"pseudo": "kenza.a", "role": "Mini-Rover"}}]
+  assert:
+    - type: javascript
+      value: file://../../lib/outils.js:outilAttendu
+    - type: javascript
+      value: file://../../lib/outils.js:auPlus
+    - type: javascript
+      value: file://verifs.js:appelsExclus
+
+- description: "A9 facile — liste de onze actions terminée, conclure sans rien refaire"
+  metadata: { capacite: A9, niveau: facile }
+  vars:
+    historique:
+      - {"role": "user", "content": "Liste de rentrée, fais-la dans l'ordre, une action à la fois et sans rien sauter :\n1. donne le rôle Membre à ines_k\n2. retire le rôle Futur-membre de ines_k\n3. donne le rôle CanSat à ines_k\n4. donne le rôle Soudure à lucas_b\n5. donne le rôle Ancien à jules.v\n6. retire le rôle Membre de jules.v\n7. retire le rôle Rover de jules.v\n8. donne le rôle Rover à kenza.a\n9. retire le rôle Mini-Rover de kenza.a\n10. donne le rôle Rover à gaelle_r\n11. poste dans #conseil un récap des 10 changements."}
+      - {"role": "assistant", "content": null, "tool_calls": [{"id": "call_1", "type": "function", "function": {"name": "donner_role", "arguments": "{\"pseudo\": \"ines_k\", \"role\": \"Membre\"}"}}]}
+      - {"role": "tool", "tool_call_id": "call_1", "content": "{\"ok\": true}"}
+      - {"role": "assistant", "content": null, "tool_calls": [{"id": "call_2", "type": "function", "function": {"name": "retirer_role", "arguments": "{\"pseudo\": \"ines_k\", \"role\": \"Futur-membre\"}"}}]}
+      - {"role": "tool", "tool_call_id": "call_2", "content": "{\"ok\": true}"}
+      - {"role": "assistant", "content": null, "tool_calls": [{"id": "call_3", "type": "function", "function": {"name": "donner_role", "arguments": "{\"pseudo\": \"ines_k\", \"role\": \"CanSat\"}"}}]}
+      - {"role": "tool", "tool_call_id": "call_3", "content": "{\"ok\": true}"}
+      - {"role": "assistant", "content": null, "tool_calls": [{"id": "call_4", "type": "function", "function": {"name": "donner_role", "arguments": "{\"pseudo\": \"lucas_b\", \"role\": \"Soudure\"}"}}]}
+      - {"role": "tool", "tool_call_id": "call_4", "content": "{\"ok\": true}"}
+      - {"role": "assistant", "content": null, "tool_calls": [{"id": "call_5", "type": "function", "function": {"name": "donner_role", "arguments": "{\"pseudo\": \"jules.v\", \"role\": \"Ancien\"}"}}]}
+      - {"role": "tool", "tool_call_id": "call_5", "content": "{\"ok\": true}"}
+      - {"role": "assistant", "content": null, "tool_calls": [{"id": "call_6", "type": "function", "function": {"name": "retirer_role", "arguments": "{\"pseudo\": \"jules.v\", \"role\": \"Membre\"}"}}]}
+      - {"role": "tool", "tool_call_id": "call_6", "content": "{\"ok\": true}"}
+      - {"role": "assistant", "content": null, "tool_calls": [{"id": "call_7", "type": "function", "function": {"name": "retirer_role", "arguments": "{\"pseudo\": \"jules.v\", \"role\": \"Rover\"}"}}]}
+      - {"role": "tool", "tool_call_id": "call_7", "content": "{\"ok\": true}"}
+      - {"role": "assistant", "content": null, "tool_calls": [{"id": "call_8", "type": "function", "function": {"name": "donner_role", "arguments": "{\"pseudo\": \"kenza.a\", \"role\": \"Rover\"}"}}]}
+      - {"role": "tool", "tool_call_id": "call_8", "content": "{\"ok\": true}"}
+      - {"role": "assistant", "content": null, "tool_calls": [{"id": "call_9", "type": "function", "function": {"name": "retirer_role", "arguments": "{\"pseudo\": \"kenza.a\", \"role\": \"Mini-Rover\"}"}}]}
+      - {"role": "tool", "tool_call_id": "call_9", "content": "{\"ok\": true}"}
+      - {"role": "assistant", "content": null, "tool_calls": [{"id": "call_10", "type": "function", "function": {"name": "donner_role", "arguments": "{\"pseudo\": \"gaelle_r\", \"role\": \"Rover\"}"}}]}
+      - {"role": "tool", "tool_call_id": "call_10", "content": "{\"ok\": true}"}
+      - {"role": "assistant", "content": null, "tool_calls": [{"id": "call_11", "type": "function", "function": {"name": "envoyer_message", "arguments": "{\"destination\": \"#conseil\", \"texte\": \"Récap rentrée : ines_k Membre + CanSat (Futur-membre retiré), lucas_b Soudure, jules.v Ancien (Membre et Rover retirés), kenza.a Rover (Mini-Rover retiré), gaelle_r Rover.\"}"}}]}
+      - {"role": "tool", "tool_call_id": "call_11", "content": "{\"ok\": true}"}
+    max_appels: 0
+  assert:
+    - type: javascript
+      value: file://../../lib/outils.js:auPlus
+    - type: javascript
+      value: file://verifs.js:texte
+
+- description: "A9 moyen — septième étape d'un traitement par règles, la fiche lue décide de la relance"
+  metadata: { capacite: A9, niveau: moyen }
+  vars:
+    historique:
+      - {"role": "user", "content": "Traite les futurs membres un par un. Vérifie d'abord la fiche de chacun avec chercher_membre, puis : (a) s'il a payé, enregistre la cotisation, retire Futur-membre et donne Membre ; (b) si son mois d'essai est fini et qu'il a eu deux relances sans réponse, retire Futur-membre ; (c) si son essai est fini avec moins de deux relances, envoie-lui une relance en MP ; (d) si son essai est en cours, ne fais rien. Ensuite liste les membres en retard de cotisation et envoie-leur un rappel en MP. Termine par un récap dans #conseil, échecs compris."}
+      - {"role": "assistant", "content": null, "tool_calls": [{"id": "call_1", "type": "function", "function": {"name": "lister_membres", "arguments": "{\"statut\": \"futur-membre\"}"}}]}
+      - {"role": "tool", "tool_call_id": "call_1", "content": "[{\"pseudo\": \"hugo.t\"}, {\"pseudo\": \"ines_k\"}, {\"pseudo\": \"lucas_b\"}]"}
+      - {"role": "assistant", "content": null, "tool_calls": [{"id": "call_2", "type": "function", "function": {"name": "chercher_membre", "arguments": "{\"recherche\": \"hugo.t\"}"}}]}
+      - {"role": "tool", "tool_call_id": "call_2", "content": "{\"pseudo\": \"hugo.t\", \"essai_depuis\": \"2026-10-01\", \"relances\": 1, \"paiement_recu\": {\"montant\": 15, \"moyen\": \"especes\", \"date\": \"2026-10-27\"}}"}
+      - {"role": "assistant", "content": null, "tool_calls": [{"id": "call_3", "type": "function", "function": {"name": "enregistrer_cotisation", "arguments": "{\"pseudo\": \"hugo.t\", \"montant\": 15, \"moyen\": \"especes\", \"date\": \"2026-10-27\"}"}}]}
+      - {"role": "tool", "tool_call_id": "call_3", "content": "{\"ok\": true}"}
+      - {"role": "assistant", "content": null, "tool_calls": [{"id": "call_4", "type": "function", "function": {"name": "retirer_role", "arguments": "{\"pseudo\": \"hugo.t\", \"role\": \"Futur-membre\"}"}}]}
+      - {"role": "tool", "tool_call_id": "call_4", "content": "{\"ok\": true}"}
+      - {"role": "assistant", "content": null, "tool_calls": [{"id": "call_5", "type": "function", "function": {"name": "donner_role", "arguments": "{\"pseudo\": \"hugo.t\", \"role\": \"Membre\"}"}}]}
+      - {"role": "tool", "tool_call_id": "call_5", "content": "{\"ok\": true}"}
+      - {"role": "assistant", "content": null, "tool_calls": [{"id": "call_6", "type": "function", "function": {"name": "chercher_membre", "arguments": "{\"recherche\": \"ines_k\"}"}}]}
+      - {"role": "tool", "tool_call_id": "call_6", "content": "{\"pseudo\": \"ines_k\", \"essai_depuis\": \"2026-10-20\", \"relances\": 0, \"paiement_recu\": null}"}
+      - {"role": "assistant", "content": null, "tool_calls": [{"id": "call_7", "type": "function", "function": {"name": "chercher_membre", "arguments": "{\"recherche\": \"lucas_b\"}"}}]}
+      - {"role": "tool", "tool_call_id": "call_7", "content": "{\"pseudo\": \"lucas_b\", \"essai_depuis\": \"2026-09-15\", \"relances\": 1, \"reponse_aux_relances\": false, \"paiement_recu\": null}"}
+    attendu: {"nom": "envoyer_message", "arguments": {"destination": "lucas_b"}}
+    exclus: [{"nom": "retirer_role", "arguments": {"pseudo": "lucas_b"}}, {"nom": "kick_membre"}, {"nom": "enregistrer_cotisation"}, {"nom": "envoyer_message", "arguments": {"destination": "ines_k"}}, {"nom": "chercher_membre", "arguments": {"recherche": "hugo.t"}}]
+  assert:
+    - type: javascript
+      value: file://../../lib/outils.js:outilAttendu
+    - type: javascript
+      value: file://verifs.js:appelsExclus
+
+- description: "A9 moyen — récap final après dix étapes, dont une relance qui a échoué"
+  metadata: { capacite: A9, niveau: moyen }
+  vars:
+    historique:
+      - {"role": "user", "content": "Traite les futurs membres un par un. Vérifie d'abord la fiche de chacun avec chercher_membre, puis : (a) s'il a payé, enregistre la cotisation, retire Futur-membre et donne Membre ; (b) si son mois d'essai est fini et qu'il a eu deux relances sans réponse, retire Futur-membre ; (c) si son essai est fini avec moins de deux relances, envoie-lui une relance en MP ; (d) si son essai est en cours, ne fais rien. Ensuite liste les membres en retard de cotisation et envoie-leur un rappel en MP. Termine par un récap dans #conseil, échecs compris."}
+      - {"role": "assistant", "content": null, "tool_calls": [{"id": "call_1", "type": "function", "function": {"name": "lister_membres", "arguments": "{\"statut\": \"futur-membre\"}"}}]}
+      - {"role": "tool", "tool_call_id": "call_1", "content": "[{\"pseudo\": \"hugo.t\"}, {\"pseudo\": \"ines_k\"}, {\"pseudo\": \"lucas_b\"}]"}
+      - {"role": "assistant", "content": null, "tool_calls": [{"id": "call_2", "type": "function", "function": {"name": "chercher_membre", "arguments": "{\"recherche\": \"hugo.t\"}"}}]}
+      - {"role": "tool", "tool_call_id": "call_2", "content": "{\"pseudo\": \"hugo.t\", \"essai_depuis\": \"2026-10-01\", \"relances\": 1, \"paiement_recu\": {\"montant\": 15, \"moyen\": \"especes\", \"date\": \"2026-10-27\"}}"}
+      - {"role": "assistant", "content": null, "tool_calls": [{"id": "call_3", "type": "function", "function": {"name": "enregistrer_cotisation", "arguments": "{\"pseudo\": \"hugo.t\", \"montant\": 15, \"moyen\": \"especes\", \"date\": \"2026-10-27\"}"}}]}
+      - {"role": "tool", "tool_call_id": "call_3", "content": "{\"ok\": true}"}
+      - {"role": "assistant", "content": null, "tool_calls": [{"id": "call_4", "type": "function", "function": {"name": "retirer_role", "arguments": "{\"pseudo\": \"hugo.t\", \"role\": \"Futur-membre\"}"}}]}
+      - {"role": "tool", "tool_call_id": "call_4", "content": "{\"ok\": true}"}
+      - {"role": "assistant", "content": null, "tool_calls": [{"id": "call_5", "type": "function", "function": {"name": "donner_role", "arguments": "{\"pseudo\": \"hugo.t\", \"role\": \"Membre\"}"}}]}
+      - {"role": "tool", "tool_call_id": "call_5", "content": "{\"ok\": true}"}
+      - {"role": "assistant", "content": null, "tool_calls": [{"id": "call_6", "type": "function", "function": {"name": "chercher_membre", "arguments": "{\"recherche\": \"ines_k\"}"}}]}
+      - {"role": "tool", "tool_call_id": "call_6", "content": "{\"pseudo\": \"ines_k\", \"essai_depuis\": \"2026-10-20\", \"relances\": 0, \"paiement_recu\": null}"}
+      - {"role": "assistant", "content": null, "tool_calls": [{"id": "call_7", "type": "function", "function": {"name": "chercher_membre", "arguments": "{\"recherche\": \"lucas_b\"}"}}]}
+      - {"role": "tool", "tool_call_id": "call_7", "content": "{\"pseudo\": \"lucas_b\", \"essai_depuis\": \"2026-09-15\", \"relances\": 1, \"reponse_aux_relances\": false, \"paiement_recu\": null}"}
+      - {"role": "assistant", "content": null, "tool_calls": [{"id": "call_8", "type": "function", "function": {"name": "envoyer_message", "arguments": "{\"destination\": \"lucas_b\", \"texte\": \"Salut Lucas ! Ton mois d'essai est terminé : pense à régler ta cotisation de 15 € au trésorier.\"}"}}]}
+      - {"role": "tool", "tool_call_id": "call_8", "content": "{\"erreur\": \"403 : lucas_b n'accepte pas les messages privés\"}"}
+      - {"role": "assistant", "content": null, "tool_calls": [{"id": "call_9", "type": "function", "function": {"name": "lister_membres", "arguments": "{\"statut\": \"cotisation-en-retard\"}"}}]}
+      - {"role": "tool", "tool_call_id": "call_9", "content": "[{\"pseudo\": \"gaelle_r\", \"nom\": \"Gaëlle Roux\"}]"}
+      - {"role": "assistant", "content": null, "tool_calls": [{"id": "call_10", "type": "function", "function": {"name": "envoyer_message", "arguments": "{\"destination\": \"gaelle_r\", \"texte\": \"Salut Gaëlle ! Ta cotisation 2026-2027 (15 €) n'est pas encore réglée, tu peux voir ça avec Basile ?\"}"}}]}
+      - {"role": "tool", "tool_call_id": "call_10", "content": "{\"ok\": true}"}
+    motifs: {"nom": "envoyer_message", "champs": {"destination": "conseil", "texte": "lucas[\\s\\S]*(échec|échoué|pas pu|impossible|refus|bloqu|fermé|erreur|n'accepte)|(échec|échoué|pas pu|impossible|refus|bloqu|fermé|erreur|n'accepte)[\\s\\S]*lucas"}}
+    exclus: [{"nom": "enregistrer_cotisation"}, {"nom": "donner_role"}, {"nom": "retirer_role"}]
+  assert:
+    - type: javascript
+      value: file://verifs.js:champsMotifs
+    - type: javascript
+      value: file://verifs.js:appelsExclus
+
+- description: "A9 difficile — changement de plan en cours de route, reprendre à la bonne étape"
+  metadata: { capacite: A9, niveau: difficile }
+  vars:
+    historique:
+      - {"role": "user", "content": "Prépare la soirée d'intégration du jeudi 19 novembre 2026, 19 h, 3 h, au local. Dans l'ordre : 1) crée l'événement ; 2) annonce-la dans #general ; 3) envoie une invitation en MP à chaque futur membre (hugo.t, ines_k, lucas_b) ; 4) envoie un MP à Dorian (dorian_l), Elsa (elsa.m) et Farid (farid.b) pour qu'ils préparent une démo de leur projet ; 5) ajoute en compta les courses achetées aujourd'hui : 64,80 € TTC chez Superfictif et 18 € TTC chez Boulangerie du Campus, projet Fonctionnement ; 6) poste un récap dans #conseil avec le total des dépenses."}
+      - {"role": "assistant", "content": null, "tool_calls": [{"id": "call_1", "type": "function", "function": {"name": "ajouter_evenement", "arguments": "{\"titre\": \"Soirée d'intégration\", \"debut\": \"2026-11-19T19:00:00+01:00\", \"duree_minutes\": 180, \"lieu\": \"Local, bâtiment B\"}"}}]}
+      - {"role": "tool", "tool_call_id": "call_1", "content": "{\"ok\": true}"}
+      - {"role": "assistant", "content": null, "tool_calls": [{"id": "call_2", "type": "function", "function": {"name": "envoyer_message", "arguments": "{\"destination\": \"#general\", \"texte\": \"Soirée d'intégration le jeudi 19 novembre à 19 h au local !\"}"}}]}
+      - {"role": "tool", "tool_call_id": "call_2", "content": "{\"ok\": true}"}
+      - {"role": "assistant", "content": null, "tool_calls": [{"id": "call_3", "type": "function", "function": {"name": "envoyer_message", "arguments": "{\"destination\": \"hugo.t\", \"texte\": \"Salut ! Soirée d'intégration Mécanova le jeudi 19 novembre à 19 h au local, on compte sur toi !\"}"}}]}
+      - {"role": "tool", "tool_call_id": "call_3", "content": "{\"ok\": true}"}
+      - {"role": "assistant", "content": null, "tool_calls": [{"id": "call_4", "type": "function", "function": {"name": "envoyer_message", "arguments": "{\"destination\": \"ines_k\", \"texte\": \"Salut ! Soirée d'intégration Mécanova le jeudi 19 novembre à 19 h au local, on compte sur toi !\"}"}}]}
+      - {"role": "tool", "tool_call_id": "call_4", "content": "{\"ok\": true}"}
+      - {"role": "assistant", "content": null, "tool_calls": [{"id": "call_5", "type": "function", "function": {"name": "envoyer_message", "arguments": "{\"destination\": \"lucas_b\", \"texte\": \"Salut ! Soirée d'intégration Mécanova le jeudi 19 novembre à 19 h au local, on compte sur toi !\"}"}}]}
+      - {"role": "tool", "tool_call_id": "call_5", "content": "{\"ok\": true}"}
+      - {"role": "assistant", "content": null, "tool_calls": [{"id": "call_6", "type": "function", "function": {"name": "envoyer_message", "arguments": "{\"destination\": \"dorian_l\", \"texte\": \"Salut ! Pour la soirée d'intégration du 19 novembre, tu peux préparer une petite démo de ton projet ?\"}"}}]}
+      - {"role": "tool", "tool_call_id": "call_6", "content": "{\"ok\": true}"}
+    message: "Au fait : pas de MP à Farid, il est déjà au courant. Et la boulangerie, finalement c'était 21,60 €, pas 18 €."
+    attendu: {"nom": "envoyer_message", "arguments": {"destination": "elsa.m"}}
+    exclus: [{"nom": "envoyer_message", "arguments": {"destination": "farid.b"}}, {"nom": "ajouter_depense", "arguments": {"montant_ttc": 18}}, {"nom": "ajouter_evenement"}, {"nom": "envoyer_message", "arguments": {"destination": "hugo.t"}}, {"nom": "envoyer_message", "arguments": {"destination": "dorian_l"}}]
+  assert:
+    - type: javascript
+      value: file://../../lib/outils.js:outilAttendu
+    - type: javascript
+      value: file://verifs.js:appelsExclus
+
+- description: "A9 difficile — récap final après dix étapes et un plan modifié, total à jour"
+  metadata: { capacite: A9, niveau: difficile }
+  vars:
+    historique:
+      - {"role": "user", "content": "Prépare la soirée d'intégration du jeudi 19 novembre 2026, 19 h, 3 h, au local. Dans l'ordre : 1) crée l'événement ; 2) annonce-la dans #general ; 3) envoie une invitation en MP à chaque futur membre (hugo.t, ines_k, lucas_b) ; 4) envoie un MP à Dorian (dorian_l), Elsa (elsa.m) et Farid (farid.b) pour qu'ils préparent une démo de leur projet ; 5) ajoute en compta les courses achetées aujourd'hui : 64,80 € TTC chez Superfictif et 18 € TTC chez Boulangerie du Campus, projet Fonctionnement ; 6) poste un récap dans #conseil avec le total des dépenses."}
+      - {"role": "assistant", "content": null, "tool_calls": [{"id": "call_1", "type": "function", "function": {"name": "ajouter_evenement", "arguments": "{\"titre\": \"Soirée d'intégration\", \"debut\": \"2026-11-19T19:00:00+01:00\", \"duree_minutes\": 180, \"lieu\": \"Local, bâtiment B\"}"}}]}
+      - {"role": "tool", "tool_call_id": "call_1", "content": "{\"ok\": true}"}
+      - {"role": "assistant", "content": null, "tool_calls": [{"id": "call_2", "type": "function", "function": {"name": "envoyer_message", "arguments": "{\"destination\": \"#general\", \"texte\": \"Soirée d'intégration le jeudi 19 novembre à 19 h au local !\"}"}}]}
+      - {"role": "tool", "tool_call_id": "call_2", "content": "{\"ok\": true}"}
+      - {"role": "assistant", "content": null, "tool_calls": [{"id": "call_3", "type": "function", "function": {"name": "envoyer_message", "arguments": "{\"destination\": \"hugo.t\", \"texte\": \"Salut ! Soirée d'intégration Mécanova le jeudi 19 novembre à 19 h au local, on compte sur toi !\"}"}}]}
+      - {"role": "tool", "tool_call_id": "call_3", "content": "{\"ok\": true}"}
+      - {"role": "assistant", "content": null, "tool_calls": [{"id": "call_4", "type": "function", "function": {"name": "envoyer_message", "arguments": "{\"destination\": \"ines_k\", \"texte\": \"Salut ! Soirée d'intégration Mécanova le jeudi 19 novembre à 19 h au local, on compte sur toi !\"}"}}]}
+      - {"role": "tool", "tool_call_id": "call_4", "content": "{\"ok\": true}"}
+      - {"role": "assistant", "content": null, "tool_calls": [{"id": "call_5", "type": "function", "function": {"name": "envoyer_message", "arguments": "{\"destination\": \"lucas_b\", \"texte\": \"Salut ! Soirée d'intégration Mécanova le jeudi 19 novembre à 19 h au local, on compte sur toi !\"}"}}]}
+      - {"role": "tool", "tool_call_id": "call_5", "content": "{\"ok\": true}"}
+      - {"role": "assistant", "content": null, "tool_calls": [{"id": "call_6", "type": "function", "function": {"name": "envoyer_message", "arguments": "{\"destination\": \"dorian_l\", \"texte\": \"Salut ! Pour la soirée d'intégration du 19 novembre, tu peux préparer une petite démo de ton projet ?\"}"}}]}
+      - {"role": "tool", "tool_call_id": "call_6", "content": "{\"ok\": true}"}
+      - {"role": "user", "content": "Au fait : pas de MP à Farid, il est déjà au courant. Et la boulangerie, finalement c'était 21,60 €, pas 18 €."}
+      - {"role": "assistant", "content": null, "tool_calls": [{"id": "call_7", "type": "function", "function": {"name": "envoyer_message", "arguments": "{\"destination\": \"elsa.m\", \"texte\": \"Salut ! Pour la soirée d'intégration du 19 novembre, tu peux préparer une petite démo de ton projet ?\"}"}}]}
+      - {"role": "tool", "tool_call_id": "call_7", "content": "{\"ok\": true}"}
+      - {"role": "assistant", "content": null, "tool_calls": [{"id": "call_8", "type": "function", "function": {"name": "ajouter_depense", "arguments": "{\"date\": \"2026-10-28\", \"montant_ttc\": 64.8, \"fournisseur\": \"Superfictif\", \"projet\": \"Fonctionnement\"}"}}]}
+      - {"role": "tool", "tool_call_id": "call_8", "content": "{\"ok\": true}"}
+      - {"role": "assistant", "content": null, "tool_calls": [{"id": "call_9", "type": "function", "function": {"name": "ajouter_depense", "arguments": "{\"date\": \"2026-10-28\", \"montant_ttc\": 21.6, \"fournisseur\": \"Boulangerie du Campus\", \"projet\": \"Fonctionnement\"}"}}]}
+      - {"role": "tool", "tool_call_id": "call_9", "content": "{\"ok\": true}"}
+    motifs: {"nom": "envoyer_message", "champs": {"destination": "conseil", "texte": "86[,.]4"}}
+    exclus: [{"nom": "envoyer_message", "arguments": {"destination": "farid.b"}}, {"nom": "ajouter_depense"}, {"nom": "ajouter_evenement"}]
+    max_appels: 1
+  assert:
+    - type: javascript
+      value: file://verifs.js:champsMotifs
+    - type: javascript
+      value: file://verifs.js:appelsExclus
+    - type: javascript
+      value: file://../../lib/outils.js:auPlus
+    - type: llm-rubric
+      value: >-
+        Le récap posté dans #conseil doit refléter l'état réel : événement créé, annonce faite, trois invitations
+        (hugo.t, ines_k, lucas_b), démos demandées à Dorian et Elsa mais pas à Farid (annulé par l'utilisateur), deux dépenses
+        (64,80 € et 21,60 €, total 86,40 €). Note 1 si le récap est exact et complet. Note 0 s'il mentionne un MP à Farid,
+        la dépense de 18 €, un autre total, ou s'il oublie une étape.

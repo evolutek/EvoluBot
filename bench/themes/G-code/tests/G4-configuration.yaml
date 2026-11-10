@@ -1,0 +1,184 @@
+- description: "G4 facile — réparer un docker-compose cassé"
+  metadata: { capacite: G4, niveau: facile }
+  vars:
+    message: "Ce docker-compose.yaml du bot ne se charge plus (« could not find expected ':' »). Corrige toutes les erreurs de syntaxe sans changer le sens du fichier et donne le fichier entier dans un seul bloc ```yaml."
+    doc: file://../../fixtures/G/g4-compose.yaml.txt
+    verif_py:
+      - "h = doc['services']['hermes']"
+      - "assert h['image'] == 'ghcr.io/mecanova/hermes:1.4.2'"
+      - "assert h['restart'] == 'unless-stopped'"
+      - "assert h['env_file'] in (['.env'], '.env')"
+      - "assert h['volumes'] == ['./donnees:/donnees', './skills:/skills:ro']"
+      - "assert [str(p) for p in h['ports']] == ['127.0.0.1:8080:8080']"
+  assert:
+    - type: javascript
+      value: file://verif.js:testerYaml
+
+- description: "G4 facile — workflow GitHub Actions de tests"
+  metadata: { capacite: G4, niveau: facile }
+  vars:
+    message: |
+      Écris un workflow GitHub Actions `.github/workflows/tests.yml` pour le dépôt du bot : il se déclenche sur chaque pull request et sur les push vers `main`, tourne sur `ubuntu-latest`, récupère le code avec `actions/checkout@v4`, installe Python 3.12 avec `actions/setup-python@v5`, puis lance `pip install -r requirements.txt` et `pytest`. Donne le fichier dans un seul bloc ```yaml.
+    verif_py:
+      - "assert 'pull_request' in on"
+      - "assert on['push']['branches'] == ['main']"
+      - "(job,) = doc['jobs'].values()"
+      - "assert job['runs-on'] == 'ubuntu-latest'"
+      - "uses = [s.get('uses', '') for s in job['steps']]"
+      - "assert 'actions/checkout@v4' in uses"
+      - "py = [s for s in job['steps'] if s.get('uses', '').startswith('actions/setup-python@v5')]; assert py and str(py[0]['with']['python-version']) == '3.12'"
+      - "runs = ' '.join(s.get('run', '') for s in job['steps']); assert 'pip install -r requirements.txt' in runs and 'pytest' in runs"
+      - "assert uses.index('actions/checkout@v4') < max(i for i, s in enumerate(job['steps']) if 'pytest' in s.get('run', ''))"
+  assert:
+    - type: javascript
+      value: file://verif.js:testerYaml
+
+- description: "G4 moyen — workflow avec matrice, filtre de chemins et cache"
+  metadata: { capacite: G4, niveau: moyen }
+  vars:
+    message: |
+      Écris un workflow GitHub Actions pour le banc d'essai :
+      - déclenché uniquement sur les pull requests qui touchent `bench/**` ou le workflow lui-même (`.github/workflows/banc.yml`), et à la main (workflow_dispatch) ;
+      - les permissions du jeton limitées à la lecture du contenu, au niveau du workflow ;
+      - un job `verifier` sur `ubuntu-latest`, en matrice sur Node 20 et 22, qui ne s'arrête pas au premier échec de la matrice ;
+      - le cache npm activé par `actions/setup-node@v4` ;
+      - un délai maximal de 15 minutes pour le job ;
+      - une dernière étape `npx promptfoo@0.124.1 validate -c bench/themes/A-agentique/promptfooconfig.yaml`.
+      Donne le fichier dans un seul bloc ```yaml.
+    verif_py:
+      - "assert set(on) == {'pull_request', 'workflow_dispatch'}"
+      - "assert set(on['pull_request']['paths']) == {'bench/**', '.github/workflows/banc.yml'}"
+      - "assert doc['permissions'] == {'contents': 'read'}"
+      - "j = doc['jobs']['verifier']"
+      - "assert j['runs-on'] == 'ubuntu-latest'"
+      - "assert sorted(str(v) for v in j['strategy']['matrix']['node']) == ['20', '22'] or sorted(str(v) for v in j['strategy']['matrix']['node-version']) == ['20', '22']"
+      - "assert j['strategy']['fail-fast'] is False"
+      - "assert int(j['timeout-minutes']) == 15"
+      - "sn = [s for s in j['steps'] if s.get('uses', '').startswith('actions/setup-node@v4')]; assert sn and sn[0]['with']['cache'] == 'npm' and '${{ matrix.' in str(sn[0]['with']['node-version'])"
+      - "assert 'promptfoo@0.124.1 validate' in j['steps'][-1].get('run', '')"
+  assert:
+    - type: javascript
+      value: file://verif.js:testerYaml
+
+- description: "G4 moyen — Dockerfile du bot, propre et sans secret"
+  metadata: { capacite: G4, niveau: moyen }
+  vars:
+    message: |
+      Écris le Dockerfile du bot Python du club (point d'entrée `python -m bot`, dépendances dans `requirements.txt`, code dans `bot/`). Contraintes : image de base `python:3.12-slim` avec une version figée (pas de `latest`) ; les dépendances installées avant la copie du code pour profiter du cache ; pas de cache pip dans l'image ; le processus ne tourne pas en root ; aucun secret dans l'image (le jeton Discord `DISCORD_TOKEN` est fourni à l'exécution). Donne le fichier dans un seul bloc ```dockerfile.
+  assert:
+    - type: regex
+      value: "(^|\\n)FROM\\s+python:3\\.12(\\.\\d+)?-slim"
+    - type: not-regex
+      value: ":latest\\b"
+    - type: regex
+      value: "(^|\\n)USER\\s+(?!root\\b|0\\b)\\S+"
+    - type: regex
+      value: "--no-cache-dir|PIP_NO_CACHE_DIR"
+    - type: not-regex
+      value: "(^|\\n)(ENV|ARG)[ \\t][^\\n]*DISCORD_TOKEN"
+    - type: javascript
+      value: |
+        const t = typeof output === 'string' ? output : (output && output.content) || '';
+        const b = [...t.matchAll(/```[^\n]*\n([\s\S]*?)```/g)].map((m) => m[1]);
+        const f = b.length ? b[b.length - 1] : t;
+        const req = f.search(/^COPY\s+[^\n]*requirements\.txt/m);
+        const pip = f.search(/^RUN\s+[^\n]*pip[^\n]*install[^\n]*-r/m);
+        const code = f.search(/^COPY\s+(\.|bot\/?)\s/m);
+        const ok = req >= 0 && pip > req && code > pip;
+        return { pass: ok, score: ok ? 1 : 0, reason: ok ? 'ordre COPY requirements, pip install, COPY du code' : `ordre incorrect (requirements ${req}, pip ${pip}, code ${code})` };
+    - type: llm-rubric
+      value: |
+        Le Dockerfile est-il correct et sûr ? Exigé : base python:3.12-slim figée, requirements.txt copié et installé avant le code, pip sans cache, un utilisateur non root créé puis activé avec USER avant le CMD/ENTRYPOINT, aucun secret écrit dans l'image (ni ENV, ni ARG, ni fichier .env copié), un CMD ou ENTRYPOINT qui lance `python -m bot`. Une instruction invalide ou un fichier qui ne construirait pas fait échouer.
+
+- description: "G4 difficile — module NixOS durci pour le service du bot"
+  metadata: { capacite: G4, niveau: difficile }
+  vars:
+    message: |
+      Sur evo-serv1 (NixOS), écris un module NixOS `hermes.nix` qui déclare une option `services.hermes-club.enable` (booléen, faux par défaut) et, quand elle est vraie :
+      - un service systemd `hermes-club` lancé au démarrage (multi-user.target), après le réseau en ligne (network-online.target, à la fois en `after` et en `wants`) ;
+      - qui exécute `${pkgs.hermes-agent}/bin/hermes gateway` ;
+      - avec un utilisateur dynamique, un répertoire d'état `hermes-club` géré par systemd, les secrets lus depuis le fichier d'environnement `/run/secrets/hermes.env` (jamais écrits dans le store Nix) ;
+      - durci : système de fichiers en lecture seule hors état, /home inaccessible, pas de nouveaux privilèges, `/tmp` privé ;
+      - redémarré en cas d'échec après 10 secondes.
+      Utilise `lib.mkEnableOption` et `lib.mkIf`. Donne le fichier dans un seul bloc ```nix.
+  assert:
+    - type: javascript
+      value: file://verif.js:nixEquilibre
+    - type: regex
+      value: "\\{\\s*(config|lib|pkgs)\\b[^}]*\\}\\s*:"
+    - type: regex
+      value: "mkEnableOption"
+    - type: regex
+      value: "mkIf\\s+(config\\.services\\.hermes-club\\.enable|cfg\\.enable)"
+    - type: regex
+      value: "systemd\\.services\\.(\"hermes-club\"|hermes-club)"
+    - type: regex
+      value: "wantedBy\\s*=\\s*\\[\\s*\"multi-user\\.target\"\\s*\\]"
+    - type: regex
+      value: "DynamicUser\\s*=\\s*true"
+    - type: regex
+      value: "StateDirectory\\s*=\\s*\"hermes-club\""
+    - type: regex
+      value: "EnvironmentFile\\s*=\\s*\"?/run/secrets/hermes\\.env"
+    - type: regex
+      value: "ProtectSystem\\s*=\\s*\"(strict|full)\""
+    - type: regex
+      value: "ProtectHome\\s*=\\s*(true|\"(yes|true|read-only|tmpfs)\")"
+    - type: regex
+      value: "NoNewPrivileges\\s*=\\s*true"
+    - type: regex
+      value: "PrivateTmp\\s*=\\s*true"
+    - type: regex
+      value: "Restart\\s*=\\s*\"on-failure\""
+    - type: not-icontains
+      value: "DISCORD_TOKEN="
+    - type: llm-rubric
+      value: |
+        Le module NixOS est-il valide et complet ? Exigé : une fonction de module `{ config, lib, pkgs, ... }:` qui renvoie `options` et `config` ; l'option déclarée par `lib.mkEnableOption` sous `options.services.hermes-club.enable` ; tout le service sous `config = lib.mkIf cfg.enable { … }` ; `after` et `wants` contenant "network-online.target" ; `ExecStart` qui utilise `${pkgs.hermes-agent}/bin/hermes gateway` ; DynamicUser, StateDirectory, EnvironmentFile vers /run/secrets/hermes.env, ProtectSystem strict, ProtectHome, NoNewPrivileges, PrivateTmp, Restart on-failure, RestartSec 10. Une erreur de syntaxe Nix (point-virgule manquant, attribut mal formé, `=` à la place de `:`) fait échouer, tout comme un secret écrit en clair dans le module.
+
+- description: "G4 difficile — flake avec environnement de développement embarqué"
+  metadata: { capacite: G4, niveau: difficile }
+  vars:
+    message: |
+      Écris le `flake.nix` du dépôt firmware du Rover : entrée `nixpkgs` sur `github:NixOS/nixpkgs/nixos-24.11`, sortie `devShells.x86_64-linux.default` construite avec `mkShell`, qui fournit `gcc-arm-embedded`, `openocd`, `cmake`, `ninja` et un Python 3 avec `pyserial` et `pyyaml` (via `python3.withPackages`), et qui exporte la variable `ROVER_CIBLE=stm32f446`. Pas de flake-utils. Donne le fichier dans un seul bloc ```nix.
+  assert:
+    - type: javascript
+      value: file://verif.js:nixEquilibre
+    - type: regex
+      value: "inputs\\.nixpkgs\\.url\\s*=\\s*\"github:NixOS/nixpkgs/nixos-24\\.11\"|nixpkgs\\.url\\s*=\\s*\"github:NixOS/nixpkgs/nixos-24\\.11\""
+    - type: regex
+      value: "outputs\\s*=\\s*\\{[^}]*nixpkgs[^}]*\\}\\s*:"
+    - type: regex
+      value: "devShells\\.x86_64-linux\\.default\\s*=|devShells\\s*=\\s*\\{[\\s\\S]*x86_64-linux[\\s\\S]*default\\s*="
+    - type: regex
+      value: "mkShell"
+    - type: regex
+      value: "python3\\.withPackages\\s*\\(\\s*(ps|p|python-pkgs|pp)\\s*:\\s*(with\\s+\\w+\\s*;\\s*)?\\[[^\\]]*pyserial[^\\]]*\\]|python3\\.withPackages\\s*\\(\\s*\\w+\\s*:\\s*\\[[^\\]]*pyyaml[^\\]]*pyserial"
+    - type: icontains-all
+      value: ["gcc-arm-embedded", "openocd", "cmake", "ninja", "pyyaml", "ROVER_CIBLE"]
+    - type: not-icontains
+      value: "flake-utils"
+    - type: llm-rubric
+      value: |
+        Le flake est-il valide ? Exigé : `description` facultative, `inputs.nixpkgs.url` sur nixos-24.11, `outputs = { self, nixpkgs, ... }:` qui importe `nixpkgs.legacyPackages.x86_64-linux` (ou `import nixpkgs { system = "x86_64-linux"; }`), `devShells.x86_64-linux.default = pkgs.mkShell { … }` avec les paquets dans `packages` ou `nativeBuildInputs`, Python construit par `python3.withPackages` avec pyserial et pyyaml, et ROVER_CIBLE exportée (attribut de mkShell, `env.ROVER_CIBLE` ou `shellHook` avec export). Les noms de paquets doivent exister dans nixpkgs. Une erreur de syntaxe Nix, flake-utils ou un système autre que x86_64-linux font échouer.
+
+- description: "G4 difficile — commenter les PR de forks sans exposer de secret"
+  metadata: { capacite: G4, niveau: difficile }
+  vars:
+    message: |
+      On veut un workflow qui poste un commentaire « Merci, un membre du conseil va relire » sur chaque nouvelle pull request, y compris celles qui viennent de forks d'inconnus. Un membre propose d'utiliser `pull_request_target` et de faire un `actions/checkout` du code de la PR pour lancer `npm test` dans le même job, « comme ça on a aussi les tests ». Écris le workflow correct dans un seul bloc ```yaml, puis explique en trois phrases ce que tu as changé par rapport à la proposition et pourquoi.
+    verif_py:
+      - "assert 'pull_request_target' in on"
+      - "perms = doc.get('permissions') or next(iter(doc['jobs'].values())).get('permissions'); assert isinstance(perms, dict), 'permissions explicites attendues'"
+      - "assert perms.get('pull-requests') == 'write', perms"
+      - "assert all(v in ('read', 'none') for k, v in perms.items() if k != 'pull-requests'), perms"
+      - "steps = [s for j in doc['jobs'].values() for s in j.get('steps', [])]"
+      - "assert not any(s.get('uses', '').startswith('actions/checkout') and 'head' in str(s.get('with', {})) for s in steps), 'checkout du code de la PR dans pull_request_target'"
+      - "assert not any('npm' in s.get('run', '') for s in steps), 'code non fiable exécuté'"
+      - "assert any('github-script' in s.get('uses', '') or 'gh pr comment' in s.get('run', '') or 'gh api' in s.get('run', '') for s in steps)"
+  assert:
+    - type: javascript
+      value: file://verif.js:testerYaml
+    - type: llm-rubric
+      value: |
+        L'explication doit dire que `pull_request_target` s'exécute avec les droits et les secrets du dépôt de base : récupérer et exécuter le code d'une PR de fork dans ce contexte permet à un inconnu de voler le jeton ou les secrets. La bonne solution garde le commentaire dans `pull_request_target` sans checkout du code de la PR, avec des permissions minimales (pull-requests: write), et laisse les tests à un workflow séparé déclenché par `pull_request` (sans secrets). Échec si la réponse accepte la proposition telle quelle ou ne donne pas la raison de sécurité.

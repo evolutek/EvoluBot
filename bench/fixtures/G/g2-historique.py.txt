@@ -1,0 +1,30 @@
+ 1 | import asyncio
+ 2 | from datetime import datetime, timezone
+ 3 |
+ 4 | LIMITE_API = 100  # messages par requête, maximum de l'API Discord
+ 5 |
+ 6 |
+ 7 | async def messages_depuis(salon, depuis: datetime):
+ 8 |     """Tous les messages d'un salon postés après `depuis`, du plus récent au plus ancien.
+ 9 |
+10 |     salon.history(limit, before) renvoie au plus `limit` messages, du plus récent
+11 |     au plus ancien, tous strictement antérieurs au message `before` (ou les plus
+12 |     récents si before vaut None).
+13 |     """
+14 |     if depuis.tzinfo is None:
+15 |         depuis = depuis.replace(tzinfo=timezone.utc)
+16 |     resultat = []
+17 |     avant = None
+18 |     while True:
+19 |         page = [m async for m in salon.history(limit=LIMITE_API, before=avant)]
+20 |         if not page:
+21 |             break
+22 |         for m in page:
+23 |             if m.created_at <= depuis:
+24 |                 return resultat
+25 |             resultat.append(m)
+26 |         if len(page) < LIMITE_API:
+27 |             break
+28 |         avant = page[0]
+29 |         await asyncio.sleep(0.5)  # politesse envers l'API
+30 |     return resultat

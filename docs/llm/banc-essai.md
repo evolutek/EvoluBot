@@ -2,7 +2,7 @@
 
 Comment on mesure les modèles gratuits que l'agent peut appeler, pour choisir lequel sert quelle tâche. Les fournisseurs candidats et leurs conditions sont dans [fournisseurs.md](fournisseurs.md) ; ce que chaque classe de données a le droit de leur envoyer se décide dans [#29](https://github.com/evolutek/EvoluBot/issues/29). Suivi : [#30](https://github.com/evolutek/EvoluBot/issues/30).
 
-**Statut :** protocole proposé le 2026-10-28, aucun essai lancé.
+**Statut :** protocole proposé le 2026-10-28 ; premier passage lancé le 2026-10-30.
 
 ## Principe
 
@@ -175,4 +175,4 @@ Relevées sur chaque modèle pendant tout le banc, pas notées par thème :
 
 - Harnais : [promptfoo](https://github.com/promptfoo/promptfoo) (épreuves en YAML versionnées dans ce dépôt, sortie compatible OpenAI, assertions, rubriques, comparaison de modèles), branché sur l'instance OmniRoute du banc.
 - Les épreuves et leurs données fictives vivent dans `bench/`, une épreuve par fichier, rangées par thème.
-- Les quotas gratuits fixent le rythme : le banc s'étale sur plusieurs jours, en reprenant après chaque remise à zéro.
+- Les quotas gratuits fixent le rythme : le banc s'étale sur plusieurs jours, voie par voie, et reprend seul ([bench/README.md](../../bench/README.md#comment-le-banc-avance)).

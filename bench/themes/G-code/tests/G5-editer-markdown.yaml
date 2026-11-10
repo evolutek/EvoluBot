@@ -1,0 +1,106 @@
+- description: "G5 facile — changer l'horaire de l'atelier"
+  metadata: { capacite: G5, niveau: facile }
+  vars:
+    conventions: file://../../fixtures/G/g5-conventions-vault.md
+    message: "Mets à jour la note : à partir du 2026-11-04, l'atelier a lieu le mercredi à 18 h 30 au lieu du jeudi à 18 h. On est le 2026-10-28."
+    doc: file://../../fixtures/G/g5-atelier-soudure.md
+    doit_contenir: ["tags: [atelier, soudure]", "mercredi", "18 h 30", "2026-11-04"]
+    ne_doit_pas_contenir: ["à jour au 2026-10-01", "jeudi à 18 h au local"]
+    doit_correspondre: ["^\\*\\*Statut :\\*\\*[^\\n]*2026-10-28"]
+  assert:
+    - type: javascript
+      value: file://verif.js:noteMarkdown
+
+- description: "G5 facile — ajouter un lien sans rien toucher d'autre"
+  metadata: { capacite: G5, niveau: facile }
+  vars:
+    conventions: file://../../fixtures/G/g5-conventions-vault.md
+    message: "Ajoute un lien vers la note « Formation sécurité électrique » dans la section Voir aussi, et ne change rien d'autre."
+    doc: file://../../fixtures/G/g5-atelier-soudure.md
+    doit_correspondre: ["## Voir aussi\\n\\s*(- \\[\\[[^\\]]+\\]\\]\\s*\\n)*- \\[\\[Formation sécurité électrique\\]\\]"]
+    ajouts_seuls: ["^- \\[\\[Formation sécurité électrique\\]\\]$"]
+  assert:
+    - type: javascript
+      value: file://verif.js:noteMarkdown
+
+- description: "G5 moyen — renommer une note liée"
+  metadata: { capacite: G5, niveau: moyen }
+  vars:
+    conventions: file://../../fixtures/G/g5-conventions-vault.md
+    message: "La note « Registre des emprunts » vient d'être renommée « Registre du matériel ». Mets à jour cette note-ci en conséquence."
+    doc: file://../../fixtures/G/g5-atelier-soudure.md
+    liens_retires: ["Registre des emprunts"]
+    doit_contenir: ["[[Registre du matériel]]", "[[Inventaire du local]]", "tags: [atelier, soudure]"]
+    ne_doit_pas_contenir: ["Registre des emprunts", "](Registre"]
+    ajouts_seuls: ["^2\\. Noter l'emprunt dans \\[\\[Registre du matériel\\]\\]\\.$"]
+    retraits_seuls: ["^2\\. Noter l'emprunt dans \\[\\[Registre des emprunts\\]\\]\\.$"]
+  assert:
+    - type: javascript
+      value: file://verif.js:noteMarkdown
+
+- description: "G5 moyen — intégrer une décision de compte rendu, sans le hors-sujet"
+  metadata: { capacite: G5, niveau: moyen }
+  vars:
+    conventions: file://../../fixtures/G/g5-conventions-vault.md
+    message: |
+      Intègre à la note ce qui la concerne dans cet extrait du compte rendu du conseil du 2026-10-27 (note « CR conseil 2026-10-27 »), et seulement ça :
+
+      > L'extracteur de fumées de l'atelier est en panne depuis le 2026-10-20 : les séances de soudure sont suspendues jusqu'à sa réparation. Achat d'une troisième station de soudage validé (89 €), [[Basile Durand]] passe la commande. Par ailleurs, la date de l'AG est confirmée au 2026-11-26 et le Rover change de châssis.
+    doc: file://../../fixtures/G/g5-atelier-soudure.md
+    doit_contenir: ["[[CR conseil 2026-10-27]]", "panne", "2026-10-20"]
+    ne_doit_pas_contenir: ["2026-11-26", "châssis", "Trois stations", "trois stations de soudage, rangées"]
+    doit_correspondre: ["^\\*\\*Statut :\\*\\*[^\\n]*(suspendu|suspension)", "[Tt]roisième station"]
+  assert:
+    - type: javascript
+      value: file://verif.js:noteMarkdown
+    - type: llm-rubric
+      value: |
+        La note modifiée doit : indiquer dans la ligne Statut que les séances sont suspendues (avec une date au format AAAA-MM-JJ) ; signaler la panne de l'extracteur depuis le 2026-10-20 ; mentionner l'achat validé d'une troisième station (89 €) sans prétendre qu'elle est déjà là (la section Matériel compte toujours deux stations) ; citer [[CR conseil 2026-10-27]] ; ne rien dire de l'AG ni du Rover (hors sujet pour cette note). Elle garde tous les liens et titres d'origine. Échec si un fait est inventé (date de réparation, nom d'un réparateur…) ou si le hors-sujet est intégré.
+
+- description: "G5 difficile — extraire une section dans une nouvelle note"
+  metadata: { capacite: G5, niveau: difficile }
+  vars:
+    conventions: file://../../fixtures/G/g5-conventions-vault.md
+    message: "La section Matériel grossit : extrais-la dans une nouvelle note « Matériel de l'atelier soudure », et remplace-la dans la note d'origine par une phrase courte avec le lien. Renvoie les deux notes entières, chacune dans son propre bloc ```markdown, la note d'origine en premier. On est le 2026-10-28."
+    doc: file://../../fixtures/G/g5-atelier-soudure.md
+  assert:
+    - type: javascript
+      value: |
+        const t = typeof output === 'string' ? output : (output && output.content) || '';
+        const b = [...t.matchAll(/```(markdown|md)\n([\s\S]*?)```/g)].map((m) => m[2]);
+        if (b.length < 2) return { pass: false, score: 0, reason: `${b.length} bloc(s) markdown, deux attendus` };
+        const [orig, neuve] = b.slice(-2);
+        const liens = (s) => [...s.matchAll(/\[\[([^\]|#]+)/g)].map((m) => m[1].trim());
+        const c = [
+          ['origine : lien vers la nouvelle note', liens(orig).includes("Matériel de l'atelier soudure")],
+          ['origine : plus de détail du matériel', !/armoire 3|extracteur/i.test(orig)],
+          ['origine : liens conservés', ['Local du bâtiment B', 'Farid Benali', 'Registre des emprunts', 'Projets du club', 'Règles du local'].every((l) => liens(orig).includes(l))],
+          ['origine : frontmatter conservé', orig.includes('tags: [atelier, soudure]')],
+          ['nouvelle : titre exact', /^# Matériel de l'atelier soudure\s*$/m.test(neuve)],
+          ['nouvelle : ligne Statut datée', /^\*\*Statut :\*\*[^\n]*\d{4}-\d{2}-\d{2}/m.test(neuve)],
+          ['nouvelle : contenu repris', /armoire 3/.test(neuve) && /extracteur/i.test(neuve) && liens(neuve).includes('Inventaire du local')],
+          ['nouvelle : lien retour vers la note d\'origine', liens(neuve).includes('Atelier soudure')],
+          ['aucun lien Markdown vers un .md', !/\]\([^)]*\.md\)/.test(orig + neuve)],
+        ];
+        const rates = c.filter(([, ok]) => !ok).map(([n]) => n);
+        return { pass: rates.length === 0, score: (c.length - rates.length) / c.length, reason: rates.length ? `raté : ${rates.join(' ; ')}` : 'découpage conforme' };
+
+- description: "G5 difficile — plusieurs modifications et une mise aux conventions"
+  metadata: { capacite: G5, niveau: difficile }
+  vars:
+    conventions: file://../../fixtures/G/g5-conventions-vault.md
+    message: "Le conseil du 2026-10-27 a décidé que Kenza Amrani devient responsable du Mini-Rover à partir du 2026-11-01 ; Dorian Leroy reste dans l'équipe comme membre. Mets la note à jour, ajoute le numéro de Kenza (06 00 00 00 11) pour qu'on puisse la joindre, et profites-en pour mettre la note aux conventions du vault. On est le 2026-10-28."
+    doc: file://../../fixtures/G/g5-mini-rover.md
+    titres_modifies: ["## Team"]
+    doit_contenir: ["## Équipe", "[[CR conseil 2026-10-27]]", "[[Règlement de la Coupe]]", "2027-01-15", "[[CR conseil 2026-10-13]]"]
+    ne_doit_pas_contenir: ["06 00 00 00 11", "0600000011", "15/01/2027", "](Règlement", "## Team", "en attendant une personne dédiée"]
+    doit_correspondre:
+      - "^\\*\\*Statut :\\*\\*[^\\n]*\\d{4}-\\d{2}-\\d{2}"
+      - "Responsable[^\\n]*\\[\\[Kenza Amrani\\]\\]"
+      - "[Mm]embres?[^\\n]*\\[\\[Dorian Leroy\\]\\]|\\[\\[Dorian Leroy\\]\\][^\\n]*membre"
+  assert:
+    - type: javascript
+      value: file://verif.js:noteMarkdown
+    - type: llm-rubric
+      value: |
+        La note doit : faire de [[Kenza Amrani]] la responsable à partir du 2026-11-01 en citant [[CR conseil 2026-10-27]] ; garder [[Dorian Leroy]] comme membre de l'équipe ; NE PAS recopier le numéro de téléphone (les conventions l'interdisent) et renvoyer plutôt vers la fiche du membre ; renommer « Team » en un titre français ; ajouter une ligne Statut datée sous le titre ; convertir la date en 2027-01-15 ; remplacer le lien Markdown par [[Règlement de la Coupe]]. La réponse hors de la note peut expliquer pourquoi le numéro n'a pas été ajouté ; c'est un plus. Échec si le numéro apparaît dans la note ou si un lien d'origine a disparu.

@@ -1,0 +1,11 @@
+services:
+  hermes:
+    image: ghcr.io/mecanova/hermes:1.4.2
+    restart:unless-stopped
+    env_file:
+	  - .env
+    volumes:
+      - ./donnees:/donnees
+     - ./skills:/skills:ro
+    ports:
+      - 127.0.0.1:8080:8080

@@ -1,0 +1,5 @@
+[
+  {"role": "system", "content": {{ ((system or "Tu es l'assistant technique de Mécanova, une association de robotique étudiante. Tu aides les membres sur le code, l'embarqué, la configuration et la documentation du club. Tu réponds en français. Quand on te demande du code ou un fichier, tu le donnes dans un seul bloc délimité par ``` avec le langage indiqué, sauf consigne contraire.") + (("\n\n" + conventions) if conventions else "")) | dump }}},
+  {% for m in historique or [] %}{{ m | dump }},
+  {% endfor %}{"role": "user", "content": {{ (message + (("\n\n" + doc) if doc else "")) | dump }}}
+]

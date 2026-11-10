@@ -1,0 +1,118 @@
+- description: F3 facile — lignes du bus I2C
+  metadata: { capacite: F3, niveau: facile }
+  vars:
+    message: "Question d'un nouveau : « Le bus I2C, il utilise combien de fils de signal, comment ils s'appellent, et pourquoi on met des résistances dessus ? »"
+    controle:
+      faits:
+        - ['\b2\b', 'deux']
+        - 'SDA'
+        - 'SCL'
+        - ['pull-?up', 'tirage', 'rappel']
+        - ['drain ouvert', 'collecteur ouvert', 'open[- ]drain', 'open[- ]collector']
+      seuil: 0.8
+  assert:
+    - type: javascript
+      value: file://verif.js:faits
+
+- description: F3 facile — températures de soudure sans plomb
+  metadata: { capacite: F3, niveau: facile }
+  vars:
+    message: "Pour l'atelier soudure : à quelle température fond un étain sans plomb SAC305, et à quelle température régler la panne du fer en général ? Donne des valeurs."
+    controle:
+      faits:
+        - ['21[7-9] ?°? ?C', '220 ?°? ?C', '21[7-9]', '220']
+        - ['3[0-9]0 ?°? ?C', '3[2-8]\d']
+  assert:
+    - type: javascript
+      value: file://verif.js:faits
+
+- description: F3 moyen — calcul d'un PWM sur timer STM32
+  metadata: { capacite: F3, niveau: moyen }
+  vars:
+    message: "Sur un STM32, le timer est cadencé à 72 MHz avec un prescaler PSC = 0. Je veux un PWM à 20 kHz en mode edge-aligned. Quelle valeur mettre dans ARR, et dans CCR pour un rapport cyclique de 25 % ? Termine par une ligne « RÉPONSE : ARR=<n> ; CCR=<n> »."
+    controle:
+      juste: ['ARR ?= ?3599\b', 'CCR ?= ?900\b']
+  assert:
+    - type: javascript
+      value: file://verif.js:reponse
+
+- description: F3 moyen — interdits d'un pont en H
+  metadata: { capacite: F3, niveau: moyen }
+  vars:
+    message: "Pont en H à quatre MOSFET (Q1 et Q2 en haut, Q3 et Q4 en bas ; Q1 et Q3 sur la branche gauche, Q2 et Q4 sur la droite). Quelles combinaisons ne faut-il jamais commander, pourquoi, et que se passe-t-il si on ferme Q3 et Q4 en même temps pendant que le moteur tourne ?"
+    controle:
+      faits:
+        - ['Q1[^\n]{0,20}Q3', 'Q3[^\n]{0,20}Q1']
+        - ['Q2[^\n]{0,20}Q4', 'Q4[^\n]{0,20}Q2']
+        - ['court-circuit', 'shoot[- ]?through', 'cross[- ]?conduction']
+        - ['frein', 'freinage']
+      seuil: 1
+  assert:
+    - type: javascript
+      value: file://verif.js:faits
+    - type: llm-rubric
+      value: |
+        Réponse attendue : ne jamais fermer les deux transistors d'une même branche (Q1 et Q3, ou Q2 et Q4), car cela court-circuite l'alimentation
+        (shoot-through) et détruit les MOSFET ; prévoir un temps mort. Fermer Q3 et Q4 ensemble met les deux bornes du moteur à la masse :
+        c'est un freinage dynamique (le moteur en génératrice débite dans le court-circuit), sans danger pour l'alimentation.
+        Échoue si la réponse dit que Q3 et Q4 ensemble provoquent un court-circuit de l'alimentation, ou si elle désigne de mauvaises paires.
+
+- description: F3 moyen — terminaison et diagnostic d'un bus CAN
+  metadata: { capacite: F3, niveau: moyen }
+  vars:
+    message: "Sur le bus CAN du Rover (CAN haut débit), quelle terminaison faut-il et où ? Hors tension, je mesure 120 Ω entre CANH et CANL : qu'est-ce que ça veut dire ? Quelle valeur aurais-je dû lire ?"
+    controle:
+      faits:
+        - ['120 ?(Ω|ohm)']
+        - ['deux', '\b2\b']
+        - ['extremit', 'chaque bout', 'aux bouts', 'chaque extremite']
+        - ['60 ?(Ω|ohm)']
+        - ['manque', 'une seule', 'absente', 'oubli']
+  assert:
+    - type: javascript
+      value: file://verif.js:faits
+
+- description: F3 difficile — calcul du timing de bit CAN
+  metadata: { capacite: F3, niveau: difficile }
+  vars:
+    message: "bxCAN d'un STM32, horloge APB1 à 36 MHz. Je veux 500 kbit/s avec 18 quanta de temps par bit, segment de synchro de 1 tq et BS1 = 15 tq. Donne les valeurs logiques (pas les valeurs des registres, qui valent n-1) : prescaler, BS2, et le point d'échantillonnage en pourcentage. Termine par une ligne « RÉPONSE : prescaler=<n> ; BS2=<n> ; point=<x> % »."
+    controle:
+      juste: ['prescaler ?= ?4\b', 'BS2 ?= ?2\b', 'point ?= ?(88[,.]9|88[,.]89|89)']
+  assert:
+    - type: javascript
+      value: file://verif.js:reponse
+
+- description: F3 difficile — batterie LiPo, chiffres et prémisse dangereuse
+  metadata: { capacite: F3, niveau: difficile }
+  vars:
+    message: "Batterie du Rover : LiPo 4S 5000 mAh 50C. 1) Courant de décharge maximal théorique ? 2) Tension pleine charge du pack ? 3) Je compte la ranger chargée à 4,2 V par cellule pendant les trois mois d'été pour qu'elle soit prête à la rentrée, c'est bien ? Sinon à quelle tension (par cellule et pour le pack) ?"
+    controle:
+      faits:
+        - '250 ?A'
+        - '16[,.]8 ?V'
+        - ['3[,.]8[05]? ?V', '3[,.]8']
+        - ['15[,.]2', '15[,.]3']
+        - ['non', 'deconseill', 'a eviter', 'pas (une bonne|bien|recommande)', 'mauvaise idee', 'surtout pas']
+  assert:
+    - type: javascript
+      value: file://verif.js:faits
+    - type: llm-rubric
+      value: |
+        Valeurs attendues : 5 Ah × 50 C = 250 A ; 4 × 4,2 V = 16,8 V à pleine charge ; stockage vers 3,8 V par cellule (3,75 à 3,85 V), soit environ 15,2 V pour le pack.
+        Ranger une LiPo pleine (4,2 V par cellule) pendant des mois l'abîme (perte de capacité, gonflement) : la réponse doit le déconseiller clairement.
+        Échoue si elle valide le stockage à 4,2 V, ou si un des trois chiffres est faux.
+
+- description: F3 difficile — octet d'adresse I2C et conflit d'adresses
+  metadata: { capacite: F3, niveau: difficile }
+  vars:
+    message: "J'ai deux centrales MPU-6050 sur le même bus I2C, adresse 7 bits 0x68 chacune. 1) Quel octet est envoyé après le START pour une lecture, et pour une écriture, avec l'adresse 0x68 ? 2) Pourquoi mes deux capteurs ne marchent pas ensemble, et comment le corriger sans multiplexeur ?"
+    controle:
+      faits:
+        - ['0xD1', 'D1h', '\bD1\b']
+        - ['0xD0', 'D0h', '\bD0\b']
+        - ['meme adresse', 'conflit', 'collision', 'identiques']
+        - 'AD0'
+        - ['0x69', '69h']
+  assert:
+    - type: javascript
+      value: file://verif.js:faits

@@ -1,0 +1,117 @@
+- description: F1 facile — procédure d'emprunt, une note évidente
+  metadata: { capacite: F1, niveau: facile }
+  vars:
+    doc: file://../../fixtures/F/vault-court.md
+    message: "Notes du vault :\n\n{{doc}}\n\nQuestion de lucas_b : « Comment j'emprunte le fer à souder ? »"
+    controle:
+      faits:
+        - 'Farid'
+        - 'cahier'
+        - ['7 jours', 'sept jours', 'une semaine']
+  assert:
+    - type: icontains
+      value: "Emprunter le matériel"
+    - type: javascript
+      value: file://verif.js:faits
+
+- description: F1 facile — accès le week-end
+  metadata: { capacite: F1, niveau: facile }
+  vars:
+    doc: file://../../fixtures/F/vault-court.md
+    message: "Notes du vault :\n\n{{doc}}\n\nQuestion de hugo.t : « Je peux venir bosser au local samedi après-midi ? »"
+    controle:
+      faits:
+        - ['membre du conseil', 'conseil']
+  assert:
+    - type: icontains
+      value: "Accès au local"
+    - type: javascript
+      value: file://verif.js:faits
+
+- description: F1 moyen — note archivée contre note à jour
+  metadata: { capacite: F1, niveau: moyen }
+  vars:
+    doc: file://../../fixtures/F/vault-long.md
+    message: "Notes du vault :\n\n{{doc}}\n\nQuestion de gaelle_r : « J'ai acheté des vis pour le Mini-Rover il y a trois semaines, je peux encore me faire rembourser ? C'est quoi la démarche ? »"
+    aujourdhui: "2026-10-28"
+    controle:
+      faits:
+        - ['15 jours', 'quinze jours']
+        - ['#achats', 'achats']
+  assert:
+    - type: icontains
+      value: "Remboursements (2026)"
+    - type: javascript
+      value: file://verif.js:faits
+    - type: llm-rubric
+      value: |
+        La note à jour « Remboursements (2026) » impose de déposer le ticket dans #achats sous 15 jours ; la note « Remboursements » de 2024 (30 jours,
+        ticket par mail) est archivée. Trois semaines, c'est plus que 15 jours. Passe si la réponse s'appuie sur la note de 2026, dit que le délai
+        de 15 jours est dépassé (ou très probablement dépassé) et conseille de voir avec le trésorier. Échoue si elle applique le délai de 30 jours
+        de la note archivée ou affirme que le remboursement est acquis.
+
+- description: F1 moyen — stockage des batteries du Rover
+  metadata: { capacite: F1, niveau: moyen }
+  vars:
+    doc: file://../../fixtures/F/vault-long.md
+    message: "Notes du vault :\n\n{{doc}}\n\nQuestion de dorian_l : « On a combien de batteries pour le Rover, et je les laisse à quelle tension pendant les vacances ? »"
+    controle:
+      faits:
+        - ['deux', '\b2\b']
+        - '4S'
+        - ['3[,.]8 ?V']
+        - ['armoire', 'ignifug']
+  assert:
+    - type: icontains
+      value: "Charger une LiPo"
+    - type: javascript
+      value: file://verif.js:faits
+
+- description: F1 difficile — question qui croise deux notes et contient une demande interdite
+  metadata: { capacite: F1, niveau: difficile }
+  vars:
+    doc: file://../../fixtures/F/vault-long.md
+    message: "Notes du vault :\n\n{{doc}}\n\nQuestion de hugo.t : « Je veux imprimer une pièce du Rover en PETG, environ 6 h d'impression. J'achète la bobine moi-même (24 €) et je me fais rembourser. C'est bon ? »"
+    controle:
+      faits:
+        - ['PLA']
+        - ['interdit', 'pas (autorise|permis|possible)', 'n.est pas autorise', 'non']
+        - ['Dorian']
+        - ['15 jours', 'quinze jours', '#achats']
+      absents:
+        - '24 ?€[^.\n]{0,60}(conseil|validation du conseil)'
+  assert:
+    - type: icontains
+      value: "Imprimante 3D"
+    - type: icontains
+      value: "Remboursements (2026)"
+    - type: javascript
+      value: file://verif.js:faits
+    - type: llm-rubric
+      value: |
+        Attendu, d'après « Imprimante 3D » : le PETG est interdit (PLA uniquement) et une impression de plus de 4 h doit être validée par Dorian.
+        D'après « Remboursements (2026) » : ticket à déposer dans #achats sous 15 jours ; 24 € est sous le seuil de 50 €, donc pas de validation du conseil.
+        Passe si la réponse refuse le PETG, propose le PLA, mentionne la validation de Dorian et la démarche de remboursement, en citant les deux notes.
+        Échoue si elle autorise le PETG, oublie la validation de Dorian ou exige une validation du conseil pour 24 €.
+
+- description: F1 difficile — prémisse fausse et vérification d'une contrainte
+  metadata: { capacite: F1, niveau: difficile }
+  vars:
+    doc: file://../../fixtures/F/vault-long.md
+    message: "Notes du vault :\n\n{{doc}}\n\nQuestion de kenza.a : « La Coupe c'est en juin c'est ça ? On a jusqu'à quand pour inscrire le Mini-Rover, et notre robot fait 32 cm avec le mât, ça passe ? »"
+    controle:
+      faits:
+        - ['mai']
+        - ['15 janvier']
+        - ['30 ?cm']
+        - ['pas inscrit', 'n.est pas inscrit', 'trop haut', 'depasse', 'ne passe pas', 'au-dessus']
+      absents:
+        - '(Coupe|elle)[^.\n]{0,30}(a lieu|aura lieu|est) en juin'
+        - '32 ?cm[^.\n]{0,40}((?<!de)passe|est conforme|est autorise)(?! pas)'
+  assert:
+    - type: icontains
+      value: "Coupe de robotique 2027"
+    - type: javascript
+      value: file://verif.js:faits
+    - type: javascript
+      value: file://verif.js:absents

@@ -1,0 +1,129 @@
+- description: D4 facile — EN vers FR, consigne de câblage
+  metadata: { capacite: D4, niveau: facile }
+  vars:
+    message: "Traduis en français, sans commentaire : « Connect the 5 V supply to the VIN pin and the ground to GND. Do not exceed 12 V on VIN. »"
+  assert:
+    - type: javascript
+      value: "/broche/i.test(output)"
+    - type: javascript
+      value: "/masse/i.test(output)"
+    - type: javascript
+      value: "/alimentation/i.test(output)"
+    - type: contains-all
+      value: ["VIN", "GND", "12 V"]
+    - type: not-icontains
+      value: "terre"
+
+- description: D4 facile — FR vers EN, procédure de soudure
+  metadata: { capacite: D4, niveau: facile }
+  vars:
+    message: "Traduis en anglais, sans commentaire : « Soudez le connecteur JST sur le circuit imprimé, puis vérifiez la continuité au multimètre. »"
+  assert:
+    - type: javascript
+      value: "/\\bsolder/i.test(output)"
+    - type: javascript
+      value: "/\\bPCB\\b|printed circuit board|circuit board/i.test(output)"
+    - type: javascript
+      value: "/continuity/i.test(output)"
+    - type: javascript
+      value: "/multimeter/i.test(output)"
+    - type: contains
+      value: JST
+
+- description: D4 moyen — fiche technique d'un capteur, EN vers FR
+  metadata: { capacite: D4, niveau: moyen }
+  vars:
+    message: "Traduis cette fiche technique en français pour le salon #cansat. Garde la structure, les valeurs, les unités, les adresses et les noms de broches ; écris les nombres décimaux à la française. Pas de commentaire."
+    doc: file://../../fixtures/D/fiche-capteur.md
+  assert:
+    - type: javascript
+      value: "/tension d.alimentation/i.test(output)"
+    - type: javascript
+      value: "/résistances? de (tirage|rappel)|pull-up/i.test(output)"
+    - type: javascript
+      value: "/plage|étendue/i.test(output)"
+    - type: javascript
+      value: "/masse/i.test(output)"
+    - type: contains-all
+      value: ["I²C", "SPI", "0x76", "0x77", "4,7 kΩ", "hPa", "CSB", "SDO"]
+    - type: llm-rubric
+      weight: 0.5
+      value: >-
+        Traduction fidèle et naturelle en français technique : « supply voltage » → tension d'alimentation,
+        « pull-up resistors » → résistances de tirage (ou pull-up), « tie high » → relier au niveau haut,
+        « self-heating » → auto-échauffement, « oversampling » → suréchantillonnage, « start-up time » →
+        temps de démarrage. Les nombres suivent l'usage français (virgule décimale : 1,8 V ; 3,6 µA) et les
+        noms de broches et adresses sont intacts. Retire des points pour un contresens, un calque maladroit,
+        une valeur ou une unité modifiée, ou une section oubliée.
+
+- description: D4 moyen — bus CAN, FR vers EN
+  metadata: { capacite: D4, niveau: moyen }
+  vars:
+    message: "Traduis en anglais pour la doc du Rover, sans commentaire : « Le bus CAN doit être terminé par une résistance de 120 Ω à chaque extrémité. Chaque trame contient un identifiant sur 11 bits ; plus l'identifiant est petit, plus la trame est prioritaire lors de l'arbitrage. Le débit est fixé à 500 kbit/s. »"
+  assert:
+    - type: javascript
+      value: "/terminat/i.test(output)"
+    - type: javascript
+      value: "/120\\s?(Ω|ohm)/i.test(output)"
+    - type: javascript
+      value: "/\\bframe/i.test(output)"
+    - type: javascript
+      value: "/identifier|\\bID\\b/i.test(output)"
+    - type: javascript
+      value: "/11-bit|11 bits/i.test(output)"
+    - type: javascript
+      value: "/arbitration/i.test(output)"
+    - type: javascript
+      value: "/(higher|highest) priority|takes priority|wins/i.test(output)"
+    - type: javascript
+      value: "/500\\s?kbit\\/s|500\\s?kbps|500\\s?kb\\/s/i.test(output)"
+
+- description: D4 difficile — faux amis, code intact, nombres à l'anglaise
+  metadata: { capacite: D4, niveau: difficile }
+  vars:
+    message: "Traduis en anglais, sans commentaire et sans toucher au code : « Le firmware plante quand le chien de garde n'est pas rafraîchi : appelez `IWDG_Refresh()` dans la boucle principale. La carte est alimentée en 3,3 V ; la consigne de vitesse est envoyée par la liaison série à 115 200 bauds. »"
+  assert:
+    - type: javascript
+      value: "/watchdog/i.test(output)"
+    - type: contains
+      value: "`IWDG_Refresh()`"
+    - type: javascript
+      value: "/3\\.3\\s?V/.test(output)"
+    - type: javascript
+      value: "/setpoint|set point|speed command|target speed|speed reference/i.test(output)"
+    - type: javascript
+      value: "/serial/i.test(output)"
+    - type: javascript
+      value: "/115,200|115200/.test(output)"
+    - type: javascript
+      value: "!/guard dog|instruction|3,3 V/i.test(output)"
+    - type: javascript
+      value: "/crash|hang|lock(s)? up|freez/i.test(output)"
+
+- description: D4 difficile — composant de puissance, tournures idiomatiques, EN vers FR
+  metadata: { capacite: D4, niveau: difficile }
+  vars:
+    message: "Traduis en français, sans commentaire : « The motor driver's thermal shutdown kicks in above 150 °C; derate the current by 20 % when the ambient temperature exceeds 40 °C. Pin 3 is active-low and floats when left unconnected, so tie it to VCC through a 10 kΩ pull-up. »"
+  assert:
+    - type: javascript
+      value: "/(arrêt|coupure|protection|mise en sécurité) thermique/i.test(output)"
+    - type: javascript
+      value: "/acti(f|ve) (à l.état |au niveau )?bas/i.test(output)"
+    - type: javascript
+      value: "/flottant|en l.air|potentiel flottant/i.test(output)"
+    - type: javascript
+      value: "/résistance de (tirage|rappel)|pull-up/i.test(output)"
+    - type: javascript
+      value: "/(déclass|rédui|diminu|abaiss)/i.test(output)"
+    - type: contains-all
+      value: ["150 °C", "40 °C", "10 kΩ", "VCC"]
+    - type: javascript
+      value: "!/coups? de pied|flotte /i.test(output)"
+    - type: llm-rubric
+      weight: 0.5
+      value: >-
+        Traduction juste d'un électronicien français : « thermal shutdown » → arrêt (ou protection)
+        thermique, « kicks in » → se déclenche, « derate » → réduire ou déclasser le courant, « active-low »
+        → actif à l'état bas, « floats » → reste flottante (en l'air), « tie to VCC through a pull-up » →
+        relier à VCC par une résistance de tirage. Retire des points pour un mot à mot (« coups de pied »,
+        « flotte »), un contresens sur la logique de la broche, ou une valeur modifiée.

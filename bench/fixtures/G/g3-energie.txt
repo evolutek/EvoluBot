@@ -1,0 +1,18 @@
+Code (firmware/batterie.c), compilé pour un STM32 (int de 32 bits) :
+
+```c
+/* Énergie consommée en millijoules : mA × mV × ms = nJ, divisé par 10^6. */
+int32_t energie_mj(int32_t courant_ma, int32_t tension_mv, int32_t duree_ms)
+{
+    return courant_ma * tension_mv * duree_ms / 1000000;
+}
+```
+
+Sortie du banc de test batterie :
+
+```
+[  12.004] mesure : I=100 mA U=3300 mV dt=10 ms     -> 3 mJ          (attendu 3)
+[  13.010] mesure : I=2500 mA U=12000 mV dt=1000 ms -> -64 mJ        (attendu 30000)
+[  14.020] mesure : I=-1500 mA U=12000 mV dt=2000 ms -> -1640 mJ     (attendu -36000)
+[  15.031] ALERTE : le compteur de la batterie dérive
+```

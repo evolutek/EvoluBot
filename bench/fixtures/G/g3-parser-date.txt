@@ -1,0 +1,28 @@
+Code (formulaire/dates.py) :
+
+```python
+from datetime import datetime
+
+
+def parser_date(texte):
+    """Date de début d'essai saisie dans le formulaire d'inscription."""
+    return datetime.strptime(texte, "%d/%m/%Y").date()
+```
+
+Journal de l'import du formulaire :
+
+```
+2026-10-28 08:00:01 INFO  import de 3 réponses
+2026-10-28 08:00:01 OK    ines_k     "20/10/2026"
+2026-10-28 08:00:01 ERREUR hugo.t    "2026-10-01"
+Traceback (most recent call last):
+  File "/srv/formulaire/import.py", line 22, in importer
+    debut = parser_date(r["debut_essai"])
+  File "/srv/formulaire/dates.py", line 6, in parser_date
+    return datetime.strptime(texte, "%d/%m/%Y").date()
+ValueError: time data '2026-10-01' does not match format '%d/%m/%Y'
+2026-10-28 08:00:01 ERREUR lucas_b   " 15/09/2026 "
+ValueError: time data ' 15/09/2026 ' does not match format '%d/%m/%Y'
+```
+
+Le formulaire laisse les gens saisir la date à la main : on reçoit du « JJ/MM/AAAA », du « AAAA-MM-JJ » (copié depuis le calendrier), parfois avec des espaces autour.

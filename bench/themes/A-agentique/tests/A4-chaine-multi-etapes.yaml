@@ -1,0 +1,120 @@
+- description: A4 facile — le pseudo trouvé sert au rôle
+  metadata: { capacite: A4, niveau: facile }
+  vars:
+    historique:
+      - { role: user, content: "Donne le rôle CanSat à Inès Kaci." }
+      - role: assistant
+        content: null
+        tool_calls:
+          - { id: call_1, type: function, function: { name: chercher_membre, arguments: '{"recherche":"Inès Kaci"}' } }
+      - { role: tool, tool_call_id: call_1, content: '{"pseudo":"ines_k","nom":"Inès Kaci","statut":"futur-membre","roles":["Futur-membre"],"projet":"CanSat"}' }
+    attendu: { nom: donner_role, arguments: { pseudo: ines_k, role: CanSat } }
+    max_appels: 1
+  assert:
+    - type: javascript
+      value: file://../../lib/outils.js:outilAttendu
+    - type: javascript
+      value: file://../../lib/outils.js:auPlus
+
+- description: A4 facile — le numéro lu dans un salon sert au suivi
+  metadata: { capacite: A4, niveau: facile }
+  vars:
+    historique:
+      - { role: user, content: "Le colis du fer à souder, il en est où ? Le numéro a été posté dans #achats." }
+      - role: assistant
+        content: null
+        tool_calls:
+          - { id: call_1, type: function, function: { name: lire_salon, arguments: '{"salon":"#achats"}' } }
+      - role: tool
+        tool_call_id: call_1
+        content: |
+          [2026-10-22 14:03] basile_d : commande des pinces passée chez Outillage Pro, livraison Chronopost
+          [2026-10-23 09:41] farid.b : fer à souder commandé ! Colissimo, suivi 6A98765432109
+          [2026-10-24 18:12] dorian_l : les moteurs arrivent en DHL, je posterai le numéro
+    attendu: { nom: suivre_colis, arguments: { transporteur: Colissimo, numero: "6A98765432109" } }
+    max_appels: 1
+  assert:
+    - type: javascript
+      value: file://../../lib/outils.js:outilAttendu
+    - type: javascript
+      value: file://../../lib/outils.js:auPlus
+
+- description: A4 moyen — première étape, chercher avant d'agir
+  metadata: { capacite: A4, niveau: moyen }
+  vars:
+    message: "Hugo Thomas vient de me donner ses 15 € de cotisation en liquide. Fais ce qu'il faut côté rôles."
+    attendu: { nom: chercher_membre }
+    interdits: [donner_role, retirer_role, kick_membre]
+  assert:
+    - type: javascript
+      value: file://../../lib/outils.js:outilAttendu
+    - type: javascript
+      value: file://../../lib/outils.js:outilsInterdits
+
+- description: A4 moyen — le résultat de la recherche choisit la branche
+  metadata: { capacite: A4, niveau: moyen }
+  vars:
+    historique:
+      - { role: user, content: "Gaëlle Roux veut rejoindre CanSat. Si elle est à jour de cotisation, donne-lui le rôle CanSat ; sinon envoie-lui un MP pour lui rappeler de cotiser." }
+      - role: assistant
+        content: null
+        tool_calls:
+          - { id: call_1, type: function, function: { name: chercher_membre, arguments: '{"recherche":"Gaëlle Roux"}' } }
+      - { role: tool, tool_call_id: call_1, content: '{"pseudo":"gaelle_r","nom":"Gaëlle Roux","statut":"membre, cotisation en retard","roles":["Membre","Mini-Rover"],"projet":"Mini-Rover"}' }
+    attendu: { nom: envoyer_message, arguments: { destination: gaelle_r } }
+    interdits: [donner_role]
+  assert:
+    - type: javascript
+      value: file://../../lib/outils.js:outilAttendu
+    - type: javascript
+      value: file://../../lib/outils.js:outilsInterdits
+
+- description: A4 difficile — troisième étape d'une adhésion, après recherche par mail et cotisation
+  metadata: { capacite: A4, niveau: difficile }
+  vars:
+    historique:
+      - { role: user, content: "J'ai reçu hier un virement de 15 € de lucas.bernard@mecanova.example, c'est sa cotisation. Fais le nécessaire pour qu'il devienne membre." }
+      - role: assistant
+        content: null
+        tool_calls:
+          - { id: call_1, type: function, function: { name: chercher_membre, arguments: '{"recherche":"lucas.bernard@mecanova.example"}' } }
+      - { role: tool, tool_call_id: call_1, content: '{"pseudo":"lucas_b","nom":"Lucas Bernard","statut":"futur-membre","essai_depuis":"2026-09-15","roles":["Futur-membre","Soudure"]}' }
+      - role: assistant
+        content: null
+        tool_calls:
+          - { id: call_2, type: function, function: { name: enregistrer_cotisation, arguments: '{"pseudo":"lucas_b","montant":15,"moyen":"virement","date":"2026-10-27"}' } }
+      - { role: tool, tool_call_id: call_2, content: '{"ok":true}' }
+    attendus:
+      - { nom: retirer_role, arguments: { pseudo: lucas_b, role: Futur-membre } }
+      - { nom: donner_role, arguments: { pseudo: lucas_b, role: Membre } }
+    exclus:
+      - { nom: enregistrer_cotisation }
+      - { nom: retirer_role, arguments: { role: Soudure } }
+  assert:
+    - type: javascript
+      value: file://../../lib/outils.js:ensembleOutils
+    - type: javascript
+      value: file://verifs.js:appelsExclus
+
+- description: A4 difficile — appliquer une règle à une liste, une seule personne concernée
+  metadata: { capacite: A4, niveau: difficile }
+  vars:
+    historique:
+      - { role: user, content: "Applique la règle du club : retire le rôle Futur-membre à ceux dont le mois d'essai est fini et qui ont eu deux relances sans réponse. Ne touche pas aux autres." }
+      - role: assistant
+        content: null
+        tool_calls:
+          - { id: call_1, type: function, function: { name: lister_membres, arguments: '{"statut":"futur-membre"}' } }
+      - role: tool
+        tool_call_id: call_1
+        content: '[{"pseudo":"hugo.t","essai_depuis":"2026-10-01","relances":2,"reponse_aux_relances":false},{"pseudo":"ines_k","essai_depuis":"2026-10-20","relances":0,"reponse_aux_relances":false},{"pseudo":"lucas_b","essai_depuis":"2026-09-15","relances":2,"reponse_aux_relances":false}]'
+    attendu: { nom: retirer_role, arguments: { pseudo: lucas_b, role: Futur-membre } }
+    exclus:
+      - { nom: retirer_role, arguments: { pseudo: hugo.t } }
+      - { nom: retirer_role, arguments: { pseudo: ines_k } }
+      - { nom: kick_membre }
+  assert:
+    - type: javascript
+      value: file://../../lib/outils.js:outilAttendu
+    - type: javascript
+      value: file://verifs.js:appelsExclus

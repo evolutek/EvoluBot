@@ -1,0 +1,167 @@
+- description: D5 facile — annonce d'atelier délayée
+  metadata: { capacite: D5, niveau: facile }
+  vars:
+    message: "Réécris ce message en deux fois moins de mots au plus, sans perdre aucune information. Réponds uniquement par le message réécrit."
+    doc: >-
+      Bonjour à toutes et à tous ! Nous avons le plaisir de vous informer qu'un atelier de soudure aura
+      lieu, comme c'est le cas chaque semaine, ce jeudi à partir de 18 heures. Il se déroulera, comme
+      d'habitude, dans notre local habituel qui se trouve au sous-sol du bâtiment B. Il n'est absolument
+      pas nécessaire d'apporter votre propre matériel, car tout le matériel nécessaire, y compris les fers
+      à souder, sera fourni sur place par le club. Pour vous inscrire, il vous suffit simplement de laisser
+      un petit message dans le salon #soudure. Nous espérons vous y voir nombreux !
+  assert:
+    - type: javascript
+      value: file://verif.js:concision
+      config: { ratio: 0.5 }
+    - type: icontains
+      value: jeudi
+    - type: regex
+      value: "18\\s?h"
+    - type: icontains
+      value: "#soudure"
+    - type: llm-rubric
+      value: >-
+        Le message réécrit conserve toutes les informations : atelier soudure hebdomadaire, jeudi à 18 h,
+        local au sous-sol du bâtiment B, matériel (fers compris) fourni, inscription par message dans #soudure.
+        Retire des points pour chaque information perdue ou déformée et pour toute information ajoutée.
+        Le style peut être plus sec que l'original.
+
+- description: D5 facile — explication de la cotisation
+  metadata: { capacite: D5, niveau: facile }
+  vars:
+    message: "Réécris ce message en deux fois moins de mots au plus, sans perdre aucune information. Réponds uniquement par le message réécrit."
+    doc: >-
+      Alors, pour ce qui est de la cotisation, en fait, c'est assez simple : la cotisation annuelle du club
+      coûte 15 euros pour toute l'année. Avant de devoir la payer, tu as droit à une période d'essai d'un mois
+      qui est entièrement gratuite, pendant laquelle tu peux venir autant que tu veux. Ensuite, quand tu
+      décides de payer, tu peux le faire soit par virement bancaire, soit en espèces, et dans les deux cas
+      c'est à Basile, qui est notre trésorier, qu'il faut s'adresser pour régler.
+  assert:
+    - type: javascript
+      value: file://verif.js:concision
+      config: { ratio: 0.5 }
+    - type: regex
+      value: "15\\s?(€|euros)"
+    - type: icontains
+      value: Basile
+    - type: icontains
+      value: virement
+    - type: icontains
+      value: espèces
+    - type: llm-rubric
+      value: >-
+        Le message réécrit conserve : 15 € par an, un mois d'essai gratuit avant de payer, paiement par
+        virement ou en espèces, auprès de Basile le trésorier. Retire des points pour chaque information
+        perdue ou déformée et pour toute information ajoutée.
+
+- description: D5 moyen — compte rendu de conseil bavard
+  metadata: { capacite: D5, niveau: moyen }
+  vars:
+    message: "Réécris ce compte rendu en deux fois moins de mots au plus, sans perdre aucune décision, aucun nom, aucune date ni aucun montant. Réponds uniquement par le texte réécrit."
+    doc: >-
+      Lors de la réunion du conseil qui s'est tenue mardi soir, plusieurs sujets ont été abordés par les
+      membres présents. Tout d'abord, en ce qui concerne le budget, Basile, notre trésorier, a présenté
+      l'état des comptes et a indiqué qu'il restait à ce jour 412 euros sur le compte de l'association. Il a
+      été décidé, après discussion, d'allouer une somme de 150 euros à l'achat de nouveaux moteurs pour le
+      projet Rover. Ensuite, concernant l'assemblée générale, il a été confirmé qu'elle se tiendrait bien
+      le 26 novembre, et c'est Chloé, en sa qualité de secrétaire, qui se chargera d'envoyer la convocation
+      à tous les membres au plus tard le 12 novembre. Enfin, pour ce qui est de la Coupe de robotique, Dorian
+      a rappelé à tout le monde que la date limite pour l'inscription est fixée au 15 janvier et qu'il ne
+      faudrait surtout pas l'oublier. La prochaine réunion du conseil aura lieu dans deux semaines.
+  assert:
+    - type: javascript
+      value: file://verif.js:concision
+      config: { ratio: 0.5 }
+    - type: contains-all
+      value: ["412", "150", "Rover", "26", "Chloé", "12", "15 janvier", "Dorian", "Basile"]
+    - type: llm-rubric
+      value: >-
+        Le texte réécrit conserve : solde de 412 € présenté par Basile ; 150 € alloués aux moteurs du Rover ;
+        AG confirmée le 26 novembre ; convocation envoyée par Chloé au plus tard le 12 novembre ; rappel par
+        Dorian de l'inscription à la Coupe avant le 15 janvier ; prochaine réunion dans deux semaines.
+        Retire des points pour chaque fait perdu, chaque responsable inversé et chaque ajout.
+
+- description: D5 moyen — consigne de sécurité avec conditions
+  metadata: { capacite: D5, niveau: moyen }
+  vars:
+    message: "Réécris cette consigne en deux fois moins de mots au plus, sans perdre aucune règle ni aucune condition. Réponds uniquement par le texte réécrit."
+    doc: >-
+      Il est important de rappeler à chacun que, pour des raisons de sécurité évidentes, les batteries de
+      type LiPo ne doivent en aucun cas être chargées sans surveillance, c'est-à-dire qu'il faut toujours
+      qu'une personne reste présente dans le local pendant toute la durée de la charge. De plus, la charge
+      doit obligatoirement être effectuée à l'intérieur du sac ignifugé prévu à cet effet, qui est rangé
+      dans l'armoire rouge. Par ailleurs, si jamais vous remarquez qu'une batterie a gonflé, même légèrement,
+      vous ne devez surtout pas la charger ni l'utiliser, mais la déposer dans le bac à déchets dangereux
+      et prévenir Farid, qui s'occupe de la sécurité du local.
+  assert:
+    - type: javascript
+      value: file://verif.js:concision
+      config: { ratio: 0.5 }
+    - type: icontains
+      value: LiPo
+    - type: javascript
+      value: "/ignifug/i.test(output) && /armoire rouge/i.test(output) && /gonfl/i.test(output) && /Farid/.test(output) && /déchets dangereux/i.test(output)"
+    - type: llm-rubric
+      value: >-
+        Le texte réécrit conserve chaque règle : ne jamais charger une LiPo sans quelqu'un présent dans le
+        local pendant toute la charge ; charger dans le sac ignifugé de l'armoire rouge ; une batterie gonflée,
+        même un peu, ne se charge ni ne s'utilise, elle va dans le bac à déchets dangereux et on prévient
+        Farid. Retire beaucoup de points pour une règle perdue ou affaiblie (par exemple « éviter » au lieu
+        d'« interdit »), et des points pour toute règle ajoutée.
+
+- description: D5 difficile — texte technique dense, peu de redondance
+  metadata: { capacite: D5, niveau: difficile }
+  vars:
+    message: "Réécris ce texte en deux fois moins de mots au plus, sans perdre aucune information technique ni aucune valeur. Réponds uniquement par le texte réécrit."
+    doc: >-
+      La carte moteur du Rover est construite autour d'un microcontrôleur STM32F103 cadencé à 72 MHz. Elle
+      pilote deux moteurs à courant continu par l'intermédiaire de deux ponts en H, chacun limité à 3 A en
+      continu. Les encodeurs des roues sont lus par deux timers configurés en mode encodeur, ce qui donne une
+      résolution de 1 024 impulsions par tour. La carte communique avec l'ordinateur de bord sur le bus CAN à
+      500 kbit/s ; si aucune trame n'est reçue pendant 200 ms, elle coupe les moteurs par sécurité. Elle est
+      alimentée en 12 V par la batterie principale, et un régulateur interne fournit le 3,3 V nécessaire au
+      microcontrôleur. Le firmware se flashe par le connecteur SWD à quatre broches situé près du bouton reset.
+  assert:
+    - type: javascript
+      value: file://verif.js:concision
+      config: { ratio: 0.5 }
+    - type: contains-all
+      value: ["STM32F103", "72 MHz", "3 A", "CAN", "500 kbit/s", "200 ms", "12 V", "3,3 V", "SWD"]
+    - type: javascript
+      value: "/1[\\s\\u00a0\\u202f]?024/.test(output)"
+    - type: llm-rubric
+      value: >-
+        Le texte réécrit conserve toutes les informations : STM32F103 à 72 MHz ; deux moteurs CC par deux ponts
+        en H de 3 A en continu chacun ; encodeurs lus par deux timers, 1 024 impulsions par tour ; CAN à
+        500 kbit/s avec arrêt des moteurs après 200 ms sans trame ; alimentation 12 V et régulateur 3,3 V ;
+        flashage par le connecteur SWD à quatre broches près du reset. Retire des points pour chaque
+        information perdue, chaque valeur modifiée ou chaque relation de cause déformée.
+
+- description: D5 difficile — statut Discord en 280 caractères depuis un long message
+  metadata: { capacite: D5, niveau: difficile }
+  vars:
+    message: "Résume ce message en 280 caractères au maximum, espaces comprises, sans perdre aucune des informations pratiques (quoi, quand, où, conditions, contact). Réponds uniquement par le texte."
+    doc: >-
+      Salut tout le monde ! Comme vous le savez peut-être, l'école organise sa journée portes ouvertes le
+      samedi 6 février 2027, et cette année le club a été invité à tenir un stand dans le hall du bâtiment A,
+      de 10 h à 17 h. C'est une super occasion de montrer nos projets, en particulier le Rover et le CanSat,
+      et de recruter de nouveaux membres pour l'année prochaine. On aurait besoin d'au moins six volontaires
+      pour tenir le stand par créneaux de deux heures, et idéalement il faudrait que chaque créneau compte au
+      moins une personne capable de faire la démo du Rover. Si vous êtes partants, merci de vous inscrire
+      avant le 20 janvier auprès de Kenza, qui coordonne l'organisation, soit en lui envoyant un message
+      privé, soit en réagissant au message épinglé dans #general. Merci d'avance, ça va être top !
+  assert:
+    - type: javascript
+      value: file://verif.js:concision
+      config: { maxCaracteres: 280 }
+    - type: contains-all
+      value: ["6", "Kenza", "20"]
+    - type: javascript
+      value: "/10\\s?h/.test(output) && /17\\s?h/.test(output) && /(six|6) (volontaires|bénévoles|personnes)/i.test(output)"
+    - type: llm-rubric
+      value: >-
+        Le texte garde les informations pratiques : stand du club aux portes ouvertes le samedi 6 février 2027,
+        hall du bâtiment A, 10 h à 17 h ; six volontaires au moins, créneaux de deux heures avec quelqu'un qui
+        sait faire la démo du Rover ; inscription avant le 20 janvier auprès de Kenza (message privé ou
+        réaction au message épinglé de #general). Retire des points pour chaque information pratique perdue
+        ou fausse. Les formules d'enthousiasme peuvent disparaître sans pénalité.

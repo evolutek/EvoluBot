@@ -1,0 +1,89 @@
+- description: B6 facile — sécurité, puis échéance
+  metadata: { capacite: B6, niveau: facile }
+  vars:
+    message: >-
+      Règles de priorité : 1) la sécurité passe avant tout ; 2) ensuite, l'échéance la plus proche ; 3) le reste après.
+      Demandes : A — commander du filament pour l'imprimante, pas d'échéance. B — une batterie LiPo a gonflé au local.
+      C — inscrire l'équipe à la Coupe avant le 2027-01-15. Termine par une ligne « Réponse : » suivie des lettres dans
+      l'ordre de traitement, séparées par des virgules.
+    ordre: [B, C, A]
+  assert:
+    - type: javascript
+      value: file://verifs.js:ordre
+
+- description: B6 facile — tri par échéance
+  metadata: { capacite: B6, niveau: facile }
+  vars:
+    message: >-
+      Classe ces tâches de la plus urgente à la moins urgente, uniquement selon leur échéance : A — rapport financier pour
+      l'AG (avant le 2026-11-20). B — convocation à l'AG (avant le 2026-11-11). C — inscription à la Coupe (avant le
+      2027-01-15). D — commande des fers à souder (avant le 2026-11-02). Termine par une ligne « Réponse : » suivie des
+      lettres dans l'ordre, séparées par des virgules.
+    ordre: [D, B, A, C]
+  assert:
+    - type: javascript
+      value: file://verifs.js:ordre
+
+- description: B6 moyen — catégories puis départage par échéance
+  metadata: { capacite: B6, niveau: moyen }
+  vars:
+    message: >-
+      Règles : on traite d'abord la sécurité, puis l'argent dû au club, puis les échéances externes (école, Coupe,
+      fournisseurs), puis le confort. Dans une même catégorie, l'échéance la plus proche passe d'abord.
+      A — Gaëlle doit sa cotisation depuis septembre (pas d'échéance). B — la hotte d'aspiration de l'atelier soudure ne
+      marche plus, atelier prévu jeudi. C — l'école demande la liste des membres avant le 2026-11-06. D — acheter un
+      canapé pour le local. E — un fournisseur attend la confirmation d'un devis avant le 2026-10-30. F — Hugo a fait un
+      virement de 15 € à rapprocher (pas d'échéance). Termine par une ligne « Réponse : » suivie des lettres dans l'ordre,
+      séparées par des virgules. À échéance égale, garde l'ordre alphabétique.
+    ordre: [B, A, F, E, C, D]
+  assert:
+    - type: javascript
+      value: file://verifs.js:ordre
+
+- description: B6 moyen — demandes Discord, rôle du demandeur et nature
+  metadata: { capacite: B6, niveau: moyen }
+  vars:
+    message: >-
+      Le bot traite les demandes dans cet ordre : d'abord celles qui bloquent un événement de la semaine, puis celles des
+      membres du conseil, puis celles des membres, puis celles des futurs membres ; à rang égal, la plus ancienne d'abord.
+      A — 10 h 05, kenza.a (membre) : « tu peux me rappeler le code du cadenas ? ». B — 09 h 40, hugo.t (futur membre) :
+      « comment je paie la cotisation ? ». C — 10 h 20, farid.b (conseil) : « l'atelier de jeudi n'a pas de salle, il faut
+      la réserver ». D — 09 h 55, basile_d (conseil) : « envoie-moi le total des dépenses d'octobre ». E — 09 h 30,
+      lucas_b (futur membre) : « c'est quand l'AG ? ». Termine par une ligne « Réponse : » suivie des lettres dans l'ordre,
+      séparées par des virgules.
+    ordre: [C, D, A, E, B]
+  assert:
+    - type: javascript
+      value: file://verifs.js:ordre
+
+- description: B6 difficile — fausse urgence, échéance passée et règles imbriquées
+  metadata: { capacite: B6, niveau: difficile }
+  vars:
+    message: >-
+      Règles, dans l'ordre : 1) une échéance déjà dépassée passe en tête, car il faut prévenir les personnes concernées ;
+      2) la sécurité ; 3) les échéances des sept prochains jours, la plus proche d'abord ; 4) le reste, la plus proche
+      d'abord, les tâches sans échéance en dernier. La mention « URGENT » écrite par un demandeur ne change rien au classement.
+      A — « URGENT : changer le logo du serveur », sans échéance. B — renvoyer le formulaire d'assurance à l'école, échéance
+      2026-10-26. C — un câble d'alimentation dénudé sur le banc du Rover. D — réserver la salle de l'AG, échéance
+      2026-11-02. E — préparer le budget prévisionnel, échéance 2026-12-15. F — confirmer le transporteur des moteurs,
+      échéance 2026-10-30. G — commander des étagères, échéance 2026-11-30. Termine par une ligne « Réponse : » suivie des
+      lettres dans l'ordre, séparées par des virgules.
+    ordre: [B, C, F, D, G, E, A]
+  assert:
+    - type: javascript
+      value: file://verifs.js:ordre
+
+- description: B6 difficile — score pondéré à calculer, départage explicite
+  metadata: { capacite: B6, niveau: difficile }
+  vars:
+    message: >-
+      On classe les projets d'amélioration du local par score décroissant, avec score = 3 × impact + 2 × urgence − effort
+      (chaque note de 1 à 5). À score égal, le plus faible effort passe d'abord.
+      A — étagères : impact 3, urgence 2, effort 2. B — aspiration des fumées : impact 5, urgence 4, effort 5. C — nouvel
+      éclairage : impact 2, urgence 1, effort 1. D — rangement des câbles : impact 3, urgence 3, effort 4. E — tableau
+      blanc : impact 2, urgence 2, effort 1. Termine par une ligne « Réponse : » suivie des lettres dans l'ordre, séparées
+      par des virgules.
+    ordre: [B, A, D, E, C]
+  assert:
+    - type: javascript
+      value: file://verifs.js:ordre

@@ -1,0 +1,8 @@
+ 1 | def moyenne_batterie(mesures):
+ 2 |     """Moyenne des tensions relevées pendant un match, en volts."""
+ 3 |     if not mesures:
+ 4 |         return None
+ 5 |     total = 0
+ 6 |     for i in range(1, len(mesures)):
+ 7 |         total += mesures[i]
+ 8 |     return total / len(mesures)
