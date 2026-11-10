@@ -78,6 +78,8 @@ class OmniRoute {
       const garde = relire(JSON.parse(fs.readFileSync(fichier, 'utf8')));
       if (!juge || garde.output) return { ...garde, cached: true };
     }
+    // A panel judge grades stored answers only: asking the model again would spend its quota twice.
+    if (!juge && process.env.BENCH_CACHE_SEUL) return { error: 'BENCH_ABSENT' };
     // Set after the key, which keeps the answers already paid for. A reasoning judge can spend 4096 tokens
     // thinking and never give its verdict; the models under test keep the common limit.
     if (juge) corps.max_tokens = 16000;

@@ -51,6 +51,12 @@ Une épreuve se termine dans l'un de ces états :
 
 Un modèle qui répond 401, 402, 403 ou 404 trois fois de suite est noté mort et écarté, sauf si OmniRoute annonce une remise à zéro (`retry_after`) : ce modèle se met alors au repos seul, sans retenir sa voie. Il en va de même pour une erreur 5xx avec remise à zéro annoncée. Pour le retester, retirer sa ligne `modele_mort` du journal.
 
+## Panel de juges
+
+Le classement repose sur un seul juge principal, `mistral-large-4`, et sur `gpt-oss-120b` pour les modèles de Mistral. Pour savoir si les notes dépendent du juge, un panel (`PANEL` dans `lancer.py` : `qwen3.8-27b`, `glm-4.5-flash`, `gpt-oss-120b`) renote les mêmes réponses, déjà gardées : il ne réinterroge jamais les modèles testés. Chaque juge du panel a sa voie et son journal (`jugements.jsonl`), et ne compte pas dans le classement.
+
+Contrairement au juge principal, un juge du panel note aussi sa propre famille, pour voir s'il la favorise. `./lancer.py juges` donne, pour chaque juge, la part de verdicts identiques au juge principal, l'écart moyen de score, et le score qu'il donne à chaque modèle.
+
 Les résultats vont dans `resultats/`, ou dans le dossier donné par `BENCH_RESULTATS`. Ils ne contiennent que des données fictives. `--repetitions N` rejoue tout N fois, une fois le passage précédent terminé partout ; `--voie NOM` limite le lancement à une voie.
 
 ## Écrire une épreuve

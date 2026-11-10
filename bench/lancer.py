@@ -4,6 +4,7 @@
   lancer.py run [--repetitions N] [--voie NOM] [--max-processus N]
   lancer.py etat
   lancer.py classement
+  lancer.py juges
 """
 import argparse
 import hashlib
@@ -22,6 +23,7 @@ from pathlib import Path
 RACINE = Path(__file__).resolve().parent
 RESULTATS = Path(os.environ.get("BENCH_RESULTATS", RACINE / "resultats"))
 JOURNAL = RESULTATS / "journal.jsonl"
+JUGEMENTS = RESULTATS / "jugements.jsonl"
 PAUSES = RESULTATS / "pauses.json"
 PROMPTFOO = ["npx", "--yes", "promptfoo@0.124.1", "eval"]
 
@@ -30,6 +32,11 @@ QUOTA_COMMUN = {"cloudflare-ai", "openrouter"}
 # The judge never grades its own family (docs/llm/banc-essai.md).
 JUGE = "mistral/mistral-large-4"
 JUGE_DE_MISTRAL = "groq/openai/gpt-oss-120b"
+# Second opinions on the same stored answers, kept apart from the ranking: do the results depend on the judge?
+# Unlike the main judge, they may grade their own family; the comparison marks those cells with *.
+PANEL = ["groq/qwen/qwen3.8-27b", "zai-api/glm-4.5-flash", "groq/openai/gpt-oss-120b"]
+FAMILLES = {"ministral": "mistral", "magistral": "mistral", "codestral": "mistral", "leanstral": "mistral",
+            "mistral": "mistral", "qwq": "qwen", "qwen": "qwen", "glm": "glm", "gpt-oss": "gpt-oss"}
 
 TAILLE_LOT = 5
 PAUSE_MIN_S = 60
@@ -93,11 +100,21 @@ def juge_de(modele):
     return JUGE_DE_MISTRAL if modele.startswith("mistral/") else JUGE
 
 
-def lire_journal():
-    if not JOURNAL.exists():
+def famille(modele):
+    return next((f for nom, f in FAMILLES.items() if nom in modele.lower()), modele)
+
+
+def jugeable(juge, modele):
+    # A panel judge also grades its own family, to see whether it favours it; it only skips the answers
+    # it already grades as the main judge.
+    return juge != juge_de(modele)
+
+
+def lire_journal(fichier=JOURNAL):
+    if not fichier.exists():
         return []
     lignes = []
-    for ligne in JOURNAL.read_text().splitlines():
+    for ligne in fichier.read_text().splitlines():
         try:
             lignes.append(json.loads(ligne))
         except json.JSONDecodeError:
@@ -105,9 +122,9 @@ def lire_journal():
     return lignes
 
 
-def noter(ligne):
+def noter(ligne, fichier=JOURNAL):
     ligne["date"] = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
-    with verrou, JOURNAL.open("a") as f:
+    with verrou, fichier.open("a") as f:
         f.write(json.dumps(ligne, ensure_ascii=False) + "\n")
 
 
@@ -150,6 +167,7 @@ class Voie(threading.Thread):
         self.repos_suite = Counter()
         self.pause_suite = 0
         self.reussi_depuis_pause = True
+        self.cache_seul = False
 
     def restant(self):
         for rep in range(self.repetitions):
@@ -174,7 +192,7 @@ class Voie(threading.Thread):
         maintenant = time.time()
         possibles = [
             t for t in restants
-            if self.repos.get(t[1], 0) <= maintenant and (not t[2]["juge"] or self.juges.libre(juge_de(t[1])))
+            if self.repos.get(t[1], 0) <= maintenant and (not t[2]["juge"] or self.juges.libre(self.juge_pour(t[1])))
         ]
         if not possibles:
             return rep, None, []
@@ -194,12 +212,14 @@ class Voie(threading.Thread):
         env = dict(
             os.environ,
             BENCH_REP=str(rep),
-            BENCH_JUGE=juge_de(modele),
+            BENCH_JUGE=self.juge_pour(modele),
             BENCH_REPONSES=str(RESULTATS / "reponses"),
             PROMPTFOO_CONFIG_DIR=str(RESULTATS / "promptfoo" / slug),
             PROMPTFOO_DISABLE_TELEMETRY="1",
             PROMPTFOO_DISABLE_UPDATE="1",
         )
+        if self.cache_seul:
+            env["BENCH_CACHE_SEUL"] = "1"
         with tempfile.TemporaryDirectory(prefix="banc-") as tmp:
             sortie = Path(tmp) / "sortie.json"
             cmd = PROMPTFOO + [
@@ -236,9 +256,12 @@ class Voie(threading.Thread):
             "theme": c["theme"], "capacite": c["capacite"], "niveau": c["niveau"], **extra,
         })
 
+    def juge_pour(self, modele):
+        return juge_de(modele)
+
     def juge_limite(self, modele, raison):
-        self.juges.limite(juge_de(modele))
-        print(f"[juge {juge_de(modele)}] pause : {raison}", flush=True)
+        self.juges.limite(self.juge_pour(modele))
+        print(f"[juge {self.juge_pour(modele)}] pause : {raison}", flush=True)
 
     def reposer(self, modele, code, texte):
         # Only this model rests, so a lane with a shared quota keeps serving the others.
@@ -317,6 +340,10 @@ class Voie(threading.Thread):
                 self.juge_limite(modele, "%d %s" % demasquer(m.group(1)))
                 continue
 
+            if "BENCH_ABSENT" in erreur:
+                self.enregistrer(rep, modele, c, "erreur", raison="réponse du modèle non gardée")
+                continue
+
             m = re.search(r"BENCH_HTTP modele ([a-p]+)", erreur)
             if m:
                 vus.add("modele")
@@ -326,7 +353,7 @@ class Voie(threading.Thread):
             # A judge answer promptfoo cannot read says nothing about the model: never let it become a score.
             if re.search(r'malformed response|"No output"|Could not extract JSON', notation):
                 self.erreurs[cle] += 1
-                print(f"[juge {juge_de(modele)}] réponse illisible sur : {c['description'][:60]}", flush=True)
+                print(f"[juge {self.juge_pour(modele)}] réponse illisible sur : {c['description'][:60]}", flush=True)
                 if self.erreurs[cle] >= MAX_ERREURS_PAR_EPREUVE:
                     self.enregistrer(rep, modele, c, "erreur", raison="réponse du juge illisible")
                 continue
@@ -346,7 +373,7 @@ class Voie(threading.Thread):
             self.repos_suite[modele] = 0
             self.reussi_depuis_pause = True
             if c["juge"]:
-                self.juges.reussite(juge_de(modele))
+                self.juges.reussite(self.juge_pour(modele))
         if "juge" in sauts and "juge" not in vus:
             self.juge_limite(modele, f"{sauts['juge'][0]} {sauts['juge'][1][:280]}")
         if "modele" in sauts and "modele" not in vus:
@@ -377,6 +404,40 @@ class Voie(threading.Thread):
                 self.pause(attente, arret)
             else:
                 self.pause_suite = 0
+
+
+class VoieJuge(Voie):
+    """Grades again, with one panel judge, the answers the main lanes have already scored, from the stored answers only."""
+
+    def __init__(self, juge, cas, juges, places, etat_pauses):
+        faits = {(l["modele"], l["description"], l["rep"]): l["theme"]
+                 for l in lire_journal(JUGEMENTS) if l.get("juge") == juge}
+        super().__init__(f"juge {juge}", [], cas, faits, set(), juges, places, 1, etat_pauses)
+        self.juge = juge
+        self.cache_seul = True
+        self.par_description = {c["description"]: c for c in cas if c["juge"]}
+
+    def juge_pour(self, modele):
+        return self.juge
+
+    def restant(self):
+        for l in lire_journal():
+            c = self.par_description.get(l.get("description"))
+            if c and l["statut"] == "note" and jugeable(self.juge, l["modele"]) \
+                    and (l["modele"], l["description"], l["rep"]) not in self.faits:
+                yield l["rep"], l["modele"], c
+
+    def lot_suivant(self):
+        rep, modele, lot = super().lot_suivant()
+        # The main lanes keep adding answers to grade: this lane waits for them instead of ending.
+        return (0, None, []) if rep is None else (rep, modele, lot)
+
+    def enregistrer(self, rep, modele, c, statut, **extra):
+        self.faits[(modele, c["description"], rep)] = c["theme"]
+        noter({
+            "juge": self.juge, "modele": modele, "description": c["description"], "rep": rep, "statut": statut,
+            "theme": c["theme"], "capacite": c["capacite"], "niveau": c["niveau"], **extra,
+        }, JUGEMENTS)
 
 
 def verifier_bac_a_sable():
@@ -417,6 +478,7 @@ def run(args):
         Voie(n, m, cas, {cle: t for cle, t in faits.items() if cle[0] in m}, morts, juges, places, args.repetitions, etat_pauses)
         for n, m in voies.items()
     ]
+    fils += [VoieJuge(j, cas, juges, places, etat_pauses) for j in PANEL if not args.voie]
     for f in fils:
         f.start()
     for f in fils:
@@ -442,6 +504,17 @@ def etat(_):
         if p:
             fin = f"  pause {int(p['jusqua'] - time.time())} s : {p['raison'][:60]}"
         print(f"{modele:50} {sum(c.values()):4}/{total:<4}  {c['note']:5} {c['impossible']:11} {c['erreur']:7}{fin}")
+    a_juger = Counter()
+    for l in lignes:
+        if l.get("statut") == "note" and l["description"] in {c["description"] for c in epreuves() if c["juge"]}:
+            for juge in PANEL:
+                a_juger[juge] += jugeable(juge, l["modele"])
+    faits = Counter(l["juge"] for l in lire_journal(JUGEMENTS))
+    print("\npanel de juges (sur les épreuves déjà notées par le juge principal)")
+    for juge in PANEL:
+        p = pauses.get(f"juge {juge}")
+        fin = f"  pause {int(p['jusqua'] - time.time())} s" if p and p["jusqua"] > time.time() else ""
+        print(f"{juge:50} {faits[juge]:5}/{a_juger[juge]:<5}{fin}")
 
 
 def classement(_):
@@ -476,6 +549,37 @@ def classement(_):
     print("\n".join(sortie))
 
 
+def juges(_):
+    """Agreement of each panel judge with the main one, on the same answers, and the ranking each would give."""
+    principal = {(l["modele"], l["description"], l["rep"]): l for l in lire_journal()
+                 if l.get("statut") == "note" and l["description"] in {c["description"] for c in epreuves() if c["juge"]}}
+    panel = defaultdict(dict)
+    for l in lire_journal(JUGEMENTS):
+        if l.get("statut") == "note":
+            panel[l["juge"]][(l["modele"], l["description"], l["rep"])] = l
+    print(f"{len(principal)} épreuves à juge notées par le juge principal\n")
+    print(f"{'juge':32} {'notées':>7} {'même verdict':>13} {'écart moyen':>12}")
+    for juge in PANEL:
+        communs = [k for k in panel[juge] if k in principal]
+        if not communs:
+            print(f"{juge:32} {0:7}")
+            continue
+        accord = sum(panel[juge][k]["reussi"] == principal[k]["reussi"] for k in communs) / len(communs)
+        ecart = statistics.mean(abs((panel[juge][k]["score"] or 0) - (principal[k]["score"] or 0)) for k in communs)
+        print(f"{juge:32} {len(communs):7} {accord * 100:12.0f} % {ecart * 100:11.0f}")
+    print("\nScore moyen des épreuves à juge, par juge contre le juge principal, sur les mêmes épreuves (* : le juge note sa propre famille ; — : pas encore jugé)\n")
+    modeles_vus = sorted({k[0] for k in principal})
+    print(f"{'modèle':46} {'principal':>9} " + " ".join(f"{j.split('/')[-1][:12]:>12}" for j in PANEL))
+    for m in modeles_vus:
+        cellules = []
+        for juge in PANEL:
+            communs = [k for k in panel[juge] if k[0] == m and k in principal]
+            soi = "*" if famille(juge) == famille(m) else " "
+            cellules.append(f"{statistics.mean(panel[juge][k]['score'] or 0 for k in communs) * 100:4.0f}{soi}vs {statistics.mean(principal[k]['score'] or 0 for k in communs) * 100:3.0f}" if communs else "—")
+        tous = [principal[k]["score"] or 0 for k in principal if k[0] == m]
+        print(f"{m[:46]:46} {statistics.mean(tous) * 100:9.0f} " + " ".join(f"{x:>12}" for x in cellules))
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sous = parser.add_subparsers(dest="commande", required=True)
@@ -486,6 +590,7 @@ def main():
     r.set_defaults(fn=run)
     sous.add_parser("etat").set_defaults(fn=etat)
     sous.add_parser("classement").set_defaults(fn=classement)
+    sous.add_parser("juges").set_defaults(fn=juges)
     args = parser.parse_args()
     args.fn(args)
 
