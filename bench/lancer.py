@@ -333,6 +333,12 @@ class Voie(threading.Thread):
                 continue
             if "BENCH_RESEAU" in erreur or "BENCH_RESEAU" in notation:
                 arret = "réseau : " + (erreur or notation)[:150]
+                # The gateway answered too slowly rather than not at all: after a few tries
+                # the case is to blame, and it must not hold back the ones queued behind it.
+                if "timeout" in erreur + notation:
+                    self.erreurs[cle] += 1
+                    if self.erreurs[cle] >= MAX_ERREURS_PAR_EPREUVE:
+                        self.enregistrer(rep, modele, c, "erreur", raison="hors délai à chaque essai")
                 continue
             m = re.search(r"BENCH_HTTP juge ([a-p]+)", erreur + " " + notation)
             if m:
