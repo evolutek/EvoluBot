@@ -1,0 +1,138 @@
+- description: C3 facile — annonce d'un atelier au gabarit
+  metadata: { capacite: C3, niveau: facile }
+  vars:
+    system: &gabarits |-
+      Tu es l'agent Discord de Mécanova, une association de robotique étudiante. Tu écris en français et tu appliques exactement les gabarits du club, sans rien ajouter avant ni après. Aujourd'hui : 2026-10-28.
+
+      Gabarit « annonce d'événement » (5 lignes, dans cet ordre) :
+      📣 **<Titre>**
+      🗓️ <Jour de la semaine> <JJ/MM> à <HH> h
+      📍 <Lieu>
+      <Description en deux phrases au plus>
+      ✅ Inscription : <lien, ou « réagis avec ✅ »>
+      Plusieurs événements : une annonce par événement, séparées par une ligne vide.
+
+      Gabarit « récap #info » :
+      📌 **Récap de la semaine du <JJ/MM> au <JJ/MM>**
+      puis un bloc par projet qui a eu de l'activité, dans l'ordre Rover, Mini-Rover, CanSat, Atelier soudure : une ligne **<Projet>** suivie de puces « - <fait marquant> ». Un projet sans activité n'a pas de bloc.
+      puis 📅 **À venir** suivi de puces « - <JJ/MM> — <événement> », seulement les événements futurs et maintenus ;
+      puis la dernière ligne : Questions → #general
+
+      Gabarit « fiche de membre » (5 lignes) :
+      **Fiche membre — <Prénom Nom>**
+      Pseudo : `<pseudo>`
+      École : <École Alpha, École Beta ou École Gamma>
+      Statut : <membre à jour, membre en retard de cotisation, futur membre ou ancien membre>
+      Projet : <projet, ou — s'il n'en a pas>
+    message: "Fais l'annonce de l'atelier soudure du jeudi 29 octobre à 18 h, au local (sous-sol du bâtiment B). Thème : réparer un câble de servomoteur. Inscription en réagissant avec ✅."
+  assert:
+    - type: javascript
+      value: file://verif.js:annonce
+      config: { nombre: 1, obligatoires: ["29/10", "18 h", "bâtiment B"] }
+
+- description: C3 facile — fiche de membre tirée du contexte
+  metadata: { capacite: C3, niveau: facile }
+  vars:
+    system: *gabarits
+    contexte: file://../../fixtures/club-fictif.md
+    message: "Fais la fiche de membre de Gaëlle Roux."
+  assert:
+    - type: javascript
+      value: file://verif.js:fiche
+      config: { nom: Gaëlle Roux, pseudo: gaelle_r, ecole: École Gamma, statut: membre en retard de cotisation, projet: Mini-Rover }
+
+- description: "C3 moyen — récap #info à partir de notes en vrac"
+  metadata: { capacite: C3, niveau: moyen }
+  vars:
+    system: *gabarits
+    message: |-
+      Fais le récap #info de la semaine du 19/10 au 25/10 à partir de mes notes :
+      - soudure : atelier de jeudi, 9 personnes, initiation aux connecteurs JST
+      - rover : châssis découpé au laser, assemblage samedi prochain 31/10
+      - cansat : le parachute a été testé depuis le 3e étage, il s'ouvre bien
+      - rover encore : Basile a fini le driver des moteurs
+      - à venir aussi : AG le 26/11, et l'atelier soudure de jeudi 29/10
+  assert:
+    - type: javascript
+      value: file://verif.js:recap
+      config: { projets: ["Rover", "CanSat", "Atelier soudure"], aVenir: ["31/10", "26/11", "29/10"] }
+    - type: llm-rubric
+      weight: 0.5
+      value: >-
+        Le récap reprend les cinq informations des notes (atelier de 9 personnes sur les connecteurs JST ;
+        châssis découpé au laser ; assemblage le 31/10 ; driver des moteurs fini par Basile ; parachute testé
+        depuis le 3e étage) et range chacune dans le bon projet. Retire des points pour chaque information
+        manquante, déplacée dans un autre projet ou inventée (un chiffre, un nom ou un événement absent des notes).
+
+- description: C3 moyen — annonce de l'AG à partir d'une discussion qui corrige la date
+  metadata: { capacite: C3, niveau: moyen }
+  vars:
+    system: *gabarits
+    message: |-
+      Voilà ce qu'on s'est dit au conseil, fais l'annonce de l'AG :
+      alix.m : on part sur l'AG le jeudi 19/11 ?
+      chloe.p : non, le 19 l'amphi est pris par l'école
+      alix.m : ok alors jeudi 26/11, 19 h, amphi A du bâtiment C
+      basile_d : on y fera le bilan financier et l'élection du nouveau conseil
+      chloe.p : inscription sur https://mecanova.example/ag pour prévoir les pizzas
+  assert:
+    - type: javascript
+      value: file://verif.js:annonce
+      config: { nombre: 1, obligatoires: ["26/11", "19 h", "amphi A", "https://mecanova.example/ag"], interdits: ["19/11"] }
+    - type: llm-rubric
+      weight: 0.5
+      value: >-
+        La description tient en deux phrases au plus et mentionne le bilan financier et l'élection du
+        nouveau conseil. Retire des points si elle invente un fait (horaire de fin, ordre du jour non cité),
+        si elle mentionne la date abandonnée du 19/11, ou si elle sort du ton d'une annonce officielle.
+
+- description: C3 difficile — récap d'une semaine bruitée, projet sans activité et événement annulé
+  metadata: { capacite: C3, niveau: difficile }
+  vars:
+    system: *gabarits
+    doc: file://../../fixtures/C/semaine-discord.md
+    message: "Fais le récap #info de cette semaine à partir des messages ci-dessous. Garde seulement les faits marquants des projets, pas les bavardages."
+  assert:
+    - type: javascript
+      value: file://verif.js:recap
+      config:
+        projets: ["Rover", "CanSat", "Atelier soudure"]
+        aVenir: ["03/11", "15/11", "29/10"]
+        aVenirInterdits: ["jeux", "24/10"]
+    - type: not-icontains
+      value: croissant
+    - type: llm-rubric
+      weight: 0.5
+      value: >-
+        Le récap retient les faits marquants : pour le Rover, moteurs montés, dérive corrigée en recâblant
+        l'encodeur droit, odométrie validée (2 cm d'erreur sur 3 m) ; pour le CanSat, soudure froide sur SDA
+        réparée et script du baromètre commencé ; pour la soudure, atelier CMS avec 7 participants.
+        À venir : revue de conception du Rover le 03/11, dossier CanSat avant le 15/11, prochain atelier
+        soudure jeudi 29/10. Retire des points pour chaque fait marquant oublié, pour tout bavardage repris
+        (croissants, pince à dénuder, bon dimanche), pour la soirée jeux annulée, et pour tout fait inventé.
+
+- description: C3 difficile — deux événements dans un même message, deux annonces au gabarit
+  metadata: { capacite: C3, niveau: difficile }
+  vars:
+    system: *gabarits
+    message: >-
+      Il me faut les annonces pour deux trucs : d'abord la revue de conception du Rover mardi 3 novembre
+      à 19 h au local, où chaque sous-équipe présente son avancement en 5 minutes avant qu'on vote les
+      priorités jusqu'à la Coupe, avec les slides à déposer sur https://mecanova.example/revue avant lundi
+      soir et pas besoin de s'inscrire mais réagissez quand même avec ✅ pour qu'on compte ; ensuite une
+      sortie au salon de la robotique de Villebrune le samedi 14 novembre à 10 h, rendez-vous devant le
+      bâtiment B, entrée gratuite pour les étudiants, inscription obligatoire sur https://mecanova.example/salon
+      parce qu'on réserve un minibus de 9 places.
+  assert:
+    - type: javascript
+      value: file://verif.js:annonce
+      config: { nombre: 2, obligatoires: ["03/11", "14/11", "https://mecanova.example/salon"] }
+    - type: llm-rubric
+      weight: 0.5
+      value: >-
+        Deux annonces distinctes, chacune avec ses propres informations sans mélange : la revue (mardi 03/11,
+        19 h, local, présentations de 5 minutes, vote des priorités, slides sur le lien avant lundi soir,
+        réaction ✅) et la sortie au salon (samedi 14/11, 10 h, devant le bâtiment B, gratuit pour les étudiants,
+        inscription obligatoire sur le lien, minibus de 9 places). Retire des points pour une information
+        perdue qui compte pour le lecteur (lien, places limitées, date limite des slides), une information
+        attribuée au mauvais événement, ou une description qui dépasse deux phrases.

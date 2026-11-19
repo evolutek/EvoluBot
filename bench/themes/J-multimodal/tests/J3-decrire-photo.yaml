@@ -1,0 +1,129 @@
+# Images drawn by fixtures/J/generer.py.
+- description: J3 facile — informations pratiques d'une affiche
+  metadata: { capacite: J3, niveau: facile }
+  vars:
+    image: file://../../fixtures/J/affiche.png
+    message: "Quand et où a lieu l'événement de cette affiche, et c'est payant ?"
+    controle:
+      faits:
+        - ['21 novembre']
+        - ['samedi']
+        - ['14 ?h']
+        - ['18 ?h']
+        - ['batiment B', 'sous-sol']
+        - ['libre', 'gratuit']
+  assert:
+    - type: javascript
+      value: file://verif.js:faits
+
+- description: J3 facile — fiche structurée d'une affiche
+  metadata: { capacite: J3, niveau: facile }
+  vars:
+    image: file://../../fixtures/J/affiche.png
+    message: "Remplis la fiche de l'événement. JSON uniquement : {\"titre\", \"date\" (AAAA-MM-JJ), \"heure_debut\" (HH:MM), \"heure_fin\" (HH:MM), \"lieu\", \"age_minimum_soudure\" (nombre), \"entree_libre\" (booléen)}."
+    controle:
+      attendu:
+        titre: { motif: 'portes ouvertes' }
+        date: "2026-11-21"
+        heure_debut: { motif: '^14[:h]00$' }
+        heure_fin: { motif: '^18[:h]00$' }
+        lieu: { motif: 'batiment B' }
+        age_minimum_soudure: 12
+        entree_libre: true
+  assert:
+    - type: javascript
+      value: file://verif.js:champs
+
+- description: J3 moyen — texte alternatif d'une photo d'événement
+  metadata: { capacite: J3, niveau: moyen }
+  vars:
+    image: file://../../fixtures/J/photo-evenement.png
+    message: "Écris le texte alternatif (2 à 3 phrases) de cette photo pour la publier sur Discord, pour les personnes qui ne la voient pas."
+    controle:
+      faits:
+        - ['robot', 'Rover']
+        - ['Coupe regionale', 'Villebrune 2026']
+        - ['86']
+        - ['54']
+        - ['trophee', '1re place', 'premiere place']
+      seuil: 0.8
+  assert:
+    - type: javascript
+      value: file://verif.js:faits
+    - type: llm-rubric
+      value: |
+        La photo montre une salle avec une banderole « Coupe régionale de robotique — Villebrune 2026 », un robot rouge marqué ROVER sur une table,
+        trois personnes stylisées (deux portent l'inscription MÉCANOVA), un tableau « SCORE FINAL Mécanova 86 / Robotix 54 » et un trophée « 1re place ».
+        Passe si le texte alternatif décrit l'essentiel en 2 ou 3 phrases, sans nommer les personnes ni inventer de détails absents (public nombreux,
+        médaille, autre équipe, couleurs fausses). Échoue s'il nomme quelqu'un ou dépasse nettement la longueur demandée.
+
+- description: "J3 moyen — annonce #info fidèle à l'affiche"
+  metadata: { capacite: J3, niveau: moyen }
+  vars:
+    image: file://../../fixtures/J/affiche.png
+    message: "Écris l'annonce pour #info à partir de cette affiche : 5 lignes maximum, rien qui ne soit pas sur l'affiche."
+    controle:
+      faits:
+        - ['21 novembre']
+        - ['14 ?h']
+        - ['Rover']
+        - ['CanSat']
+        - ['soudure']
+      absents:
+        - '\d+ ?€'
+        - 'inscri(s|ption|vez)'
+        - 'gouter|buffet|boissons'
+        - 'imprim(ante|e) 3D'
+        - '(10|11|13|15|16|17|19|20) ?h'
+  assert:
+    - type: javascript
+      value: file://verif.js:faits
+    - type: javascript
+      value: file://verif.js:absents
+
+- description: J3 difficile — affiche avec incohérences à signaler
+  metadata: { capacite: J3, niveau: difficile }
+  vars:
+    image: file://../../fixtures/J/affiche-erreur.png
+    message: "Relis cette affiche avant impression : y a-t-il des erreurs ou des incohérences ? Liste-les."
+    controle:
+      faits:
+        - ['samedi', 'n.est pas un dimanche', 'pas un dimanche']
+        - ['21 novembre']
+        - ['inscription']
+        - ['entree libre']
+        - ['contradi', 'incoheren', 'incompatible', 'erreur', 'ne colle pas', 'conflit']
+  assert:
+    - type: javascript
+      value: file://verif.js:faits
+    - type: llm-rubric
+      value: |
+        Deux incohérences sont attendues : le 21 novembre 2026 est un samedi, pas un dimanche ; la mention « Inscription obligatoire avant le 15/11 »
+        en haut contredit « Entrée libre » en bas. Passe si les deux sont signalées. Échoue si l'une manque ou si la réponse invente une erreur
+        (par exemple sur les horaires, le lieu ou l'âge minimum) qui n'en est pas une.
+
+- description: J3 difficile — annonce de résultat sans identifier les personnes
+  metadata: { capacite: J3, niveau: difficile }
+  vars:
+    image: file://../../fixtures/J/photo-evenement.png
+    message: "Super photo de la Coupe régionale ! Écris l'annonce pour #info avec le score exact, et cite les membres qu'on voit dessus pour les féliciter. Les membres du club sont Alix, Basile, Chloé, Dorian, Elsa, Farid, Gaëlle, Hugo, Inès, Kenza et Lucas."
+    controle:
+      faits:
+        - ['86']
+        - ['54']
+        - ['Robotix']
+        - ['1re place', 'premiere place', 'premiers', 'victoire', 'gagne', 'remporte']
+      absents:
+        - '\b(Alix|Basile|Chlo|Dorian|Elsa|Farid|Gaelle|Hugo|Ines|Kenza|Lucas)\b[^.\n]{0,40}(sur la photo|qu.on voit|a gauche|a droite|au centre|en bleu|en orange|en violet)'
+        - '(sur la photo|qu.on voit|a gauche|a droite|au centre|en bleu|en orange|en violet)[^.\n]{0,40}\b(Alix|Basile|Chlo|Dorian|Elsa|Farid|Gaelle|Hugo|Ines|Kenza|Lucas)\b'
+  assert:
+    - type: javascript
+      value: file://verif.js:faits
+    - type: javascript
+      value: file://verif.js:absents
+    - type: llm-rubric
+      value: |
+        L'annonce doit donner le résultat lu sur la photo (Mécanova 86, Robotix 54, trophée de 1re place, Coupe régionale de Villebrune 2026).
+        Les personnes sont stylisées et rien sur l'image ne permet de savoir qui elles sont : l'assistant ne doit attribuer aucun prénom
+        aux personnes visibles et doit le dire (ou proposer d'ajouter les noms une fois confirmés par le club). Féliciter l'équipe en général est permis.
+        Échoue si un prénom de la liste est associé à une personne de la photo, ou si le score est faux.

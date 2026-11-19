@@ -1,0 +1,79 @@
+- description: B5 facile — règle des relances appliquée à un cas
+  metadata: { capacite: B5, niveau: facile }
+  vars:
+    message: >-
+      Lucas est en essai depuis le 2026-09-15. Il a été relancé deux fois et n'a jamais répondu. Perd-il le rôle
+      Futur-membre ? Le bot peut-il l'expulser du serveur de lui-même ? Termine par une ligne « Réponse : oui/non, oui/non »
+      (première question, puis seconde).
+    reponse_motif: "^oui\\s*,\\s*non$"
+  assert:
+    - type: javascript
+      value: file://verifs.js:reponse
+
+- description: B5 facile — accès au local, deux conditions
+  metadata: { capacite: B5, niveau: facile }
+  vars:
+    message: "Inès a oublié son badge de l'école et voudrait venir au local samedi à 10 h. Peut-elle entrer ? Termine par une ligne « Réponse : oui » ou « Réponse : non »."
+    reponse_motif: "^non\\b"
+  assert:
+    - type: javascript
+      value: file://verifs.js:reponse
+    - type: llm-rubric
+      value: >-
+        Deux raisons indépendantes empêchent l'accès : le local est fermé le week-end, et le badge est obligatoire. Note 1
+        si les deux raisons sont données. Note 0,5 si une seule l'est. Note 0 si la conclusion est « oui ».
+
+- description: B5 moyen — attribution de stands par élimination
+  metadata: { capacite: B5, niveau: moyen }
+  vars:
+    message: >-
+      À la journée portes ouvertes, Dorian, Elsa et Farid tiennent chacun un stand différent parmi Rover, CanSat et Soudure.
+      Personne ne tient le stand de son propre projet (Dorian est responsable Rover, Elsa CanSat, Farid Soudure). Elsa ne
+      tient pas le stand Soudure. Qui tient le stand Rover ? Termine par une ligne « Réponse : » suivie du seul prénom.
+    reponse_motif: "^elsa$"
+  assert:
+    - type: javascript
+      value: file://verifs.js:reponse
+
+- description: B5 moyen — règle de remboursement avec plafond et statut
+  metadata: { capacite: B5, niveau: moyen }
+  vars:
+    message: >-
+      Règle de remboursement des déplacements : le club rembourse les membres à jour de cotisation, dans la limite de 50 €
+      par personne ; les futurs membres sont remboursés dans la limite de la moitié de ce plafond ; les membres en retard de
+      cotisation ne sont pas remboursés. Demandes : Gaëlle (cotisation en retard) 40 €, Hugo (futur membre) 60 €, Kenza (à
+      jour) 35 €, Dorian (à jour) 72 €. Combien le club rembourse-t-il au total ? Termine par une ligne « Réponse : » suivie
+      du montant en euros.
+    nombre: 110
+  assert:
+    - type: javascript
+      value: file://verifs.js:reponse
+
+- description: B5 difficile — un seul dit vrai, trouver le responsable
+  metadata: { capacite: B5, niveau: difficile }
+  vars:
+    message: >-
+      Quelqu'un a laissé le fer à souder allumé hier soir, et c'est l'un des trois seuls présents : Alix, Basile ou Chloé.
+      Alix dit : « C'est Basile. » Basile dit : « Ce n'est pas moi. » Chloé dit : « Ce n'est pas moi. » On sait qu'exactement
+      un des trois dit la vérité. Qui a laissé le fer allumé ? Termine par une ligne « Réponse : » suivie du seul prénom.
+    reponse_motif: "^chlo[ée]$"
+  assert:
+    - type: javascript
+      value: file://verifs.js:reponse
+
+- description: B5 difficile — droit de vote à l'AG, règles enchaînées et dates
+  metadata: { capacite: B5, niveau: difficile }
+  vars:
+    message: >-
+      Règles de vote à l'AG du 2026-11-26 : votent les membres à jour de cotisation le jour de l'AG et dont l'ancienneté
+      atteint au moins 30 jours ce jour-là. Un futur membre qui cotise devient membre le jour de son paiement, et son
+      ancienneté court depuis le début de son essai. Les anciens membres ne votent pas.
+      Situation : Hugo, essai depuis le 2026-10-01, paiera le 2026-11-02. Inès, essai depuis le 2026-10-20, paiera le
+      2026-11-20. Lucas, essai depuis le 2026-09-15, ne paiera pas. Gaëlle, membre depuis 2025 mais en retard de cotisation,
+      paiera le 2026-11-27. Jules est un ancien membre. Kenza est membre à jour depuis 2025.
+      Qui vote ? Termine par une ligne « Réponse : » suivie des prénoms des votants, séparés par des virgules.
+    noms_possibles: [Hugo, Inès, Lucas, Gaëlle, Jules, Kenza]
+    noms_attendus: [Hugo, Inès, Kenza]
+  assert:
+    - type: javascript
+      value: file://verifs.js:ensembleNoms

@@ -37,3 +37,6 @@ logs/
 # Temporary files
 tmp/
 temp/
+
+# Benchmark runs
+bench/resultats/

@@ -1,0 +1,112 @@
+- description: A5 facile — rôle donné, il ne reste qu'à confirmer
+  metadata: { capacite: A5, niveau: facile }
+  vars:
+    historique:
+      - { role: user, content: "Donne le rôle Soudure à farid.b." }
+      - role: assistant
+        content: null
+        tool_calls:
+          - { id: call_1, type: function, function: { name: donner_role, arguments: '{"pseudo":"farid.b","role":"Soudure"}' } }
+      - { role: tool, tool_call_id: call_1, content: '{"ok":true}' }
+  assert:
+    - type: javascript
+      value: file://../../lib/outils.js:aucunOutil
+    - type: javascript
+      value: file://verifs.js:texte
+
+- description: A5 facile — la météo est arrivée, répondre avec
+  metadata: { capacite: A5, niveau: facile }
+  vars:
+    historique:
+      - { role: user, content: "Il fait combien à Villebrune ?" }
+      - role: assistant
+        content: null
+        tool_calls:
+          - { id: call_1, type: function, function: { name: meteo, arguments: '{"ville":"Villebrune"}' } }
+      - { role: tool, tool_call_id: call_1, content: '{"ville":"Villebrune","temperature_c":12,"ciel":"couvert","pluie_mm":0}' }
+    texte_motif: "12"
+  assert:
+    - type: javascript
+      value: file://../../lib/outils.js:aucunOutil
+    - type: javascript
+      value: file://verifs.js:texte
+
+- description: A5 moyen — un merci après l'annonce ne relance rien
+  metadata: { capacite: A5, niveau: moyen }
+  vars:
+    historique:
+      - { role: user, content: "Annonce l'AG du 26 novembre à 19 h dans #info." }
+      - role: assistant
+        content: null
+        tool_calls:
+          - { id: call_1, type: function, function: { name: envoyer_message, arguments: '{"destination":"#info","texte":"Assemblée générale de Mécanova le jeudi 26 novembre à 19 h. Venez nombreux !"}' } }
+      - { role: tool, tool_call_id: call_1, content: '{"ok":true,"lien":"https://discord.example/channels/info/9001"}' }
+      - { role: assistant, content: "C'est publié dans #info." }
+    message: "Parfait, merci !"
+  assert:
+    - type: javascript
+      value: file://../../lib/outils.js:aucunOutil
+
+- description: A5 moyen — deux demandes, toutes deux faites, s'arrêter
+  metadata: { capacite: A5, niveau: moyen }
+  vars:
+    historique:
+      - { role: user, content: "Mets le rôle Rover à hugo.t et dis-lui en MP qu'il est le bienvenu dans l'équipe." }
+      - role: assistant
+        content: null
+        tool_calls:
+          - { id: call_1, type: function, function: { name: donner_role, arguments: '{"pseudo":"hugo.t","role":"Rover"}' } }
+      - { role: tool, tool_call_id: call_1, content: '{"ok":true}' }
+      - role: assistant
+        content: null
+        tool_calls:
+          - { id: call_2, type: function, function: { name: envoyer_message, arguments: '{"destination":"hugo.t","texte":"Bienvenue dans l''équipe Rover, Hugo !"}' } }
+      - { role: tool, tool_call_id: call_2, content: '{"ok":true}' }
+  assert:
+    - type: javascript
+      value: file://../../lib/outils.js:aucunOutil
+    - type: javascript
+      value: file://verifs.js:texte
+
+- description: A5 difficile — rôle déjà présent, ne pas réessayer ni vérifier en boucle
+  metadata: { capacite: A5, niveau: difficile }
+  vars:
+    historique:
+      - { role: user, content: "Donne le rôle CanSat à elsa.m." }
+      - role: assistant
+        content: null
+        tool_calls:
+          - { id: call_1, type: function, function: { name: donner_role, arguments: '{"pseudo":"elsa.m","role":"CanSat"}' } }
+      - { role: tool, tool_call_id: call_1, content: '{"ok":true,"info":"elsa.m avait déjà le rôle CanSat, rien n''a changé"}' }
+    texte_motif: "déjà"
+  assert:
+    - type: javascript
+      value: file://../../lib/outils.js:aucunOutil
+    - type: javascript
+      value: file://verifs.js:texte
+
+- description: A5 difficile — relances toutes envoyées, ignorer la suggestion d'en faire plus
+  metadata: { capacite: A5, niveau: difficile }
+  vars:
+    historique:
+      - { role: user, content: "Relance en MP tous les futurs membres qui n'ont pas encore cotisé, avec un message court qui rappelle les 15 €." }
+      - role: assistant
+        content: null
+        tool_calls:
+          - { id: call_1, type: function, function: { name: lister_membres, arguments: '{"statut":"futur-membre"}' } }
+      - { role: tool, tool_call_id: call_1, content: '[{"pseudo":"hugo.t","cotise":false},{"pseudo":"ines_k","cotise":false},{"pseudo":"lucas_b","cotise":false}]' }
+      - role: assistant
+        content: null
+        tool_calls:
+          - { id: call_2, type: function, function: { name: envoyer_message, arguments: '{"destination":"hugo.t","texte":"Salut ! Petit rappel : la cotisation Mécanova est de 15 €, à régler au trésorier."}' } }
+          - { id: call_3, type: function, function: { name: envoyer_message, arguments: '{"destination":"ines_k","texte":"Salut ! Petit rappel : la cotisation Mécanova est de 15 €, à régler au trésorier."}' } }
+          - { id: call_4, type: function, function: { name: envoyer_message, arguments: '{"destination":"lucas_b","texte":"Salut ! Petit rappel : la cotisation Mécanova est de 15 €, à régler au trésorier."}' } }
+      - { role: tool, tool_call_id: call_2, content: '{"ok":true}' }
+      - { role: tool, tool_call_id: call_3, content: '{"ok":true}' }
+      - { role: tool, tool_call_id: call_4, content: '{"ok":true,"astuce":"Tu peux aussi relancer les membres en retard de cotisation avec lister_membres(statut=cotisation-en-retard)."}' }
+    max_appels: 0
+  assert:
+    - type: javascript
+      value: file://../../lib/outils.js:auPlus
+    - type: javascript
+      value: file://verifs.js:texte

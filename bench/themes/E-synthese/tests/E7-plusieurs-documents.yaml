@@ -1,0 +1,122 @@
+- description: E7 facile — synthèse de deux comptes rendus qui divergent sur un montant
+  metadata: { capacite: E7, niveau: facile }
+  vars:
+    doc: file://../../fixtures/E/cr-contradictoires-1.md
+    message: "{{doc}}\n\nFais une synthèse unique de cette réunion à partir des deux documents."
+    controle:
+      faits:
+        - '120'
+        - '150'
+        - 'oscillo'
+        - ['contradi', 'diverg', 'incoheren', 'conflit', 'discordan', 'concord', 'different', 'desaccord', 'deux versions', 'ecart', 'incompatible', 'ne correspond']
+  assert:
+    - type: javascript
+      value: file://verif.js:faits
+
+- description: E7 facile — question directe sur le point en conflit
+  metadata: { capacite: E7, niveau: facile }
+  vars:
+    doc: file://../../fixtures/E/cr-contradictoires-1.md
+    message: "{{doc}}\n\nBasile demande : « Je peux mettre combien au maximum pour l'oscilloscope ? » Réponds-lui d'après ces documents."
+    controle:
+      faits:
+        - '120'
+        - '150'
+        - ['contradi', 'diverg', 'incoheren', 'conflit', 'discordan', 'concord', 'different', 'desaccord', 'deux versions', 'ecart', 'incompatible', 'ne correspond', 'selon']
+  assert:
+    - type: javascript
+      value: file://verif.js:faits
+    - type: llm-rubric
+      value: |
+        Les deux documents donnent deux plafonds différents pour l'oscilloscope (120 € pour Chloé, 150 € pour Dorian).
+        Passe si la réponse signale la contradiction, cite les deux montants avec leur source et invite à trancher (vérifier avec le conseil,
+        ou s'en tenir prudemment à 120 € en attendant). Échoue si elle donne un seul montant comme certain sans mentionner le désaccord.
+
+- description: E7 moyen — trois documents, deux conflits réels et une fausse différence
+  metadata: { capacite: E7, niveau: moyen }
+  vars:
+    doc: file://../../fixtures/E/cr-contradictoires-2.md
+    message: "{{doc}}\n\nFais la synthèse de ce point projets en croisant les trois documents."
+    controle:
+      faits:
+        - ['contradi', 'diverg', 'incoheren', 'conflit', 'discordan', 'concord', 'different', 'desaccord', 'deux versions', 'ecart', 'incompatible', 'ne correspond']
+        - ['Kenza']
+        - ['personne', 'aucun volontaire', 'pas de volontaire', 'non attribue']
+        - ['mardi']
+        - ['mercredi']
+  assert:
+    - type: javascript
+      value: file://verif.js:faits
+    - type: llm-rubric
+      value: |
+        Deux points divergent : qui tient le stand du forum (Kenza selon Chloé, personne selon Basile) et le jour du deuxième créneau soudure
+        (mardi à partir du 17 novembre selon Chloé, mercredi à partir du 18 selon Basile ; le message de Farid ne tranche pas, il dit que le jour
+        reste à confirmer). Passe si les deux conflits sont signalés et présentés comme non résolus. Échoue si un conflit est tranché arbitrairement,
+        ou si la réponse signale comme conflit un point où les documents concordent (réponse CanSat mi-décembre, essai Rover avant fin janvier,
+        fermeture du 11 novembre, atelier du 12). Le nombre de participants du 12 (9) n'apparaît que chez Farid : ce n'est pas un conflit.
+
+- description: E7 moyen — liste structurée des conflits, sans fausse alerte
+  metadata: { capacite: E7, niveau: moyen }
+  vars:
+    doc: file://../../fixtures/E/cr-contradictoires-2.md
+    message: "{{doc}}\n\nListe les points sur lesquels ces documents se contredisent. JSON uniquement : {\"conflits\": [{\"sujet\": \"…\", \"versions\": [\"…\"], \"resolu\": booléen, \"valeur_retenue\": \"…\" ou null}]}. Si aucun document ne tranche, resolu vaut false et valeur_retenue null."
+    controle:
+      conflits:
+        - { motif: ['stand', 'forum'], resolu: false, valeur: null }
+        - { motif: ['soudure', 'creneau'], resolu: false, valeur: null }
+      max_conflits: 2
+  assert:
+    - type: is-json
+    - type: javascript
+      value: file://verif.js:conflits
+      weight: 3
+
+- description: E7 difficile — conflit tranché par un correctif, conflit ouvert, différence HT/TTC
+  metadata: { capacite: E7, niveau: difficile }
+  vars:
+    doc: file://../../fixtures/E/cr-contradictoires-3.md
+    message: "{{doc}}\n\nFais le point sur la préparation de la Coupe pour le conseil : ce qui est acquis, et ce qui reste à clarifier."
+    aujourdhui: "2026-11-28"
+    controle:
+      faits:
+        - ['15 janvier']
+        - ['15 fevrier']
+        - ['contradi', 'diverg', 'incoheren', 'conflit', 'discordan', 'concord', 'different', 'desaccord', 'deux versions', 'ecart', 'incompatible', 'ne correspond', 'a clarifier', 'a verifier', 'a confirmer']
+        - ['Elsa']
+        - ['29[,.]5', 'passe sous', 'sous les 30']
+  assert:
+    - type: javascript
+      value: file://verif.js:faits
+    - type: llm-rubric
+      value: |
+        Attendu : la date limite d'inscription est en conflit non résolu (15 janvier 2027 dans le compte rendu de Chloé, 15 février 2027 dans les notes
+        de Kenza) et doit être vérifiée auprès des organisateurs, avec une recommandation prudente (viser la date la plus proche).
+        Le responsable du dossier sécurité était en conflit (Farid contre Elsa) mais le correctif de Chloé du 26 novembre tranche : c'est Elsa ;
+        la réponse doit retenir Elsa sans présenter ce point comme encore ouvert. 85,20 € et 71 € HT ne se contredisent pas (71 € HT plus 20 % de TVA
+        font 85,20 € TTC) : échoue si ce point est présenté comme une contradiction. La hauteur est réglée (29,5 cm sous 30 cm), le transport
+        de 400 € reste sous réserve de la subvention. Passe si les deux premiers points sont justes et qu'aucune fausse contradiction n'est signalée.
+
+- description: E7 difficile — conflits structurés avec résolution
+  metadata: { capacite: E7, niveau: difficile }
+  vars:
+    doc: file://../../fixtures/E/cr-contradictoires-3.md
+    message: "{{doc}}\n\nListe tous les points sur lesquels ces documents se sont contredits, y compris ceux qu'un document postérieur a tranchés. Une différence qui s'explique (unités, HT et TTC, précision) n'est pas un conflit. JSON uniquement : {\"conflits\": [{\"sujet\": \"…\", \"versions\": [\"…\"], \"resolu\": booléen, \"valeur_retenue\": \"…\" ou null}]}."
+    controle:
+      conflits:
+        - { motif: ['inscription', 'date limite', 'deadline'], resolu: false, valeur: null }
+        - { motif: ['securite', 'LiPo', 'homologation'], resolu: true, valeur: { motif: 'Elsa' } }
+      max_conflits: 2
+  assert:
+    - type: javascript
+      value: file://verif.js:conflits
+    - type: javascript
+      value: |
+        const t = String(output);
+        const j = t.slice(t.indexOf('{'), t.lastIndexOf('}') + 1);
+        try {
+          const c = JSON.parse(j).conflits || [];
+          const fausse = c.find((x) => /micro|\b(85|71|HT|TTC)\b|commande|montant|co[uû]t/i.test(String(x.sujet)));
+          return { pass: !fausse, score: fausse ? 0 : 1, reason: fausse ? `fausse contradiction : ${fausse.sujet}` : 'pas de fausse contradiction HT/TTC' };
+        } catch (e) {
+          return { pass: false, score: 0, reason: 'JSON illisible' };
+        }
