@@ -48,7 +48,7 @@ Une épreuve se termine dans l'un de ces états :
 |---|---|---|
 | `note` | passée et notée | son score |
 | `impossible` | refusée pour de bon (prompt trop long, format non pris en charge) | 0 : le modèle ne sait pas le faire |
-| `erreur` | panne qui persiste après 3 essais, dépassement de délai compris | ignorée |
+| `erreur` | panne qui persiste après 3 essais, y compris un dépassement de délai quand le reste de la voie répond | ignorée |
 
 Un modèle qui répond 401, 402, 403 ou 404 trois fois de suite est noté mort et écarté, sauf si OmniRoute annonce une remise à zéro (`retry_after`) : ce modèle se met alors au repos seul, sans retenir sa voie. Il en va de même pour une erreur 5xx avec remise à zéro annoncée. Pour le retester, retirer sa ligne `modele_mort` du journal.
 

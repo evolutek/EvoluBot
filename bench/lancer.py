@@ -202,7 +202,7 @@ class Voie(threading.Thread):
         theme = min({c["theme"] for c in du_modele}, key=lambda n: (par_theme[(modele, n)], n))
         lot = sorted(
             (c for c in du_modele if c["theme"] == theme),
-            key=lambda c: (self.limites[(modele, c["description"], rep)], c["ordre"]),
+            key=lambda c: (self.limites[(k := (modele, c["description"], rep))] + self.erreurs[k], c["ordre"]),
         )
         return rep, modele, lot[:TAILLE_LOT]
 
@@ -220,6 +220,8 @@ class Voie(threading.Thread):
         )
         if self.cache_seul:
             env["BENCH_CACHE_SEUL"] = "1"
+            # A panel judge may generate a long verdict at a few tokens per second.
+            env["BENCH_DELAI_MS"] = "840000"
         with tempfile.TemporaryDirectory(prefix="banc-") as tmp:
             sortie = Path(tmp) / "sortie.json"
             cmd = PROMPTFOO + [
@@ -333,9 +335,9 @@ class Voie(threading.Thread):
                 continue
             if "BENCH_RESEAU" in erreur or "BENCH_RESEAU" in notation:
                 arret = "réseau : " + (erreur or notation)[:150]
-                # The gateway answered too slowly rather than not at all: after a few tries
-                # the case is to blame, and it must not hold back the ones queued behind it.
-                if "timeout" in erreur + notation:
+                # A timeout right after the lane worked blames the case, which must not hold back
+                # the ones queued behind it; while the provider is slow on everything, it blames none.
+                if "timeout" in erreur + notation and self.reussi_depuis_pause:
                     self.erreurs[cle] += 1
                     if self.erreurs[cle] >= MAX_ERREURS_PAR_EPREUVE:
                         self.enregistrer(rep, modele, c, "erreur", raison="hors délai à chaque essai")
