@@ -45,6 +45,33 @@ function relire(resultat) {
   return resultat;
 }
 
+// Not fetch: it gives up after five minutes without response headers, whatever the signal says,
+// and a slow judge needs longer for a verdict that is not streamed.
+function poster(url, cle, corps) {
+  const cible = new URL(url);
+  const client = cible.protocol === 'https:' ? require('https') : require('http');
+  const delai = AbortSignal.timeout(DELAI_MS);
+  return new Promise((resolve, reject) => {
+    const requete = client.request(
+      cible,
+      {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${cle}`, 'Content-Type': 'application/json' },
+        signal: delai,
+      },
+      (reponse) => {
+        const morceaux = [];
+        reponse.on('data', (m) => morceaux.push(m));
+        reponse.on('end', () => resolve({ status: reponse.statusCode, texte: Buffer.concat(morceaux).toString('utf8') }));
+        reponse.on('error', (e) => reject(delai.aborted ? new Error('timeout') : e));
+      },
+    );
+    // lancer.py tells a slow answer from an unreachable gateway by this word.
+    requete.on('error', (e) => reject(delai.aborted ? new Error('timeout') : e));
+    requete.end(JSON.stringify(corps));
+  });
+}
+
 class OmniRoute {
   constructor({ id, config = {} }) {
     this.config = config;
@@ -86,19 +113,13 @@ class OmniRoute {
 
     const debut = Date.now();
     let reponse;
-    let texte;
     try {
-      reponse = await fetch(`${process.env.OMNIROUTE_URL}/chat/completions`, {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${process.env.OMNIROUTE_BENCH_KEY}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify(corps),
-        signal: AbortSignal.timeout(DELAI_MS),
-      });
-      texte = await reponse.text();
+      reponse = await poster(`${process.env.OMNIROUTE_URL}/chat/completions`, process.env.OMNIROUTE_BENCH_KEY, corps);
     } catch (e) {
       return { error: `BENCH_RESEAU ${role} ${e.message}` };
     }
-    if (!reponse.ok) {
+    const { texte } = reponse;
+    if (reponse.status < 200 || reponse.status >= 300) {
       if ([401, 402, 403, 404, 429].includes(reponse.status) || reponse.status >= 500) {
         limiteAtteinte[role] = masque(reponse.status, texte.slice(0, 300));
       }
