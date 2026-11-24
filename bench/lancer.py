@@ -162,6 +162,9 @@ class Voie(threading.Thread):
         self.etat_pauses = etat_pauses
         self.limites = Counter()
         self.erreurs = Counter()
+        self.rates = Counter()
+        self.reussites = 0
+        self.reussites_au_delai = {}
         self.refus = Counter()
         self.repos = {}
         self.repos_suite = Counter()
@@ -196,6 +199,8 @@ class Voie(threading.Thread):
         ]
         if not possibles:
             return rep, None, []
+        # A case that already failed waits for the others, so it cannot hold them back.
+        possibles = [t for t in possibles if not self.rates[(t[1], t[2]["description"], rep)]] or possibles
         # Least-served model and theme first, so that a shared quota spreads evenly over its models.
         modele = min({t[1] for t in possibles}, key=lambda m: (fait[m], m))
         du_modele = [t[2] for t in possibles if t[1] == modele]
@@ -335,9 +340,11 @@ class Voie(threading.Thread):
                 continue
             if "BENCH_RESEAU" in erreur or "BENCH_RESEAU" in notation:
                 arret = "réseau : " + (erreur or notation)[:150]
-                # A timeout right after the lane worked blames the case, which must not hold back
-                # the ones queued behind it; while the provider is slow on everything, it blames none.
-                if "timeout" in erreur + notation and self.reussi_depuis_pause:
+                self.rates[cle] += 1
+                # A timeout blames the case only if the lane graded something else since this case's
+                # previous one: while the provider is slow on everything, no case is given up.
+                if "timeout" in erreur + notation and self.reussites_au_delai.get(cle) != self.reussites:
+                    self.reussites_au_delai[cle] = self.reussites
                     self.erreurs[cle] += 1
                     if self.erreurs[cle] >= MAX_ERREURS_PAR_EPREUVE:
                         self.enregistrer(rep, modele, c, "erreur", raison="hors délai à chaque essai")
@@ -361,6 +368,7 @@ class Voie(threading.Thread):
             # A judge answer promptfoo cannot read says nothing about the model: never let it become a score.
             if re.search(r'malformed response|"No output"|Could not extract JSON', notation):
                 self.erreurs[cle] += 1
+                self.rates[cle] += 1
                 print(f"[juge {self.juge_pour(modele)}] réponse illisible sur : {c['description'][:60]}", flush=True)
                 if self.erreurs[cle] >= MAX_ERREURS_PAR_EPREUVE:
                     self.enregistrer(rep, modele, c, "erreur", raison="réponse du juge illisible")
@@ -380,6 +388,7 @@ class Voie(threading.Thread):
             self.refus[modele] = 0
             self.repos_suite[modele] = 0
             self.reussi_depuis_pause = True
+            self.reussites += 1
             if c["juge"]:
                 self.juges.reussite(self.juge_pour(modele))
         if "juge" in sauts and "juge" not in vus:
