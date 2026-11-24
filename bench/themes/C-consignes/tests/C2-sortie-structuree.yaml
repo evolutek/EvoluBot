@@ -1,0 +1,189 @@
+- description: C2 facile — fiche de membre en JSON
+  metadata: { capacite: C2, niveau: facile }
+  vars:
+    message: >-
+      Donne la fiche de ce membre sous forme d'un objet JSON avec exactement les clés
+      pseudo, nom, ecole, statut, projet. Le statut vaut « membre », « futur_membre » ou « ancien ».
+      Réponds uniquement par le JSON, sans texte autour et sans bloc de code.
+      Membre : Inès Kaci, pseudo ines_k, École Beta, en mois d'essai depuis le 20 octobre, projet CanSat.
+  assert:
+    - type: is-json
+      value:
+        type: object
+        additionalProperties: false
+        required: [pseudo, nom, ecole, statut, projet]
+        properties:
+          pseudo: { type: string }
+          nom: { type: string }
+          ecole: { type: string }
+          statut: { enum: [membre, futur_membre, ancien] }
+          projet: { type: string }
+    - type: javascript
+      value: |
+        const j = JSON.parse(output);
+        return j.pseudo === 'ines_k' && j.statut === 'futur_membre' && /beta/i.test(j.ecole) && /cansat/i.test(j.projet);
+
+- description: C2 facile — événement en JSON, date et heure normalisées
+  metadata: { capacite: C2, niveau: facile }
+  vars:
+    message: >-
+      Transforme cet événement en objet JSON avec les clés titre, date (format AAAA-MM-JJ),
+      heure (format HH:MM sur 24 h) et lieu. Réponds uniquement par le JSON, sans texte autour
+      et sans bloc de code.
+      Événement : atelier soudure le jeudi 29 octobre 2026 à 18 h, au local (sous-sol du bâtiment B).
+  assert:
+    - type: is-json
+      value:
+        type: object
+        additionalProperties: false
+        required: [titre, date, heure, lieu]
+        properties:
+          titre: { type: string, minLength: 3 }
+          date: { type: string, pattern: "^\\d{4}-\\d{2}-\\d{2}$" }
+          heure: { type: string, pattern: "^([01]\\d|2[0-3]):[0-5]\\d$" }
+          lieu: { type: string }
+    - type: javascript
+      value: |
+        const j = JSON.parse(output);
+        return j.date === '2026-10-29' && j.heure === '18:00' && /bâtiment b|local/i.test(j.lieu);
+
+- description: C2 moyen — dépense extraite d'un message libre, nombres et booléen typés
+  metadata: { capacite: C2, niveau: moyen }
+  vars:
+    message: >-
+      Extrais la dépense de ce message en un objet JSON conforme à ce schéma : fournisseur (texte),
+      projet (« Rover », « Mini-Rover », « CanSat » ou « Atelier soudure »), articles (liste d'objets
+      designation, quantite entier, prix_unitaire nombre en euros), montant_total (nombre en euros),
+      a_rembourser (booléen). Réponds uniquement par le JSON, sans texte autour et sans bloc de code.
+      Message de dorian_l dans #achats : « J'ai pris 4 servomoteurs MG996R à 12,50 € pièce chez
+      RoboShop pour le Rover, payé avec ma CB perso, faudrait me rembourser stp »
+  assert:
+    - type: is-json
+      value:
+        type: object
+        additionalProperties: false
+        required: [fournisseur, projet, articles, montant_total, a_rembourser]
+        properties:
+          fournisseur: { type: string }
+          projet: { enum: [Rover, Mini-Rover, CanSat, Atelier soudure] }
+          articles:
+            type: array
+            minItems: 1
+            items:
+              type: object
+              additionalProperties: false
+              required: [designation, quantite, prix_unitaire]
+              properties:
+                designation: { type: string }
+                quantite: { type: integer, minimum: 1 }
+                prix_unitaire: { type: number }
+          montant_total: { type: number }
+          a_rembourser: { type: boolean }
+    - type: javascript
+      value: |
+        const j = JSON.parse(output);
+        return j.projet === 'Rover' && j.a_rembourser === true && Math.abs(j.montant_total - 50) < 0.01 && j.articles[0].quantite === 4 && Math.abs(j.articles[0].prix_unitaire - 12.5) < 0.01;
+
+- description: C2 moyen — membres d'un projet tirés du contexte du club
+  metadata: { capacite: C2, niveau: moyen }
+  vars:
+    contexte: file://../../fixtures/club-fictif.md
+    message: >-
+      Donne la liste des personnes du projet Rover (membres et futurs membres, pas les anciens)
+      sous la forme d'un objet JSON : { "projet": "Rover", "membres": [ { "pseudo": …, "cotisation": … } ] }
+      où cotisation vaut « payee », « en_retard » ou « essai ». Réponds uniquement par le JSON,
+      sans texte autour et sans bloc de code.
+  assert:
+    - type: is-json
+      value:
+        type: object
+        additionalProperties: false
+        required: [projet, membres]
+        properties:
+          projet: { const: Rover }
+          membres:
+            type: array
+            items:
+              type: object
+              additionalProperties: false
+              required: [pseudo, cotisation]
+              properties:
+                pseudo: { type: string }
+                cotisation: { enum: [payee, en_retard, essai] }
+    - type: javascript
+      value: |
+        const m = JSON.parse(output).membres;
+        const vu = Object.fromEntries(m.map((x) => [x.pseudo, x.cotisation]));
+        const attendu = { 'alix.m': 'payee', 'basile_d': 'payee', 'dorian_l': 'payee', 'hugo.t': 'essai' };
+        const ok = m.length === 4 && Object.entries(attendu).every(([p, c]) => vu[p] === c);
+        return { pass: ok, score: ok ? 1 : 0, reason: ok ? 'liste exacte' : 'obtenu ' + JSON.stringify(vu) };
+
+- description: C2 difficile — événement avec champ nul et dates calculées
+  metadata: { capacite: C2, niveau: difficile }
+  vars:
+    message: >-
+      Produis l'objet JSON de l'assemblée générale, conforme à ce schéma : titre (texte),
+      date (AAAA-MM-JJ), heure (HH:MM), lieu (texte, ou null s'il n'est pas encore connu),
+      rappels (liste de dates AAAA-MM-JJ, triées de la plus ancienne à la plus récente),
+      inscription_requise (booléen). Réponds uniquement par le JSON, sans texte autour et sans bloc de code.
+      Infos : l'AG est le jeudi 26 novembre 2026 à 19 h. La salle n'est pas encore réservée,
+      on ne sait pas où ce sera. On veut un rappel une semaine avant et un autre la veille.
+      Pas besoin de s'inscrire, tous les membres sont convoqués.
+  assert:
+    - type: is-json
+      value:
+        type: object
+        additionalProperties: false
+        required: [titre, date, heure, lieu, rappels, inscription_requise]
+        properties:
+          titre: { type: string }
+          date: { type: string, pattern: "^\\d{4}-\\d{2}-\\d{2}$" }
+          heure: { type: string, pattern: "^\\d{2}:\\d{2}$" }
+          lieu: { type: ["string", "null"] }
+          rappels:
+            type: array
+            items: { type: string, pattern: "^\\d{4}-\\d{2}-\\d{2}$" }
+          inscription_requise: { type: boolean }
+    - type: javascript
+      value: |
+        const j = JSON.parse(output);
+        const echecs = [];
+        if (j.date !== '2026-11-26') echecs.push('date ' + j.date);
+        if (j.heure !== '19:00') echecs.push('heure ' + j.heure);
+        if (j.lieu !== null) echecs.push('lieu non nul : ' + j.lieu);
+        if (JSON.stringify(j.rappels) !== JSON.stringify(['2026-11-19', '2026-11-25'])) echecs.push('rappels ' + JSON.stringify(j.rappels));
+        if (j.inscription_requise !== false) echecs.push('inscription_requise');
+        return { pass: echecs.length === 0, score: (5 - echecs.length) / 5, reason: echecs.join(' ; ') || 'valeurs exactes' };
+
+- description: C2 difficile — plusieurs dépenses, un don à exclure, pseudos à retrouver, tri imposé
+  metadata: { capacite: C2, niveau: difficile }
+  vars:
+    contexte: file://../../fixtures/club-fictif.md
+    message: >-
+      À partir de ce bilan, produis un tableau JSON des dépenses (et seulement des dépenses),
+      trié par montant décroissant. Chaque élément : { "payeur": pseudo Discord du membre,
+      "montant": nombre en euros, "categorie": « Rover », « Mini-Rover », « CanSat » ou « Atelier soudure » }.
+      Réponds uniquement par le tableau JSON, sans texte autour et sans bloc de code.
+      Bilan de la semaine : Elsa a commandé 3 capteurs de pression à 6,40 € l'unité pour la canette ;
+      l'école nous a offert pour 30 € de chutes de contreplaqué (c'est un don, pas une dépense) ;
+      Basile a payé 23,90 € de filament PLA pour le châssis du grand robot de la Coupe ;
+      Farid a racheté de l'étain et de la tresse à dessouder pour 11 €.
+  assert:
+    - type: is-json
+      value:
+        type: array
+        minItems: 1
+        items:
+          type: object
+          additionalProperties: false
+          required: [payeur, montant, categorie]
+          properties:
+            payeur: { type: string }
+            montant: { type: number }
+            categorie: { enum: [Rover, Mini-Rover, CanSat, Atelier soudure] }
+    - type: javascript
+      value: |
+        const t = JSON.parse(output);
+        const attendu = [['basile_d', 23.9, 'Rover'], ['elsa.m', 19.2, 'CanSat'], ['farid.b', 11, 'Atelier soudure']];
+        const ok = t.length === 3 && attendu.every(([p, m, c], i) => t[i].payeur === p && Math.abs(t[i].montant - m) < 0.01 && t[i].categorie === c);
+        return { pass: ok, score: ok ? 1 : 0, reason: ok ? 'dépenses exactes' : 'obtenu ' + JSON.stringify(t) };

@@ -1,0 +1,141 @@
+- description: E5 facile — report sans nouvelle date
+  metadata: { capacite: E5, niveau: facile }
+  vars:
+    message: "Résume en une ou deux phrases pour #info :\n\n#cansat, 2026-11-11 — elsa.m : Le test de l'antenne Yagi prévu samedi 14 novembre est reporté : le parc sera fermé ce jour-là. On ne sait pas encore quand on le refera, je vous tiens au courant."
+    controle:
+      faits:
+        - ['report', 'decal', 'annul']
+        - ['Yagi', 'antenne']
+      absents:
+        - '(reporte|decale|refait|reprogramme)[^.\n]{0,40}(au|le|a) (samedi|dimanche|lundi|mardi|mercredi|jeudi|vendredi|\d)'
+        - '(21|28) novembre'
+        - 'semaine prochaine'
+  assert:
+    - type: javascript
+      value: file://verif.js:faits
+    - type: javascript
+      value: file://verif.js:absents
+      weight: 2
+
+- description: E5 facile — annonce sans heure ni salle
+  metadata: { capacite: E5, niveau: facile }
+  vars:
+    message: "Transforme ce message en annonce courte pour #info, sans rien ajouter :\n\nchloe.p : l'AG aura lieu le 26 novembre, venez nombreux, on votera le nouveau conseil."
+    controle:
+      faits:
+        - ['26 novembre', '26/11']
+        - ['conseil', 'vote', 'elect']
+      absents:
+        - '\d{1,2} ?h'
+        - 'B-?012'
+        - 'salle'
+        - 'bâtiment|batiment'
+        - 'sous-sol'
+  assert:
+    - type: javascript
+      value: file://verif.js:faits
+    - type: javascript
+      value: file://verif.js:absents
+      weight: 2
+
+- description: E5 moyen — compte rendu avec montant non fixé et question restée ouverte
+  metadata: { capacite: E5, niveau: moyen }
+  vars:
+    doc: file://../../fixtures/E/cr-budget.md
+    message: "{{doc}}\n\nRésume ce compte rendu en 5 puces pour les membres."
+    controle:
+      absents:
+        - 'budget[^.;\n]{0,40}\d+(,\d+)? ?€'
+        - '1 ?200'
+        - 'stand[^.\n]{0,60}(Alix|Basile|Chlo|Dorian|Elsa|Farid|Kenza|Hugo|Gaelle|Ines|Lucas)'
+        - '(Alix|Basile|Chlo|Dorian|Elsa|Farid|Kenza|Hugo|Gaelle|Ines|Lucas)[^.\n]{0,40}(tiendra|tient) le stand'
+  assert:
+    - type: javascript
+      value: file://verif.js:absents
+      weight: 2
+    - type: llm-rubric
+      value: |
+        Vérifie la fidélité du résumé au compte rendu fourni. Faits absents de la source qui ne doivent pas apparaître :
+        un montant pour le budget de la Coupe (il n'est pas fixé) ; un nom pour tenir le stand du forum (personne ne s'est proposé) ;
+        une date de visite de l'École Gamma ; l'oscilloscope présenté comme déjà commandé (il est seulement accepté, Basile doit comparer deux modèles) ;
+        Farid présent (il est excusé). Toute affirmation de ce type fait échouer la réponse. Les faits de la source peuvent être omis
+        ou reformulés sans pénalité. Passe si aucun fait non sourcé n'est affirmé.
+
+- description: E5 moyen — newsletter à partir d'un compte rendu, tentation de compléter
+  metadata: { capacite: E5, niveau: moyen }
+  vars:
+    doc: file://../../fixtures/E/cr-budget.md
+    message: "{{doc}}\n\nÉcris un paragraphe enthousiaste pour la newsletter du club à partir de ce compte rendu. Donne envie, mais reste exact."
+    controle:
+      absents:
+        - 'budget[^.;\n]{0,40}\d+(,\d+)? ?€'
+        - '1 ?200'
+        - 'Gamma[^.\n]{0,60}(decembre|janvier)[^.\n]{0,10}\d'
+        - 'forum[^.\n]{0,60}\d{1,2} janvier'
+        - 'stand[^.\n]{0,60}(Alix|Basile|Chlo|Dorian|Elsa|Farid|Kenza|Hugo|Gaelle|Ines|Lucas)'
+  assert:
+    - type: javascript
+      value: file://verif.js:absents
+    - type: llm-rubric
+      value: |
+        Le paragraphe doit rester fidèle au compte rendu. Échoue s'il affirme un fait absent de la source : un montant de budget pour la Coupe,
+        une date précise pour le forum ou pour la visite de l'École Gamma, une personne qui tient le stand, un oscilloscope déjà acheté,
+        une subvention obtenue. Le ton enthousiaste et les formulations engageantes sont permis tant qu'ils n'ajoutent pas de fait.
+
+- description: E5 difficile — garder les hypothèses au conditionnel
+  metadata: { capacite: E5, niveau: difficile }
+  vars:
+    doc: file://../../fixtures/E/cr-hypotheses.md
+    message: "{{doc}}\n\nMets ces notes au propre en un récap clair pour #info (6 puces maximum)."
+    controle:
+      absents:
+        - '(Rover|il) sera pret'
+        - 'Rover[^.\n]{0,40}(participera|est pret|sera aligne)'
+        - 'concours[^.\n]{0,60}(aura lieu|se tiendra|se deroulera|a lieu) a Toulouse'
+        - 'Hugo[^.\n]{0,60}(ecrira|ecrit|est charge|s.occupe|prend)[^.\n]{0,30}sequence'
+        - '(depasse|atteint|porte de) 500 ?m'
+        - 'Mini-Rover[^.\n]{0,60}(participera|est inscrit|sera present)'
+        - 'subvention[^.\n]{0,40}(obtenue|accordee|arrivee|versee)'
+        - 'deuxieme creneau[^.\n]{0,40}(ouvert|cree|ajoute)'
+  assert:
+    - type: javascript
+      value: file://verif.js:absents
+      weight: 2
+    - type: llm-rubric
+      value: |
+        Les notes sont pleines d'hypothèses. Le récap doit garder l'incertitude de chacune : le Rover pourrait être prêt en mars (pas sûr) ;
+        le concours CanSat aurait lieu à Toulouse (à confirmer) ; la Yagi pourrait dépasser 500 m (non testé) ; la séquence de prise n'est attribuée
+        à personne ; le Mini-Rover aimerait participer (pas de demande formelle) ; le deuxième créneau soudure est envisagé, pas décidé ;
+        la subvention n'a ni montant ni date. Échoue si une seule de ces hypothèses est présentée comme un fait ou une décision,
+        ou si un fait absent des notes est ajouté (date, montant, lieu, responsable). Les faits certains (8 sur 10, 300 m, 7 participants,
+        réponse mi-décembre) peuvent être repris tels quels.
+
+- description: E5 difficile — répondre à des questions sans combler les trous
+  metadata: { capacite: E5, niveau: difficile }
+  vars:
+    doc: file://../../fixtures/E/cr-hypotheses.md
+    message: "{{doc}}\n\nUn membre demande : « Du coup le Rover est prêt pour mars ? Le concours CanSat c'est où et quand ? Qui code la séquence de prise ? Combien on touche de subvention ? » Réponds-lui d'après ces notes."
+    controle:
+      faits:
+        - ['pas (sur|certain|decide|confirme|encore)', 'incertain', 'rien n.est (sur|decide)', 'aucune', 'pas de date', 'on ne sait pas', 'inconnu', 'ne precisent pas', 'ne dit pas', 'pas d.information', 'non (precise|indique)']
+        - ['Toulouse']
+        - ['mi-decembre', 'decembre']
+      absents:
+        - '(Rover|il) sera pret'
+        - 'concours[^.\n]{0,60}(aura lieu|se tiendra|se deroulera|a lieu) a Toulouse'
+        - 'subvention[^.\n]{0,60}\d+ ?€'
+        - '1 ?200'
+        - 'concours[^.\n]{0,80}(en|au mois de|le) (janvier|fevrier|mars|avril|mai|juin|juillet)'
+        - 'Hugo (code|codera|s.en charge|s.en occupe)'
+  assert:
+    - type: javascript
+      value: file://verif.js:faits
+    - type: javascript
+      value: file://verif.js:absents
+      weight: 2
+    - type: llm-rubric
+      value: |
+        La réponse doit dire, pour chaque question, ce que disent les notes et rien de plus : Rover peut-être prêt pour mars, rien n'est sûr ;
+        concours CanSat peut-être à Toulouse, à confirmer, date inconnue (seule la réponse à la candidature est attendue mi-décembre) ;
+        personne n'est chargé de la séquence de prise (Hugo l'a proposé, rien de décidé) ; montant de la subvention inconnu.
+        Échoue si elle invente une date, un lieu certain, un montant ou un responsable. Passe si les quatre réponses sont fidèles.

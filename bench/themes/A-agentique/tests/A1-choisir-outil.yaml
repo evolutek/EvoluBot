@@ -1,0 +1,26 @@
+- description: A1 facile — rôle demandé explicitement
+  metadata: { capacite: A1, niveau: facile }
+  vars:
+    message: "Tu peux donner le rôle CanSat à ines_k stp ?"
+    attendu: { nom: donner_role, arguments: { pseudo: ines_k, role: CanSat } }
+  assert:
+    - type: javascript
+      value: file://../../lib/outils.js:outilAttendu
+
+- description: A1 moyen — colis, transporteur à déduire du numéro
+  metadata: { capacite: A1, niveau: moyen }
+  vars:
+    message: "Le colis Colissimo 6A12345678901 des moteurs du Rover, il en est où ?"
+    attendu: { nom: suivre_colis, arguments: { transporteur: Colissimo, numero: "6A12345678901" } }
+  assert:
+    - type: javascript
+      value: file://../../lib/outils.js:outilAttendu
+
+- description: A1 difficile — question qui ressemble à une demande d'outil mais relève du vault
+  metadata: { capacite: A1, niveau: difficile }
+  vars:
+    message: "C'est quoi déjà la procédure pour emprunter le fer à souder du local ? Il fait pas trop froid au sous-sol en ce moment ?"
+    attendu: { nom: chercher_vault }
+  assert:
+    - type: javascript
+      value: file://../../lib/outils.js:outilAttendu

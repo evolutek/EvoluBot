@@ -1,0 +1,106 @@
+- description: B7 facile — événement décalé, étapes relatives à recalculer
+  metadata: { capacite: B7, niveau: facile }
+  vars:
+    message: >-
+      La soirée d'intégration prévue le jeudi 2026-11-19 est décalée au vendredi 2026-11-20. Le plan prévoyait : réserver
+      la salle 14 jours avant, annoncer la soirée 7 jours avant, faire les courses la veille. Donne les nouvelles dates.
+      Termine par une ligne « Réponse : » suivie d'un objet JSON sur une ligne :
+      {"salle": "AAAA-MM-JJ", "annonce": "AAAA-MM-JJ", "courses": "AAAA-MM-JJ"}.
+    contraintes:
+      - { cle: salle, egal: "2026-11-06" }
+      - { cle: annonce, egal: "2026-11-13" }
+      - { cle: courses, egal: "2026-11-19" }
+  assert:
+    - type: javascript
+      value: file://verifs.js:contraintes
+
+- description: B7 facile — livraison retardée, écarts conservés
+  metadata: { capacite: B7, niveau: facile }
+  vars:
+    message: >-
+      Plan du Rover : commande des moteurs le 2026-10-29, réception le 2026-11-05, montage le 2026-11-07, tests le
+      2026-11-12. Le fournisseur annonce une rupture : réception repoussée au 2026-11-16. Les étapes suivantes gardent le
+      même écart avec l'étape qui les précède. Termine par une ligne « Réponse : » suivie d'un objet JSON sur une ligne :
+      {"montage": "AAAA-MM-JJ", "tests": "AAAA-MM-JJ"}.
+    contraintes:
+      - { cle: montage, egal: "2026-11-18" }
+      - { cle: tests, egal: "2026-11-23" }
+  assert:
+    - type: javascript
+      value: file://verifs.js:contraintes
+
+- description: B7 moyen — relance qui échoue, changer de canal et tenir l'échéance
+  metadata: { capacite: B7, niveau: moyen }
+  vars:
+    message: >-
+      Plan de relance d'Inès (essai jusqu'au 2026-11-20) : relance 1 par MP Discord le 2026-11-06, relance 2 par MP le
+      2026-11-13. Aujourd'hui, on apprend qu'elle a fermé ses MP : la relance 1 n'a jamais pu partir. Les relances doivent
+      désormais partir par mail, la première au plus tôt demain, la seconde au moins 7 jours après la première et au plus
+      tard le dernier jour de l'essai, jamais le week-end. Donne le plan corrigé. Termine par une ligne « Réponse : »
+      suivie d'un objet JSON sur une ligne :
+      {"relance1": {"date": "AAAA-MM-JJ", "canal": "mail|discord"}, "relance2": {"date": "AAAA-MM-JJ", "canal": "mail|discord"}}.
+    contraintes:
+      - { cle: relance1.canal, egal: mail }
+      - { cle: relance2.canal, egal: mail }
+      - { cle: relance1.date, min: "2026-10-29", max: "2026-11-13", jours_semaine: [1, 2, 3, 4, 5] }
+      - { cle: relance2.date, max: "2026-11-20", jours_semaine: [1, 2, 3, 4, 5] }
+      - { ecart_min: [relance1.date, relance2.date, 7] }
+  assert:
+    - type: javascript
+      value: file://verifs.js:contraintes
+
+- description: B7 moyen — conseil déplacé, une étape tombe un samedi
+  metadata: { capacite: B7, niveau: moyen }
+  vars:
+    message: >-
+      Autour de chaque conseil : l'ordre du jour part 3 jours avant, la convocation 2 jours avant, le compte rendu 2 jours
+      après. Si une de ces dates tombe un samedi ou un dimanche, elle est reportée au lundi suivant. Le conseil du mardi
+      2026-11-10 est déplacé au jeudi 2026-11-12. Donne les nouvelles dates. Termine par une ligne « Réponse : » suivie
+      d'un objet JSON sur une ligne : {"ordre_du_jour": "AAAA-MM-JJ", "convocation": "AAAA-MM-JJ", "compte_rendu": "AAAA-MM-JJ"}.
+    contraintes:
+      - { cle: ordre_du_jour, egal: "2026-11-09" }
+      - { cle: convocation, egal: "2026-11-10" }
+      - { cle: compte_rendu, egal: "2026-11-16" }
+  assert:
+    - type: javascript
+      value: file://verifs.js:contraintes
+
+- description: B7 difficile — machine en panne, chemin critique à recalculer
+  metadata: { capacite: B7, niveau: difficile }
+  vars:
+    message: >-
+      Préparation de la Coupe. Convention : une tâche de N jours qui commence le jour J libère le jour J + N, où la tâche
+      suivante peut commencer. Tâches : A conception (10 jours) ; B fabrication (15 jours, après A) ; C code (20 jours, peut
+      commencer en même temps que A) ; D intégration (7 jours, après B et C) ; E essais (10 jours, après D). A et C
+      commencent le 2027-02-01. Changement : la fraiseuse est en panne et B ne peut pas commencer avant le 2027-03-01.
+      Chaque tâche commence dès que possible. Donne le début de D, le début de E et le jour où E libère.
+      Termine par une ligne « Réponse : » suivie d'un objet JSON sur une ligne :
+      {"debut_D": "AAAA-MM-JJ", "debut_E": "AAAA-MM-JJ", "fin": "AAAA-MM-JJ"}.
+    contraintes:
+      - { cle: debut_D, egal: "2027-03-16" }
+      - { cle: debut_E, egal: "2027-03-23" }
+      - { cle: fin, egal: "2027-04-02" }
+  assert:
+    - type: javascript
+      value: file://verifs.js:contraintes
+
+- description: B7 difficile — secrétaire absente, ne réattribuer que ce qui doit l'être
+  metadata: { capacite: B7, niveau: difficile }
+  vars:
+    message: >-
+      Plan de l'AG du 2026-11-26 : convocation envoyée par la secrétaire (Chloé) au plus tard 15 jours avant l'AG ; rapport
+      moral par la référente (Alix) ; rapport financier par le trésorier (Basile) ; procès-verbal rédigé pendant l'AG par la
+      secrétaire. Les statuts disent : la convocation est envoyée par la secrétaire ou, à défaut, par la référente. Chloé
+      vient de tomber malade et sera absente jusqu'au 2026-11-20 inclus. Corrige le plan : pour chaque tâche, qui la fait
+      (pseudo) et la date limite. Termine par une ligne « Réponse : » suivie d'un objet JSON sur une ligne :
+      {"convocation": {"qui": "pseudo", "avant": "AAAA-MM-JJ"}, "rapport_moral": {…}, "rapport_financier": {…}, "pv": {…}}.
+    contraintes:
+      - { cle: convocation.qui, egal: alix.m }
+      - { cle: convocation.avant, egal: "2026-11-11" }
+      - { cle: rapport_moral.qui, egal: alix.m }
+      - { cle: rapport_financier.qui, egal: basile_d }
+      - { cle: pv.qui, egal: chloe.p }
+      - { cle: pv.avant, egal: "2026-11-26" }
+  assert:
+    - type: javascript
+      value: file://verifs.js:contraintes

@@ -1,0 +1,87 @@
+- description: C5 facile — liste à puces des salons
+  metadata: { capacite: C5, niveau: facile }
+  vars:
+    contexte: file://../../fixtures/club-fictif.md
+    message: "Fais une liste à puces des salons du serveur, avec l'usage de chacun en quelques mots."
+  assert:
+    - type: javascript
+      value: file://verif.js:discord
+      config: { obligatoires: ["#info", "#achats", "#accueil"] }
+
+- description: C5 facile — lien masqué avec un texte imposé
+  metadata: { capacite: C5, niveau: facile }
+  vars:
+    message: "Donne-moi le règlement intérieur sous forme de lien cliquable dont le texte affiché est « le règlement », vers https://mecanova.example/reglement, dans une phrase qui invite à le lire avant l'AG."
+  assert:
+    - type: javascript
+      value: file://verif.js:discord
+      config: { liensMasques: [{ texte: "le règlement", url: "https://mecanova.example/reglement" }] }
+
+- description: C5 moyen — comparaison demandée en tableau, que Discord n'affiche pas
+  metadata: { capacite: C5, niveau: moyen }
+  vars:
+    message: "Fais-moi un tableau comparatif STM32F103, ESP32 et Arduino Uno : fréquence, RAM, Wi-Fi intégré ou pas. C'est pour le poster dans #rover."
+  assert:
+    - type: javascript
+      value: file://verif.js:discord
+      config: { obligatoires: ["STM32", "ESP32", "Uno"] }
+    - type: llm-rubric
+      weight: 0.5
+      value: >-
+        La comparaison reste lisible sans tableau (puces ou blocs par carte) et donne pour chaque carte une
+        fréquence, une RAM et la présence de Wi-Fi plausibles (STM32F103 : 72 MHz, 20 Ko, pas de Wi-Fi ;
+        ESP32 : 240 MHz, environ 520 Ko, Wi-Fi ; Uno : 16 MHz, 2 Ko, pas de Wi-Fi). Retire des points pour
+        une valeur fausse ou une carte oubliée. Le fait de ne pas faire de tableau ne retire aucun point.
+
+- description: C5 moyen — plan à quatre niveaux de titres demandé
+  metadata: { capacite: C5, niveau: moyen }
+  vars:
+    message: "Rédige le guide d'accueil du serveur avec un titre principal, des parties, des sous-parties et des sous-sous-parties (titres #, ##, ### et ####). Parle du local, de la cotisation et des projets."
+  assert:
+    - type: javascript
+      value: file://verif.js:discord
+      config: { obligatoires: ["15 €"] }
+    - type: javascript
+      value: "/^#{1,3} \\S/m.test(output)"
+
+- description: C5 difficile — guide complet sous la limite de 2000 caractères malgré un contexte en tableaux
+  metadata: { capacite: C5, niveau: difficile }
+  vars:
+    contexte: file://../../fixtures/club-fictif.md
+    message: "Écris le guide complet du nouveau membre en un seul message Discord : le club, le local, la cotisation, tous les membres du conseil avec leur rôle, tous les salons, le calendrier et les règles. Reprends les infos du contexte, de préférence sous forme de tableaux comme dans le contexte."
+  assert:
+    - type: javascript
+      value: file://verif.js:discord
+      config: { obligatoires: ["15 €", "Basile", "#conseil"] }
+    - type: regex
+      value: "26/11|26 novembre|2026-11-26"
+    - type: llm-rubric
+      weight: 0.5
+      value: >-
+        Le message couvre les sept sujets demandés (club, local, cotisation, conseil, salons, calendrier,
+        règles) avec les faits du contexte, sans tableau et sans rien inventer. Retire des points par sujet
+        absent, par fait faux ou inventé.
+
+- description: C5 difficile — bloc de code, citation, lien et tableau d'erreurs demandé
+  metadata: { capacite: C5, niveau: difficile }
+  vars:
+    message: |-
+      Explique dans #rover comment flasher la carte moteur. Il me faut :
+      - la commande `st-flash write firmware.bin 0x8000000` dans un bloc de code bash ;
+      - la règle « Ne jamais flasher sans alimentation stable » en citation ;
+      - le lien vers la doc complète https://mecanova.example/docs/flash, cliquable ;
+      - un tableau des trois erreurs courantes (carte non détectée, erreur de vérification, carte bloquée) avec leur solution.
+  assert:
+    - type: javascript
+      value: file://verif.js:discord
+      config:
+        blocCode: bash
+        citation: true
+        liens: ["https://mecanova.example/docs/flash"]
+        obligatoires: ["st-flash write firmware.bin 0x8000000", "alimentation stable"]
+    - type: llm-rubric
+      weight: 0.5
+      value: >-
+        Les trois erreurs courantes sont présentées sans tableau, chacune avec une solution plausible (vérifier
+        le câblage SWD ou le ST-Link, réessayer ou effacer la mémoire, maintenir le reset ou faire un effacement
+        complet). Retire des points pour une erreur oubliée ou une solution dangereuse.

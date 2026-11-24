@@ -1,0 +1,31 @@
+ 1 | from dataclasses import dataclass
+ 2 | from datetime import date, timedelta
+ 3 |
+ 4 | DUREE_ESSAI = timedelta(days=30)
+ 5 |
+ 6 |
+ 7 | @dataclass
+ 8 | class Inscription:
+ 9 |     pseudo: str
+10 |     debut_essai: date
+11 |
+12 |
+13 | def ajouter_inscription(pseudo, debut_essai, inscrits=[]):
+14 |     """Ajoute un futur membre à la liste du jour et la renvoie."""
+15 |     if any(i.pseudo == pseudo for i in inscrits):
+16 |         return inscrits
+17 |     inscrits.append(Inscription(pseudo, debut_essai))
+18 |     return inscrits
+19 |
+20 |
+21 | def essais_expires(inscrits, aujourdhui):
+22 |     """Pseudos dont le mois d'essai est terminé."""
+23 |     return [i.pseudo for i in inscrits if aujourdhui - i.debut_essai > DUREE_ESSAI]
+24 |
+25 |
+26 | def traiter_formulaire(reponses, aujourdhui):
+27 |     """Appelée une fois par jour avec les réponses du formulaire de ce jour-là."""
+28 |     liste = None
+29 |     for r in reponses:
+30 |         liste = ajouter_inscription(r["pseudo"], aujourdhui)
+31 |     return liste or []

@@ -1,0 +1,12 @@
+description: "E. Synthèse, extraction et compréhension"
+prompts:
+  - id: file://prompt.json
+    label: synthese
+providers: file://../../providers.yaml
+defaultTest:
+  metadata:
+    theme: E
+  options:
+    provider: file://../../juge.yaml
+    disableVarExpansion: true
+tests: file://tests/*.yaml

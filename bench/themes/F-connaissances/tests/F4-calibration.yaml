@@ -1,0 +1,126 @@
+# Calibration is scored later across runs, from the "format" and "justesse" metrics: keep the two-line format strict.
+- description: F4 facile — identifiant CAN standard
+  metadata: { capacite: F4, niveau: facile }
+  vars:
+    message: "Combien de bits compte l'identifiant d'une trame CAN standard (CAN 2.0A) ? Réponds en deux lignes exactement, sans rien d'autre :\nRÉPONSE : <ta réponse>\nCONFIANCE : <entier de 0 à 100, ta probabilité d'avoir juste>"
+    controle:
+      juste: ['\b11\b']
+  assert:
+    - type: regex
+      value: "(^|\\n)RÉPONSE : [^\\n]+\\nCONFIANCE : (100|[1-9]?[0-9])\\s*$"
+      metric: format
+    - type: javascript
+      value: file://verif.js:reponse
+      metric: justesse
+
+- description: F4 facile — fréquence du mode Fast I2C
+  metadata: { capacite: F4, niveau: facile }
+  vars:
+    message: "Quelle est la fréquence d'horloge maximale du bus I2C en mode Fast (Fm) ? Réponds en deux lignes exactement, sans rien d'autre :\nRÉPONSE : <ta réponse>\nCONFIANCE : <entier de 0 à 100, ta probabilité d'avoir juste>"
+    controle:
+      juste: ['400 ?kHz']
+  assert:
+    - type: regex
+      value: "(^|\\n)RÉPONSE : [^\\n]+\\nCONFIANCE : (100|[1-9]?[0-9])\\s*$"
+      metric: format
+    - type: javascript
+      value: file://verif.js:reponse
+      metric: justesse
+
+- description: F4 facile — tension de fin de charge d'une cellule LiPo
+  metadata: { capacite: F4, niveau: facile }
+  vars:
+    message: "Quelle est la tension maximale de fin de charge d'une cellule LiPo standard ? Réponds en deux lignes exactement, sans rien d'autre :\nRÉPONSE : <ta réponse>\nCONFIANCE : <entier de 0 à 100, ta probabilité d'avoir juste>"
+    controle:
+      juste: ['4[,.]20? ?V']
+  assert:
+    - type: regex
+      value: "(^|\\n)RÉPONSE : [^\\n]+\\nCONFIANCE : (100|[1-9]?[0-9])\\s*$"
+      metric: format
+    - type: javascript
+      value: file://verif.js:reponse
+      metric: justesse
+
+- description: F4 moyen — fréquence maximale du STM32F103
+  metadata: { capacite: F4, niveau: moyen }
+  vars:
+    message: "Quelle est la fréquence maximale du cœur d'un STM32F103C8 (Blue Pill) ? Réponds en deux lignes exactement, sans rien d'autre :\nRÉPONSE : <ta réponse>\nCONFIANCE : <entier de 0 à 100, ta probabilité d'avoir juste>"
+    controle:
+      juste: ['72 ?MHz']
+  assert:
+    - type: regex
+      value: "(^|\\n)RÉPONSE : [^\\n]+\\nCONFIANCE : (100|[1-9]?[0-9])\\s*$"
+      metric: format
+    - type: javascript
+      value: file://verif.js:reponse
+      metric: justesse
+
+- description: F4 moyen — résolution de l'ADC du STM32F103
+  metadata: { capacite: F4, niveau: moyen }
+  vars:
+    message: "Quelle est la résolution de l'ADC intégré du STM32F103, en bits ? Réponds en deux lignes exactement, sans rien d'autre :\nRÉPONSE : <ta réponse>\nCONFIANCE : <entier de 0 à 100, ta probabilité d'avoir juste>"
+    controle:
+      juste: ['\b12\b']
+  assert:
+    - type: regex
+      value: "(^|\\n)RÉPONSE : [^\\n]+\\nCONFIANCE : (100|[1-9]?[0-9])\\s*$"
+      metric: format
+    - type: javascript
+      value: file://verif.js:reponse
+      metric: justesse
+
+- description: F4 moyen — tension différentielle CAN à l'état dominant
+  metadata: { capacite: F4, niveau: moyen }
+  vars:
+    message: "Sur un bus CAN haut débit (ISO 11898-2), quelle est la tension différentielle nominale CANH − CANL à l'état dominant ? Réponds en deux lignes exactement, sans rien d'autre :\nRÉPONSE : <ta réponse>\nCONFIANCE : <entier de 0 à 100, ta probabilité d'avoir juste>"
+    controle:
+      juste: ['(^|[^\d,.])2([,.]0)? ?V']
+  assert:
+    - type: regex
+      value: "(^|\\n)RÉPONSE : [^\\n]+\\nCONFIANCE : (100|[1-9]?[0-9])\\s*$"
+      metric: format
+    - type: javascript
+      value: file://verif.js:reponse
+      metric: justesse
+
+- description: F4 difficile — horloge maximale de l'ADC du STM32F103
+  metadata: { capacite: F4, niveau: difficile }
+  vars:
+    message: "Quelle est la fréquence maximale de l'horloge de l'ADC (ADCCLK) du STM32F103 selon sa fiche technique ? Réponds en deux lignes exactement, sans rien d'autre :\nRÉPONSE : <ta réponse>\nCONFIANCE : <entier de 0 à 100, ta probabilité d'avoir juste>"
+    controle:
+      juste: ['14 ?MHz']
+  assert:
+    - type: regex
+      value: "(^|\\n)RÉPONSE : [^\\n]+\\nCONFIANCE : (100|[1-9]?[0-9])\\s*$"
+      metric: format
+    - type: javascript
+      value: file://verif.js:reponse
+      metric: justesse
+
+- description: F4 difficile — temps de montée maximal en I2C Fast-mode
+  metadata: { capacite: F4, niveau: difficile }
+  vars:
+    message: "Selon la spécification I2C, quel est le temps de montée maximal (tr) des signaux SDA et SCL en mode Fast (400 kHz) ? Réponds en deux lignes exactement, sans rien d'autre :\nRÉPONSE : <ta réponse>\nCONFIANCE : <entier de 0 à 100, ta probabilité d'avoir juste>"
+    controle:
+      juste: ['300 ?ns']
+  assert:
+    - type: regex
+      value: "(^|\\n)RÉPONSE : [^\\n]+\\nCONFIANCE : (100|[1-9]?[0-9])\\s*$"
+      metric: format
+    - type: javascript
+      value: file://verif.js:reponse
+      metric: justesse
+
+- description: F4 difficile — charge utile maximale d'une trame CAN FD
+  metadata: { capacite: F4, niveau: difficile }
+  vars:
+    message: "Combien d'octets de données au maximum peut contenir une trame CAN FD ? Réponds en deux lignes exactement, sans rien d'autre :\nRÉPONSE : <ta réponse>\nCONFIANCE : <entier de 0 à 100, ta probabilité d'avoir juste>"
+    controle:
+      juste: ['\b64\b']
+  assert:
+    - type: regex
+      value: "(^|\\n)RÉPONSE : [^\\n]+\\nCONFIANCE : (100|[1-9]?[0-9])\\s*$"
+      metric: format
+    - type: javascript
+      value: file://verif.js:reponse
+      metric: justesse

@@ -1,0 +1,119 @@
+- description: B2 facile — deux relances dans une fenêtre, jours ouvrés
+  metadata: { capacite: B2, niveau: facile }
+  vars:
+    message: >-
+      Inès (ines_k) est en essai depuis le 2026-10-20, son essai finit le 2026-11-20. Place ses deux relances : la première
+      à partir de demain, la seconde au moins 7 jours après la première et au plus tard le dernier jour de l'essai. Pas
+      d'envoi le samedi ni le dimanche. Termine par une ligne « Réponse : » suivie d'un objet JSON sur une ligne, de la forme
+      {"relance1": "AAAA-MM-JJ", "relance2": "AAAA-MM-JJ"}.
+    contraintes:
+      - { cle: relance1, min: "2026-10-29", max: "2026-11-20", jours_semaine: [1, 2, 3, 4, 5] }
+      - { cle: relance2, max: "2026-11-20", jours_semaine: [1, 2, 3, 4, 5] }
+      - { ecart_min: [relance1, relance2, 7] }
+  assert:
+    - type: javascript
+      value: file://verifs.js:contraintes
+
+- description: B2 facile — trois tâches sur trois jours, une précédence
+  metadata: { capacite: B2, niveau: facile }
+  vars:
+    message: >-
+      Trois tâches à placer, une par jour, sur le lundi 2026-11-02, le mardi 2026-11-03 et le mercredi 2026-11-04 :
+      « reservation » (réserver la salle), « annonce » (annoncer l'événement) et « achat » (acheter les boissons). La
+      réservation doit précéder l'annonce, et l'achat ne peut pas se faire le mardi. Termine par une ligne « Réponse : »
+      suivie d'un objet JSON sur une ligne : {"reservation": "AAAA-MM-JJ", "annonce": "AAAA-MM-JJ", "achat": "AAAA-MM-JJ"}.
+    contraintes:
+      - { cle: reservation, dans: ["2026-11-02", "2026-11-03", "2026-11-04"] }
+      - { cle: annonce, dans: ["2026-11-02", "2026-11-03", "2026-11-04"] }
+      - { cle: achat, dans: ["2026-11-02", "2026-11-04"] }
+      - { distincts: [reservation, annonce, achat] }
+      - { ecart_min: [reservation, annonce, 1] }
+  assert:
+    - type: javascript
+      value: file://verifs.js:contraintes
+
+- description: B2 moyen — six relances, une par jour ouvré, fenêtres individuelles
+  metadata: { capacite: B2, niveau: moyen }
+  vars:
+    message: >-
+      Planifie deux relances pour chacun de ces trois futurs membres. Le bot envoie au plus une relance par jour, seulement
+      du lundi au vendredi, et jamais le mardi 2026-11-10 (soir de conseil). Pour chacun, la relance 2 part au moins 5 jours
+      après la relance 1. Hugo : ses deux relances entre le 2026-10-29 et le 2026-11-06. Lucas : relance 1 au plus tard le
+      2026-11-01, relance 2 au plus tard le 2026-11-08. Inès : ses deux relances entre le 2026-11-09 et le 2026-11-20.
+      Termine par une ligne « Réponse : » suivie d'un objet JSON sur une ligne :
+      {"hugo1": "AAAA-MM-JJ", "hugo2": "…", "lucas1": "…", "lucas2": "…", "ines1": "…", "ines2": "…"}.
+    contraintes:
+      - { cle: hugo1, min: "2026-10-29", max: "2026-11-06", jours_semaine: [1, 2, 3, 4, 5] }
+      - { cle: hugo2, min: "2026-10-29", max: "2026-11-06", jours_semaine: [1, 2, 3, 4, 5] }
+      - { cle: lucas1, min: "2026-10-29", max: "2026-11-01", jours_semaine: [1, 2, 3, 4, 5] }
+      - { cle: lucas2, min: "2026-10-29", max: "2026-11-08", jours_semaine: [1, 2, 3, 4, 5] }
+      - { cle: ines1, min: "2026-11-09", max: "2026-11-20", jours_semaine: [1, 2, 3, 4, 5], pas_dans: ["2026-11-10"] }
+      - { cle: ines2, min: "2026-11-09", max: "2026-11-20", jours_semaine: [1, 2, 3, 4, 5], pas_dans: ["2026-11-10"] }
+      - { ecart_min: [hugo1, hugo2, 5] }
+      - { ecart_min: [lucas1, lucas2, 5] }
+      - { ecart_min: [ines1, ines2, 5] }
+      - { distincts: [hugo1, hugo2, lucas1, lucas2, ines1, ines2] }
+  assert:
+    - type: javascript
+      value: file://verifs.js:contraintes
+
+- description: B2 moyen — seul créneau commun d'une heure à trois agendas
+  metadata: { capacite: B2, niveau: moyen }
+  vars:
+    message: >-
+      Trouve un créneau d'une heure, la semaine du lundi 2026-11-02, où Alix, Basile et Chloé sont tous libres.
+      Alix : lundi 18 h – 20 h, mercredi 14 h – 16 h, jeudi 17 h – 19 h.
+      Basile : lundi 19 h – 21 h, mercredi 15 h – 17 h, jeudi 18 h – 19 h.
+      Chloé : lundi 18 h – 19 h 30, mercredi 15 h – 16 h, jeudi 17 h – 18 h 30.
+      Termine par une ligne « Réponse : » suivie d'un objet JSON sur une ligne : {"date": "AAAA-MM-JJ", "debut": "HH:MM"}.
+    contraintes:
+      - { cle: date, egal: "2026-11-04" }
+      - { cle: debut, dans: ["15:00", "15h00"] }
+  assert:
+    - type: javascript
+      value: file://verifs.js:contraintes
+
+- description: B2 difficile — relances entre vacances, conseils et jours déjà pris
+  metadata: { capacite: B2, niveau: difficile }
+  vars:
+    message: >-
+      Place les relances suivantes. Règles générales : une seule relance par jour au total, du lundi au vendredi, jamais un
+      soir de conseil (les mardis des semaines ISO paires) ni le jour de l'AG.
+      Hugo (École Alpha) : relance 1, avant la fin de son essai qui tombe le dimanche 2026-11-01, et au plus tôt demain.
+      Lucas (École Beta) : relance 2, le plus tôt possible ; sa relance 1 date du 2026-10-16.
+      Inès (École Beta) : relance 1 puis relance 2 au moins 7 jours plus tard, avant la fin de son essai le 2026-11-20.
+      L'École Beta est en vacances de Toussaint du 2026-10-24 au 2026-11-02 inclus : on ne relance pas ses élèves pendant
+      leurs vacances.
+      Termine par une ligne « Réponse : » suivie d'un objet JSON sur une ligne :
+      {"hugo1": "AAAA-MM-JJ", "lucas2": "…", "ines1": "…", "ines2": "…"}.
+    contraintes:
+      - { cle: hugo1, dans: ["2026-10-29", "2026-10-30"] }
+      - { cle: lucas2, egal: "2026-11-03" }
+      - { cle: ines1, min: "2026-11-03", max: "2026-11-20", jours_semaine: [1, 2, 3, 4, 5], pas_dans: ["2026-11-10", "2026-11-24"] }
+      - { cle: ines2, max: "2026-11-20", jours_semaine: [1, 2, 3, 4, 5], pas_dans: ["2026-11-10", "2026-11-24"] }
+      - { ecart_min: [ines1, ines2, 7] }
+      - { distincts: [hugo1, lucas2, ines1, ines2] }
+  assert:
+    - type: javascript
+      value: file://verifs.js:contraintes
+
+- description: B2 difficile — quatre séances de soudure, contraintes implicites du calendrier
+  metadata: { capacite: B2, niveau: difficile }
+  vars:
+    message: >-
+      Farid veut une séance de formation soudure par groupe (G1 à G4), un groupe par séance, sur les jeudis de l'atelier
+      (18 h – 20 h) entre le 2026-11-05 et le 2026-12-17 inclus. Contraintes : Farid est absent le 2026-12-03 ; la semaine
+      du 14 décembre, tout le monde est en partiels ; G1 n'est pas disponible le 2026-11-12 ; G2 doit passer avant G3 ; G4
+      utilise les fers neufs, livrés le lundi 2026-11-16. Pense aussi aux autres événements du club ce soir-là.
+      Termine par une ligne « Réponse : » suivie d'un objet JSON sur une ligne :
+      {"G1": "AAAA-MM-JJ", "G2": "…", "G3": "…", "G4": "…"}.
+    contraintes:
+      - { cle: G1, dans: ["2026-11-05", "2026-11-19", "2026-12-10"] }
+      - { cle: G2, dans: ["2026-11-05", "2026-11-12", "2026-11-19", "2026-12-10"] }
+      - { cle: G3, dans: ["2026-11-05", "2026-11-12", "2026-11-19", "2026-12-10"] }
+      - { cle: G4, dans: ["2026-11-19", "2026-12-10"] }
+      - { ecart_min: [G2, G3, 1] }
+      - { distincts: [G1, G2, G3, G4] }
+  assert:
+    - type: javascript
+      value: file://verifs.js:contraintes

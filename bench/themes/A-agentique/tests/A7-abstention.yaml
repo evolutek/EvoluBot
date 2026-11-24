@@ -1,0 +1,108 @@
+- description: A7 facile — date de livraison déjà donnée plus haut
+  metadata: { capacite: A7, niveau: facile }
+  vars:
+    historique:
+      - { role: user, content: "Le colis Colissimo 6A12345678901, il en est où ?" }
+      - role: assistant
+        content: null
+        tool_calls:
+          - { id: call_1, type: function, function: { name: suivre_colis, arguments: '{"transporteur":"Colissimo","numero":"6A12345678901"}' } }
+      - { role: tool, tool_call_id: call_1, content: '{"etat":"livré","date":"2026-10-26","lieu":"accueil du bâtiment B"}' }
+      - { role: assistant, content: "Il a été livré le 26 octobre à l'accueil du bâtiment B." }
+    message: "Ah, et il a été livré quel jour déjà ?"
+    texte_motif: "26"
+  assert:
+    - type: javascript
+      value: file://../../lib/outils.js:aucunOutil
+    - type: javascript
+      value: file://verifs.js:texte
+
+- description: A7 facile — destinataire absent, demander qui
+  metadata: { capacite: A7, niveau: facile }
+  vars:
+    message: "Donne-lui le rôle Rover stp."
+    texte_motif: "\\?"
+  assert:
+    - type: javascript
+      value: file://../../lib/outils.js:aucunOutil
+    - type: javascript
+      value: file://verifs.js:texte
+
+- description: A7 moyen — dépense sans fournisseur, champ requis manquant
+  metadata: { capacite: A7, niveau: moyen }
+  vars:
+    message: "Ajoute une dépense de 30 € pour le Rover, c'est des vis achetées aujourd'hui."
+    texte_motif: "fournisseur|magasin|boutique|chez qui|où"
+  assert:
+    - type: javascript
+      value: file://../../lib/outils.js:aucunOutil
+    - type: javascript
+      value: file://verifs.js:texte
+
+- description: A7 moyen — projet d'un membre déjà lu dans la conversation
+  metadata: { capacite: A7, niveau: moyen }
+  vars:
+    historique:
+      - { role: user, content: "Kenza est bien à jour de cotisation ?" }
+      - role: assistant
+        content: null
+        tool_calls:
+          - { id: call_1, type: function, function: { name: chercher_membre, arguments: '{"recherche":"Kenza"}' } }
+      - { role: tool, tool_call_id: call_1, content: '{"pseudo":"kenza.a","nom":"Kenza Amrani","statut":"membre, cotisation payée","roles":["Membre","Mini-Rover"],"projet":"Mini-Rover"}' }
+      - { role: assistant, content: "Oui, Kenza (kenza.a) est à jour de sa cotisation." }
+    message: "Et elle est sur quel projet ?"
+    texte_motif: "Mini-Rover"
+  assert:
+    - type: javascript
+      value: file://../../lib/outils.js:aucunOutil
+    - type: javascript
+      value: file://verifs.js:texte
+
+- description: A7 difficile — événement sans heure ni durée, ne pas les deviner
+  metadata: { capacite: A7, niveau: difficile }
+  vars:
+    message: "Ajoute au calendrier la réunion avec le sponsor jeudi prochain au local, c'est important."
+  assert:
+    - type: javascript
+      value: file://../../lib/outils.js:aucunOutil
+    - type: llm-rubric
+      value: >-
+        L'outil ajouter_evenement exige une heure de début et une durée, absentes du message. Note 1 si la réponse
+        demande l'heure et la durée (elle peut aussi faire préciser la date : un mercredi 28 octobre, « jeudi prochain »
+        peut désigner le 29 octobre ou le 5 novembre). Note 0 si elle annonce
+        avoir créé l'événement ou fixe elle-même une heure ou une durée.
+
+- description: A7 difficile — liste déjà obtenue dix messages plus haut
+  metadata: { capacite: A7, niveau: difficile }
+  vars:
+    historique:
+      - { role: user, content: "Qui est encore en essai en ce moment ?" }
+      - role: assistant
+        content: null
+        tool_calls:
+          - { id: call_1, type: function, function: { name: lister_membres, arguments: '{"statut":"futur-membre"}' } }
+      - { role: tool, tool_call_id: call_1, content: '[{"pseudo":"hugo.t","nom":"Hugo Thomas","essai_depuis":"2026-10-01"},{"pseudo":"ines_k","nom":"Inès Kaci","essai_depuis":"2026-10-20"},{"pseudo":"lucas_b","nom":"Lucas Bernard","essai_depuis":"2026-09-15"}]' }
+      - { role: assistant, content: "Trois personnes sont en essai : Hugo Thomas, Inès Kaci et Lucas Bernard." }
+      - { role: user, content: "Ok. Il fait beau à Villebrune ?" }
+      - role: assistant
+        content: null
+        tool_calls:
+          - { id: call_2, type: function, function: { name: meteo, arguments: '{"ville":"Villebrune"}' } }
+      - { role: tool, tool_call_id: call_2, content: '{"ville":"Villebrune","temperature_c":14,"ciel":"ensoleillé"}' }
+      - { role: assistant, content: "Oui, 14 °C et ensoleillé." }
+      - { role: user, content: "Cool. Et le colis UPS 1Z999AA10123456784 ?" }
+      - role: assistant
+        content: null
+        tool_calls:
+          - { id: call_3, type: function, function: { name: suivre_colis, arguments: '{"transporteur":"UPS","numero":"1Z999AA10123456784"}' } }
+      - { role: tool, tool_call_id: call_3, content: '{"etat":"en transit","livraison_prevue":"2026-10-30"}' }
+      - { role: assistant, content: "Il est en transit, livraison prévue le 30 octobre." }
+    message: "Au fait, rappelle-moi depuis quand Inès est en essai, et combien ils sont en tout ?"
+    texte_motif: "20.*(oct|10)|(oct|10).*20"
+  assert:
+    - type: javascript
+      value: file://../../lib/outils.js:aucunOutil
+    - type: javascript
+      value: file://verifs.js:texte
+    - type: javascript
+      value: "typeof output === 'string' && /\\b(3|trois)\\b/i.test(output)"

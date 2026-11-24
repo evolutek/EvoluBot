@@ -1,0 +1,13 @@
+description: "B. Planification et raisonnement"
+prompts:
+  - id: file://prompt.json
+    label: planificateur
+providers: file://../../providers.yaml
+defaultTest:
+  metadata:
+    theme: B
+  options:
+    provider: file://../../juge.yaml
+    # list-valued vars (ordre, noms, motifs) must not fan out into one case per item
+    disableVarExpansion: true
+tests: file://tests/*.yaml
